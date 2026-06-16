@@ -4,11 +4,12 @@ import { Modal, Field, inputStyle, selectStyle } from "./Modal";
 import { useToast } from "./Toast";
 
 const glassCard: React.CSSProperties = {
-  background: "rgba(13, 27, 42, 0.7)",
-  backdropFilter: "blur(12px)",
-  border: "1px solid rgba(37, 99, 235, 0.2)",
-  borderRadius: "12px",
+  background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
+  backdropFilter: "blur(18px)",
+  border: "1px solid rgba(168,85,247,0.2)",
+  borderRadius: "22px",
   padding: "20px",
+  boxShadow: "0 0 20px rgba(168,85,247,0.12), 0 0 36px rgba(168,85,247,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 interface Transaction {

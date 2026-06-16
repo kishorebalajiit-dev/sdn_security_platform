@@ -65,15 +65,17 @@ export function AppLayout() {
           height: "100vh",
           width: "100vw",
           overflow: "hidden",
-          background: "#050B18",
+          background: "#050816",
           fontFamily: "'Inter', sans-serif",
         }}
+        className="cyber-shell"
       >
         <Sidebar />
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
-          <div style={{ position: "absolute", top: "-200px", right: "-100px", width: "600px", height: "600px", background: "radial-gradient(circle, rgba(37,99,235,0.06) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
-          <div style={{ position: "absolute", bottom: "-100px", left: "20%", width: "400px", height: "400px", background: "radial-gradient(circle, rgba(6,182,212,0.04) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
+          <div className="cyber-grid" />
+          <div style={{ position: "absolute", top: "-220px", right: "-120px", width: "640px", height: "640px", background: "radial-gradient(circle, rgba(168,85,247,0.16) 0%, transparent 68%)", pointerEvents: "none", zIndex: 0 }} />
+          <div style={{ position: "absolute", bottom: "-120px", left: "20%", width: "440px", height: "440px", background: "radial-gradient(circle, rgba(236,72,153,0.10) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
 
           <TopHeader />
 

@@ -62,19 +62,20 @@ export function Sidebar() {
       style={{
         width: collapsed ? "72px" : "240px",
         transition: "width 0.3s cubic-bezier(0.4,0,0.2,1)",
-        background: "linear-gradient(180deg, #081122 0%, #050B18 100%)",
-        borderRight: "1px solid rgba(37, 99, 235, 0.15)",
+        background: "linear-gradient(180deg, rgba(8,11,26,0.96) 0%, rgba(5,8,22,0.98) 100%)",
+        borderRight: "1px solid rgba(168, 85, 247, 0.16)",
         display: "flex",
         flexDirection: "column",
         flexShrink: 0,
         position: "relative",
         zIndex: 30,
       }}
+      className="cyber-card"
     >
       <div
         style={{
           padding: collapsed ? "20px 0" : "20px 20px",
-          borderBottom: "1px solid rgba(37, 99, 235, 0.12)",
+          borderBottom: "1px solid rgba(168, 85, 247, 0.12)",
           display: "flex",
           alignItems: "center",
           gap: "12px",
@@ -87,22 +88,22 @@ export function Sidebar() {
             width: "36px",
             height: "36px",
             borderRadius: "10px",
-            background: "linear-gradient(135deg, #2563EB 0%, #06B6D4 100%)",
+            background: "linear-gradient(135deg, #A855F7 0%, #EC4899 100%)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
-            boxShadow: "0 0 20px rgba(37, 99, 235, 0.4)",
+            boxShadow: "0 0 20px rgba(168, 85, 247, 0.45)",
           }}
         >
           <Zap size={20} style={{ color: "#fff" }} />
         </div>
         {!collapsed && (
           <div>
-            <div style={{ fontFamily: "Poppins, sans-serif", fontWeight: 700, fontSize: "15px", color: "#E2E8F0", lineHeight: 1.2 }}>
+            <div style={{ fontFamily: "Poppins, sans-serif", fontWeight: 700, fontSize: "15px", color: "#F8FAFC", lineHeight: 1.2 }} className="cyber-glow-text">
               SecureNet AI
             </div>
-            <div style={{ fontSize: "10px", color: "#06B6D4", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            <div style={{ fontSize: "10px", color: "#C084FC", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>
               SDN Security Platform
             </div>
           </div>
@@ -125,10 +126,10 @@ export function Sidebar() {
                 padding: collapsed ? "11px 0" : "11px 16px",
                 justifyContent: collapsed ? "center" : "flex-start",
                 background: isActive
-                  ? "linear-gradient(90deg, rgba(37,99,235,0.2) 0%, rgba(37,99,235,0.05) 100%)"
+                  ? "linear-gradient(90deg, rgba(168,85,247,0.22) 0%, rgba(236,72,153,0.08) 100%)"
                   : "transparent",
-                borderLeft: isActive ? "2px solid #2563EB" : "2px solid transparent",
-                color: isActive ? "#E2E8F0" : "#64748B",
+                borderLeft: isActive ? "2px solid #A855F7" : "2px solid transparent",
+                color: isActive ? "#F8FAFC" : "#94A3B8",
                 cursor: "pointer",
                 border: "none",
                 borderRight: "none",
@@ -150,14 +151,14 @@ export function Sidebar() {
                         top: 0,
                         bottom: 0,
                         width: "2px",
-                        background: "linear-gradient(180deg, #2563EB, #06B6D4)",
+                        background: "linear-gradient(180deg, #A855F7, #EC4899)",
                         borderRadius: "0 2px 2px 0",
                       }}
                     />
                   )}
                   <item.icon
                     size={18}
-                    style={{ color: isActive ? "#2563EB" : "inherit", flexShrink: 0 }}
+                    style={{ color: isActive ? "#C084FC" : "inherit", flexShrink: 0, filter: isActive ? "drop-shadow(0 0 10px rgba(168,85,247,0.55))" : "none" }}
                   />
                   {!collapsed && (
                     <>
@@ -167,7 +168,7 @@ export function Sidebar() {
                       {badge > 0 && (
                         <span
                           style={{
-                            background: item.id === "alerts" ? "#EF4444" : "#2563EB",
+                            background: item.id === "alerts" ? "#EF4444" : "linear-gradient(135deg, #A855F7, #C084FC)",
                             color: "#fff",
                             fontSize: "10px",
                             fontWeight: 700,
@@ -199,7 +200,7 @@ export function Sidebar() {
             padding: collapsed ? "11px 0" : "11px 16px",
             justifyContent: collapsed ? "center" : "flex-start",
             background: "transparent",
-            color: "#64748B",
+            color: "#94A3B8",
             cursor: "pointer",
             border: "none",
             transition: "all 0.18s ease",
@@ -226,9 +227,9 @@ export function Sidebar() {
           width: "24px",
           height: "24px",
           borderRadius: "50%",
-          background: "#081122",
-          border: "1px solid rgba(37,99,235,0.3)",
-          color: "#2563EB",
+          background: "#0A1020",
+          border: "1px solid rgba(168,85,247,0.3)",
+          color: "#C084FC",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
@@ -237,12 +238,12 @@ export function Sidebar() {
           transition: "all 0.18s ease",
         }}
         onMouseEnter={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.background = "#2563EB";
+          (e.currentTarget as HTMLButtonElement).style.background = "#A855F7";
           (e.currentTarget as HTMLButtonElement).style.color = "#fff";
         }}
         onMouseLeave={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.background = "#081122";
-          (e.currentTarget as HTMLButtonElement).style.color = "#2563EB";
+          (e.currentTarget as HTMLButtonElement).style.background = "#0A1020";
+          (e.currentTarget as HTMLButtonElement).style.color = "#C084FC";
         }}
       >
         {collapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}

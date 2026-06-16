@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useCallback, useRef, useState } from "react";
 import { Monitor, Search, Plus, CheckCircle, AlertTriangle, XCircle, Wifi, Server, Cpu, Edit2, Trash2, Ban, Loader } from "lucide-react";
 import { Modal, Field, inputStyle, selectStyle, ConfirmDialog } from "./Modal";
 import { useToast } from "./Toast";
@@ -6,11 +6,12 @@ import { useAppData } from "../../contexts/AppDataContext";
 import type { Device, DeviceType, ConnType } from "../../types";
 
 const glassCard: React.CSSProperties = {
-  background: "rgba(13, 27, 42, 0.7)",
-  backdropFilter: "blur(12px)",
-  border: "1px solid rgba(37, 99, 235, 0.2)",
-  borderRadius: "12px",
+  background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
+  backdropFilter: "blur(18px)",
+  border: "1px solid rgba(168,85,247,0.2)",
+  borderRadius: "22px",
   padding: "20px",
+  boxShadow: "0 0 20px rgba(168,85,247,0.12), 0 0 36px rgba(168,85,247,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const btnBase: React.CSSProperties = {
@@ -28,6 +29,61 @@ const btnBase: React.CSSProperties = {
 
 type DeviceForm = { name: string; ip: string; mac: string; location: string; type: DeviceType; connType: ConnType; owner: string };
 
+interface DeviceFormBodyProps {
+  form: DeviceForm;
+  formErrors: Record<string, string>;
+  setField: (k: keyof DeviceForm, v: string) => void;
+}
+
+const DeviceFormBody = memo(function DeviceFormBody({ form, formErrors, setField }: DeviceFormBodyProps) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+        <Field label="Device Name" required>
+          <input value={form.name} onChange={(e) => setField("name", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.name ? "#EF4444" : "rgba(37,99,235,0.2)" }} placeholder="e.g. Core-SW-05" />
+          {formErrors.name && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{formErrors.name}</p>}
+        </Field>
+        <Field label="IP Address" required>
+          <input value={form.ip} onChange={(e) => setField("ip", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.ip ? "#EF4444" : "rgba(37,99,235,0.2)" }} placeholder="e.g. 10.0.1.5" />
+          {formErrors.ip && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{formErrors.ip}</p>}
+        </Field>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+        <Field label="MAC Address" required>
+          <input value={form.mac} onChange={(e) => setField("mac", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.mac ? "#EF4444" : "rgba(37,99,235,0.2)" }} placeholder="00:1A:2B:3C:4D:5E" />
+          {formErrors.mac && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{formErrors.mac}</p>}
+        </Field>
+        <Field label="Location">
+          <input value={form.location} onChange={(e) => setField("location", e.target.value)} style={inputStyle} placeholder="e.g. DC Rack A3" />
+        </Field>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+        <Field label="Device Type">
+          <select value={form.type} onChange={(e) => setField("type", e.target.value)} style={selectStyle}>
+            <option value="controller">Controller</option>
+            <option value="switch">Switch</option>
+            <option value="server">Server</option>
+            <option value="pc">PC</option>
+            <option value="iot">IoT</option>
+          </select>
+        </Field>
+        <Field label="Connection Type">
+          <select value={form.connType} onChange={(e) => setField("connType", e.target.value)} style={selectStyle}>
+            <option value="Fiber 10G">Fiber 10G</option>
+            <option value="Fiber 1G">Fiber 1G</option>
+            <option value="Ethernet 1G">Ethernet 1G</option>
+            <option value="WiFi 802.11ac">WiFi 802.11ac</option>
+            <option value="WiFi 802.11n">WiFi 802.11n</option>
+          </select>
+        </Field>
+      </div>
+      <Field label="Owner">
+        <input value={form.owner} onChange={(e) => setField("owner", e.target.value)} style={inputStyle} placeholder="e.g. Network Team" />
+      </Field>
+    </div>
+  );
+});
+
 const statusConfig = {
   healthy: { color: "#22C55E", icon: CheckCircle, label: "Healthy" },
   warning: { color: "#F59E0B", icon: AlertTriangle, label: "Warning" },
@@ -42,6 +98,7 @@ const emptyForm = { name: "", ip: "", mac: "", location: "", type: "controller" 
 export function DeviceManagement() {
   const toast = useToast();
   const { devices, isHydrated, addDevice, updateDevice, deleteDevice: removeDevice, blockDevice } = useAppData();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -83,18 +140,18 @@ export function DeviceManagement() {
     return Object.keys(errors).length === 0;
   };
 
-  const openRegister = () => {
+  const openRegister = useCallback(() => {
     setForm(emptyForm);
     setFormErrors({});
     setRegisterOpen(true);
-  };
+  }, []);
 
-  const openEdit = (dev: Device, e: React.MouseEvent) => {
+  const openEdit = useCallback((dev: Device, e: React.MouseEvent) => {
     e.stopPropagation();
     setForm({ name: dev.name, ip: dev.ip, mac: dev.mac, location: dev.location, type: dev.type, connType: dev.connType, owner: dev.owner ?? "" });
     setFormErrors({});
     setEditDevice(dev);
-  };
+  }, []);
 
   const handleRegisterSave = async () => {
     if (!validateForm()) return;
@@ -152,54 +209,7 @@ export function DeviceManagement() {
     );
   }
 
-  const setField = (k: keyof typeof emptyForm, v: string) => setForm((p) => ({ ...p, [k]: v }));
-
-  const DeviceFormBody = () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-        <Field label="Device Name" required>
-          <input value={form.name} onChange={(e) => setField("name", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.name ? "#EF4444" : "rgba(37,99,235,0.2)" }} placeholder="e.g. Core-SW-05" />
-          {formErrors.name && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{formErrors.name}</p>}
-        </Field>
-        <Field label="IP Address" required>
-          <input value={form.ip} onChange={(e) => setField("ip", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.ip ? "#EF4444" : "rgba(37,99,235,0.2)" }} placeholder="e.g. 10.0.1.5" />
-          {formErrors.ip && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{formErrors.ip}</p>}
-        </Field>
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-        <Field label="MAC Address" required>
-          <input value={form.mac} onChange={(e) => setField("mac", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.mac ? "#EF4444" : "rgba(37,99,235,0.2)" }} placeholder="00:1A:2B:3C:4D:5E" />
-          {formErrors.mac && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{formErrors.mac}</p>}
-        </Field>
-        <Field label="Location">
-          <input value={form.location} onChange={(e) => setField("location", e.target.value)} style={inputStyle} placeholder="e.g. DC Rack A3" />
-        </Field>
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-        <Field label="Device Type">
-          <select value={form.type} onChange={(e) => setField("type", e.target.value)} style={selectStyle}>
-            <option value="controller">Controller</option>
-            <option value="switch">Switch</option>
-            <option value="server">Server</option>
-            <option value="pc">PC</option>
-            <option value="iot">IoT</option>
-          </select>
-        </Field>
-        <Field label="Connection Type">
-          <select value={form.connType} onChange={(e) => setField("connType", e.target.value)} style={selectStyle}>
-            <option value="Fiber 10G">Fiber 10G</option>
-            <option value="Fiber 1G">Fiber 1G</option>
-            <option value="Ethernet 1G">Ethernet 1G</option>
-            <option value="WiFi 802.11ac">WiFi 802.11ac</option>
-            <option value="WiFi 802.11n">WiFi 802.11n</option>
-          </select>
-        </Field>
-      </div>
-      <Field label="Owner">
-        <input value={form.owner} onChange={(e) => setField("owner", e.target.value)} style={inputStyle} placeholder="e.g. Network Team" />
-      </Field>
-    </div>
-  );
+  const setField = useCallback((k: keyof DeviceForm, v: string) => setForm((p) => ({ ...p, [k]: v })), []);
 
   const ModalFooter = ({ onSave }: { onSave: () => void }) => (
     <>
@@ -285,9 +295,8 @@ export function DeviceManagement() {
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
           <button
+            onClick={() => searchInputRef.current?.focus()}
             style={{ padding: "8px 16px", fontSize: "12px", fontWeight: 600, background: "rgba(37,99,235,0.12)", color: "#60A5FA", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", transition: "all 0.15s" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(37,99,235,0.2)"; (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(37,99,235,0.12)"; (e.currentTarget as HTMLButtonElement).style.transform = ""; }}
           >
             <Search size={13} /> Search Device
           </button>
@@ -325,6 +334,7 @@ export function DeviceManagement() {
         <div style={{ position: "relative" }}>
           <Search size={13} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#475569" }} />
           <input
+            ref={searchInputRef}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search device, IP, or location..."

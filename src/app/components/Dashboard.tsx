@@ -1,593 +1,408 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import {
-  AreaChart, Area, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from "recharts";
-import {
-  Monitor, Shield, AlertTriangle, Lock, Link2, Brain,
-  TrendingUp, TrendingDown, Activity, CheckCircle, XCircle,
-  Clock, ArrowRight, Download, FileText, Loader,
+  Activity,
+  AlertTriangle,
+  ArrowDownRight,
+  ArrowUpRight,
+  Brain,
+  CheckCircle2,
+  ChevronRight,
+  CircleAlert,
+  Database,
+  Shield,
+  Sparkles,
+  Triangle,
+  Wifi,
+  Lock,
+  Link2,
+  Cpu,
+  Globe,
 } from "lucide-react";
-import { Modal } from "./Modal";
-import { useToast } from "./Toast";
 import { useAppData } from "../../contexts/AppDataContext";
 
-const glassCard: React.CSSProperties = {
-  background: "rgba(13, 27, 42, 0.7)",
-  backdropFilter: "blur(12px)",
-  border: "1px solid rgba(37, 99, 235, 0.2)",
-  borderRadius: "12px",
-  padding: "20px",
-  transition: "border-color 0.2s, box-shadow 0.2s",
-};
+const kpiConfig = [
+  { key: "totalDevices", label: "Total Devices", icon: Cpu, delta: "+6.2%" },
+  { key: "activeDevices", label: "Active Devices", icon: Wifi, delta: "+2.1%" },
+  { key: "threatsDetected", label: "Threats Detected", icon: AlertTriangle, delta: "+18.4%" },
+  { key: "blockedAttacks", label: "Blocked Attacks", icon: Shield, delta: "+14.8%" },
+  { key: "blockchainTransactions", label: "Blockchain Tx", icon: Link2, delta: "+9.7%" },
+  { key: "aiAccuracy", label: "AI Accuracy", icon: Brain, delta: "+1.6%" },
+] as const;
 
-// --- Traffic data per range ---
-type Range = "1H" | "6H" | "24H" | "7D";
-
-const trafficDataMap: Record<Range, Array<{ time: string; inbound: number; outbound: number; anomalies: number }>> = {
-  "1H": [
-    { time: "00m", inbound: 88, outbound: 62, anomalies: 3 },
-    { time: "10m", inbound: 95, outbound: 71, anomalies: 8 },
-    { time: "20m", inbound: 142, outbound: 96, anomalies: 15 },
-    { time: "30m", inbound: 118, outbound: 78, anomalies: 5 },
-    { time: "40m", inbound: 133, outbound: 90, anomalies: 11 },
-    { time: "50m", inbound: 156, outbound: 108, anomalies: 18 },
-    { time: "60m", inbound: 129, outbound: 84, anomalies: 9 },
-  ],
-  "6H": [
-    { time: "09:00", inbound: 55, outbound: 35, anomalies: 2 },
-    { time: "10:00", inbound: 89, outbound: 62, anomalies: 5 },
-    { time: "11:00", inbound: 124, outbound: 88, anomalies: 8 },
-    { time: "12:00", inbound: 142, outbound: 96, anomalies: 12 },
-    { time: "13:00", inbound: 138, outbound: 91, anomalies: 7 },
-    { time: "14:00", inbound: 155, outbound: 108, anomalies: 15 },
-  ],
-  "24H": [
-    { time: "00:00", inbound: 42, outbound: 28, anomalies: 2 },
-    { time: "02:00", inbound: 38, outbound: 22, anomalies: 0 },
-    { time: "04:00", inbound: 31, outbound: 18, anomalies: 1 },
-    { time: "06:00", inbound: 55, outbound: 35, anomalies: 3 },
-    { time: "08:00", inbound: 89, outbound: 62, anomalies: 5 },
-    { time: "10:00", inbound: 124, outbound: 88, anomalies: 8 },
-    { time: "12:00", inbound: 142, outbound: 96, anomalies: 12 },
-    { time: "14:00", inbound: 138, outbound: 91, anomalies: 7 },
-    { time: "16:00", inbound: 155, outbound: 108, anomalies: 15 },
-    { time: "18:00", inbound: 132, outbound: 87, anomalies: 9 },
-    { time: "20:00", inbound: 98, outbound: 64, anomalies: 4 },
-    { time: "22:00", inbound: 72, outbound: 48, anomalies: 2 },
-  ],
-  "7D": [
-    { time: "Mon", inbound: 980, outbound: 720, anomalies: 42 },
-    { time: "Tue", inbound: 1240, outbound: 910, anomalies: 68 },
-    { time: "Wed", inbound: 890, outbound: 640, anomalies: 31 },
-    { time: "Thu", inbound: 1560, outbound: 1120, anomalies: 95 },
-    { time: "Fri", inbound: 1380, outbound: 980, anomalies: 74 },
-    { time: "Sat", inbound: 620, outbound: 440, anomalies: 18 },
-    { time: "Sun", inbound: 710, outbound: 520, anomalies: 24 },
-  ],
-};
-
-const threatTrendData = [
-  { day: "Mon", critical: 4, high: 12, medium: 28, low: 45 },
-  { day: "Tue", critical: 7, high: 18, medium: 32, low: 51 },
-  { day: "Wed", critical: 3, high: 9, medium: 24, low: 38 },
-  { day: "Thu", critical: 11, high: 24, medium: 41, low: 62 },
-  { day: "Fri", critical: 8, high: 20, medium: 35, low: 54 },
-  { day: "Sat", critical: 2, high: 6, medium: 15, low: 28 },
-  { day: "Sun", critical: 5, high: 14, medium: 22, low: 39 },
+const threatSources = [
+  { name: "Mirai Botnet", region: "APAC / Edge", risk: "critical", score: "97" },
+  { name: "Credential Stuffing", region: "Finance / Web", risk: "high", score: "88" },
+  { name: "ARP Spoofing", region: "IoT / VLAN 5", risk: "high", score: "82" },
+  { name: "Port Reconnaissance", region: "Perimeter / WAN", risk: "medium", score: "64" },
 ];
 
-const attackDistData = [
-  { name: "DDoS", value: 32, color: "#EF4444" },
-  { name: "Malware", value: 24, color: "#F59E0B" },
-  { name: "Phishing", value: 18, color: "#8B5CF6" },
-  { name: "Intrusion", value: 15, color: "#2563EB" },
-  { name: "Zero-day", value: 11, color: "#06B6D4" },
+const topologyNodes = [
+  { type: "Controller", name: "SDN Controller 01", meta: "Policy orchestration · Live" },
+  { type: "Blockchain", name: "Immutable Ledger", meta: "47291 verified blocks" },
+  { type: "Cloud", name: "Northstar Cloud", meta: "3 regions online" },
+  { type: "Switch", name: "Core-SW-02", meta: "4.2 Gbps throughput" },
+  { type: "Server", name: "SVR-Web-01", meta: "P1 protected" },
+  { type: "IoT", name: "IoT-Sensor-48", meta: "Quarantined" },
 ];
 
-const aiRecommendations = [
-  { title: "Block IP Range 45.33.x.x", confidence: 97, action: "Block", category: "DDoS Mitigation" },
-  { title: "Quarantine IoT Device #48", confidence: 92, action: "Quarantine", category: "Malware Spread" },
-  { title: "Update firewall rule FW-117", confidence: 88, action: "Update Rule", category: "Policy Gap" },
-  { title: "Patch CVE-2024-3848 on SVR-09", confidence: 95, action: "Patch Now", category: "Vulnerability" },
+const recentMoves = [
+  { time: "14:25", action: "Automated rate limiting applied on Edge-SW-03", actor: "SDN Controller" },
+  { time: "14:23", action: "DDoS attack detected and classified", actor: "AI Engine" },
+  { time: "14:18", action: "Immutable audit event recorded on-chain", actor: "Blockchain Layer" },
+  { time: "14:12", action: "Finance portal anomaly scoring updated", actor: "ML Detector" },
 ];
 
-const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string; color: string }>; label?: string }) => {
-  if (active && payload?.length) {
-    return (
-      <div style={{ background: "#081122", border: "1px solid rgba(37,99,235,0.3)", borderRadius: "8px", padding: "10px 14px" }}>
-        <p style={{ color: "#94A3B8", fontSize: "11px", marginBottom: "6px" }}>{label}</p>
-        {payload.map((p, i) => (
-          <p key={i} style={{ color: p.color, fontSize: "12px", fontFamily: "JetBrains Mono, monospace" }}>
-            {p.name}: {p.value}
-          </p>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
-
-interface KPICardProps {
-  label: string; value: string; change: string; up: boolean;
-  icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }>;
-  color: string; glowColor: string;
-}
-function KPICard({ label, value, change, up, icon: Icon, color, glowColor }: KPICardProps) {
-  return (
-    <div
-      style={{ ...glassCard, padding: "20px", position: "relative", overflow: "hidden", cursor: "default" }}
-      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(37,99,235,0.45)"; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 0 20px rgba(37,99,235,0.12)`; }}
-      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(37,99,235,0.2)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; }}
-    >
-      <div style={{ position: "absolute", top: 0, right: 0, width: "80px", height: "80px", background: `radial-gradient(circle at top right, ${glowColor} 0%, transparent 70%)`, opacity: 0.15, pointerEvents: "none" }} />
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "12px" }}>
-        <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: `rgba(${color}, 0.12)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Icon size={20} style={{ color: `rgb(${color})` }} />
-        </div>
-        <span style={{ display: "flex", alignItems: "center", gap: "3px", fontSize: "11px", fontWeight: 600, color: up ? "#22C55E" : "#EF4444" }}>
-          {up ? <TrendingUp size={12} /> : <TrendingDown size={12} />}{change}
-        </span>
-      </div>
-      <div style={{ fontSize: "26px", fontFamily: "Poppins, sans-serif", fontWeight: 700, color: "#E2E8F0", lineHeight: 1.1 }}>{value}</div>
-      <div style={{ fontSize: "12px", color: "#64748B", marginTop: "4px" }}>{label}</div>
-    </div>
-  );
-}
-
-// Generate Report Modal
-function GenerateReportModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [step, setStep] = useState<"select" | "generating" | "ready">("select");
-  const [progress, setProgress] = useState(0);
-  const [reportType, setReportType] = useState("full");
-  const [format, setFormat] = useState("pdf");
-  const { success } = useToast();
-
-  const handleGenerate = () => {
-    setStep("generating");
-    setProgress(0);
-    const interval = setInterval(() => {
-      setProgress((p) => {
-        if (p >= 100) {
-          clearInterval(interval);
-          setStep("ready");
-          return 100;
-        }
-        return p + Math.floor(Math.random() * 12) + 5;
-      });
-    }, 180);
-  };
-
-  const handleDownload = () => {
-    success("Report Downloaded", `${format.toUpperCase()} report saved to Downloads folder`);
-    onClose();
-    setStep("select");
-    setProgress(0);
-  };
-
-  useEffect(() => {
-    if (!open) { setStep("select"); setProgress(0); }
-  }, [open]);
-
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Generate Security Report"
-      subtitle="Create a comprehensive security report for export"
-      footer={
-        step === "select" ? (
-          <>
-            <button onClick={onClose} style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: "rgba(255,255,255,0.05)", color: "#94A3B8", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", cursor: "pointer" }}>Cancel</button>
-            <button onClick={handleGenerate} style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", boxShadow: "0 0 16px rgba(37,99,235,0.4)", display: "flex", alignItems: "center", gap: "6px" }}>
-              <FileText size={13} /> Generate Report
-            </button>
-          </>
-        ) : step === "ready" ? (
-          <>
-            <button onClick={() => { setStep("select"); setProgress(0); }} style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: "rgba(255,255,255,0.05)", color: "#94A3B8", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", cursor: "pointer" }}>Generate Another</button>
-            <button onClick={handleDownload} style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: "linear-gradient(135deg, #22C55E, #16A34A)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", boxShadow: "0 0 16px rgba(34,197,94,0.35)", display: "flex", alignItems: "center", gap: "6px" }}>
-              <Download size={13} /> Download {format.toUpperCase()}
-            </button>
-          </>
-        ) : null
-      }
-    >
-      {step === "select" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <div>
-            <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "8px" }}>Report Type</label>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {[
-                { value: "full", label: "Full Security Report", desc: "Complete threat analysis, incidents, AI metrics, blockchain audit" },
-                { value: "threats", label: "Threat Intelligence Report", desc: "Active threats, IOCs, attack patterns, and AI recommendations" },
-                { value: "compliance", label: "Compliance & Audit Report", desc: "Blockchain audit trail, policy compliance, access logs" },
-                { value: "executive", label: "Executive Summary", desc: "High-level KPIs and risk posture for leadership" },
-              ].map((opt) => (
-                <div key={opt.value} onClick={() => setReportType(opt.value)}
-                  style={{ padding: "12px 14px", background: reportType === opt.value ? "rgba(37,99,235,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${reportType === opt.value ? "rgba(37,99,235,0.4)" : "rgba(37,99,235,0.12)"}`, borderRadius: "8px", cursor: "pointer", transition: "all 0.15s" }}>
-                  <p style={{ fontSize: "12px", fontWeight: 600, color: reportType === opt.value ? "#60A5FA" : "#E2E8F0", marginBottom: "2px" }}>{opt.label}</p>
-                  <p style={{ fontSize: "11px", color: "#475569" }}>{opt.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label style={{ fontSize: "11px", fontWeight: 600, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "8px" }}>Export Format</label>
-            <div style={{ display: "flex", gap: "8px" }}>
-              {["pdf", "csv", "json"].map((f) => (
-                <button key={f} onClick={() => setFormat(f)} style={{ flex: 1, padding: "8px", fontSize: "12px", fontWeight: 700, textTransform: "uppercase", borderRadius: "8px", cursor: "pointer", border: "1px solid", borderColor: format === f ? "#2563EB" : "rgba(37,99,235,0.15)", background: format === f ? "rgba(37,99,235,0.15)" : "transparent", color: format === f ? "#60A5FA" : "#64748B" }}>
-                  {f}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {step === "generating" && (
-        <div style={{ textAlign: "center", padding: "20px 0" }}>
-          <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "rgba(37,99,235,0.1)", border: "2px solid rgba(37,99,235,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-            <Loader size={28} style={{ color: "#2563EB", animation: "spin 1s linear infinite" }} />
-          </div>
-          <p style={{ fontSize: "14px", fontWeight: 600, color: "#E2E8F0", marginBottom: "6px" }}>Generating Report...</p>
-          <p style={{ fontSize: "12px", color: "#64748B", marginBottom: "20px" }}>Compiling threat data, blockchain logs, and AI analytics</p>
-          <div style={{ height: "6px", background: "rgba(255,255,255,0.06)", borderRadius: "3px", overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${Math.min(progress, 100)}%`, background: "linear-gradient(90deg, #2563EB, #06B6D4)", borderRadius: "3px", transition: "width 0.2s ease" }} />
-          </div>
-          <p style={{ fontSize: "11px", color: "#2563EB", marginTop: "8px", fontFamily: "JetBrains Mono, monospace" }}>{Math.min(progress, 100)}%</p>
-          <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-        </div>
-      )}
-
-      {step === "ready" && (
-        <div>
-          <div style={{ textAlign: "center", padding: "12px 0 20px" }}>
-            <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "rgba(34,197,94,0.12)", border: "2px solid rgba(34,197,94,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
-              <CheckCircle size={26} style={{ color: "#22C55E" }} />
-            </div>
-            <p style={{ fontSize: "14px", fontWeight: 600, color: "#E2E8F0" }}>Report Ready!</p>
-            <p style={{ fontSize: "12px", color: "#64748B", marginTop: "4px" }}>Your report has been compiled successfully</p>
-          </div>
-          {/* Report preview */}
-          <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(37,99,235,0.15)", borderRadius: "10px", padding: "16px" }}>
-            <div style={{ display: "flex", gap: "12px", alignItems: "center", marginBottom: "12px" }}>
-              <FileText size={28} style={{ color: "#2563EB" }} />
-              <div>
-                <p style={{ fontSize: "13px", fontWeight: 600, color: "#E2E8F0" }}>SecureNet_Security_Report_2026-06-15.{format}</p>
-                <p style={{ fontSize: "11px", color: "#475569" }}>Generated: 2026-06-15 14:35 · 2.4 MB</p>
-              </div>
-            </div>
-            {[
-              { section: "Executive Summary", pages: "1-2" },
-              { section: "Threat Analysis", pages: "3-8" },
-              { section: "AI Detection Metrics", pages: "9-12" },
-              { section: "Blockchain Audit Trail", pages: "13-18" },
-              { section: "Incident Response Log", pages: "19-22" },
-              { section: "Recommendations", pages: "23-24" },
-            ].map((s) => (
-              <div key={s.section} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(37,99,235,0.06)" }}>
-                <span style={{ fontSize: "11px", color: "#94A3B8" }}>{s.section}</span>
-                <span style={{ fontSize: "10px", color: "#475569", fontFamily: "JetBrains Mono, monospace" }}>pp. {s.pages}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </Modal>
-  );
-}
-
-export function Dashboard() {
+export function Dashboard({ onNavigate }: { onNavigate?: (page: string) => void }) {
   const navigate = useNavigate();
-  const { alerts, threats, devices, updateThreatStatus } = useAppData();
-  const [liveThreats, setLiveThreats] = useState(threats.filter((t) => t.status === "active").length);
-  const [trafficRange, setTrafficRange] = useState<Range>("24H");
-  const [reportOpen, setReportOpen] = useState(false);
-  const { info, success } = useToast();
+  const { alerts, devices, threats, incidents, notifications } = useAppData();
 
-  const sevIcons = { critical: XCircle, high: AlertTriangle, medium: Clock, low: CheckCircle };
-  const sevColors = { critical: "#EF4444", high: "#F59E0B", medium: "#8B5CF6", low: "#22C55E" };
+  const summary = useMemo(() => {
+    const activeDevices = devices.filter((device) => device.status === "healthy").length;
+    const blockedAttacks = alerts.filter((alert) => alert.status === "resolved").length;
+    const blockchainTransactions = 47291 + alerts.length + threats.length;
+    const aiAccuracy = 97.4;
+    return {
+      totalDevices: devices.length,
+      activeDevices,
+      threatsDetected: threats.filter((threat) => threat.status === "active").length,
+      blockedAttacks,
+      blockchainTransactions,
+      aiAccuracy,
+    };
+  }, [alerts.length, devices, threats]);
 
-  const recentAlerts = useMemo(() =>
-    alerts.slice(0, 5).map((a) => ({
-      id: a.id,
-      severity: a.severity,
-      message: a.message,
-      device: a.device,
-      time: `${a.date} ${a.time}`,
-      icon: sevIcons[a.severity],
-      color: sevColors[a.severity],
-    })),
-  [alerts]);
-
-  const deviceHealthData = useMemo(() => [
-    { name: "Healthy", value: devices.filter((d) => d.status === "healthy").length, color: "#22C55E" },
-    { name: "Warning", value: devices.filter((d) => d.status === "warning").length, color: "#F59E0B" },
-    { name: "Critical", value: devices.filter((d) => d.status === "compromised" || d.status === "blocked").length, color: "#EF4444" },
-  ], [devices]);
-
-  const handleAiAction = async (rec: typeof aiRecommendations[0]) => {
-    if (rec.action === "Block") {
-      const threat = threats.find((t) => t.device.includes("IoT") || t.status === "active");
-      if (threat) await updateThreatStatus(threat.id, "blocked");
-      success("Action Applied", rec.title);
-    } else if (rec.action === "Quarantine") {
-      const threat = threats.find((t) => t.device === "IoT-Sensor-48");
-      if (threat) await updateThreatStatus(threat.id, "quarantined");
-      success("Device Quarantined", rec.title);
-    } else {
-      success("Action Queued", `${rec.action}: ${rec.title}`);
-    }
+  const alertSeverity = (severity: string) => {
+    if (severity === "critical") return "status-dot status-dot--critical";
+    if (severity === "high") return "status-dot status-dot--high";
+    if (severity === "medium") return "status-dot status-dot--medium";
+    return "status-dot status-dot--low";
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLiveThreats((v) => Math.max(0, v + Math.floor(Math.random() * 3) - 1));
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const trafficData = trafficDataMap[trafficRange];
+  const kpiValues = {
+    totalDevices: summary.totalDevices,
+    activeDevices: summary.activeDevices,
+    threatsDetected: summary.threatsDetected,
+    blockedAttacks: summary.blockedAttacks,
+    blockchainTransactions: summary.blockchainTransactions.toLocaleString(),
+    aiAccuracy: `${summary.aiAccuracy.toFixed(1)}%`,
+  } as const;
 
   return (
-    <div style={{ padding: "28px", maxWidth: "1600px" }}>
-      {/* Header */}
-      <div style={{ marginBottom: "28px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <h1 style={{ color: "#E2E8F0", marginBottom: "4px" }}>Security Operations Dashboard</h1>
-            <p style={{ color: "#64748B", fontSize: "13px" }}>Real-time monitoring — Last updated: {new Date().toLocaleTimeString()}</p>
-          </div>
-          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: "20px", padding: "6px 14px" }}>
-              <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#22C55E", boxShadow: "0 0 8px #22C55E" }} />
-              <span style={{ fontSize: "12px", color: "#22C55E", fontWeight: 600 }}>System Operational</span>
-            </div>
-            <button
-              onClick={() => setReportOpen(true)}
-              style={{ background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "8px", padding: "8px 16px", fontSize: "12px", fontWeight: 600, cursor: "pointer", boxShadow: "0 0 18px rgba(37,99,235,0.35)", display: "flex", alignItems: "center", gap: "6px", transition: "all 0.15s" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 28px rgba(37,99,235,0.55)"; (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 18px rgba(37,99,235,0.35)"; (e.currentTarget as HTMLButtonElement).style.transform = "none"; }}
-            >
-              <FileText size={13} /> Generate Report
-            </button>
-          </div>
+    <div className="dashboard-page">
+      <section className="cyber-card dashboard-hero">
+        <div className="dashboard-hero__badge">
+          <Sparkles size={14} /> Live AI Defense Grid
         </div>
-      </div>
+        <h1 className="dashboard-hero__title cyber-glow-text">SecureNet AI</h1>
+        <p className="dashboard-hero__subtitle">
+          AI + blockchain powered SDN security platform for enterprise command, forensic auditability,
+          and real-time protection across cloud, edge, IoT, and core infrastructure.
+        </p>
+        <div className="dashboard-hero__actions">
+          <button className="cyber-button cyber-pill" onClick={() => navigate("/alerts")}>
+            View Alerts Center <ChevronRight size={14} />
+          </button>
+          <button className="cyber-button cyber-button-secondary cyber-pill" onClick={() => navigate("/reports")}>
+            Generate Report <Database size={14} />
+          </button>
+          <button className="cyber-button cyber-button-secondary cyber-pill" onClick={() => onNavigate?.("network-topology")}>
+            Explore Topology <Globe size={14} />
+          </button>
+        </div>
+      </section>
 
-      {/* KPI Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "16px", marginBottom: "24px" }}>
-        <KPICard label="Total Devices" value="934" change="+12" up={true} icon={Monitor} color="37,99,235" glowColor="#2563EB" />
-        <KPICard label="Active Devices" value="847" change="+5" up={true} icon={Activity} color="6,182,212" glowColor="#06B6D4" />
-        <KPICard label="Detected Threats" value={String(liveThreats)} change="+8" up={false} icon={AlertTriangle} color="239,68,68" glowColor="#EF4444" />
-        <KPICard label="Blocked Attacks" value="1,284" change="+23" up={true} icon={Shield} color="34,197,94" glowColor="#22C55E" />
-        <KPICard label="Blockchain TXs" value="47,291" change="+341" up={true} icon={Link2} color="139,92,246" glowColor="#8B5CF6" />
-        <KPICard label="AI Accuracy" value="97.4%" change="+0.3%" up={true} icon={Brain} color="245,158,11" glowColor="#F59E0B" />
-      </div>
+      <section className="dashboard-grid-6">
+        {kpiConfig.map((item) => {
+          const Icon = item.icon;
+          return (
+            <div key={item.label} className="cyber-card cyber-card-hover kpi-card">
+              <div className="kpi-card__icon">
+                <Icon size={20} color="#C084FC" />
+              </div>
+              <div className="kpi-card__value">{kpiValues[item.key]}</div>
+              <div className="kpi-card__label">{item.label}</div>
+              <div className="kpi-card__delta">{item.delta} vs previous window</div>
+            </div>
+          );
+        })}
+      </section>
 
-      {/* Charts Row 1 */}
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "16px", marginBottom: "20px" }}>
-        {/* Traffic Chart */}
-        <div style={glassCard}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(37,99,235,0.4)"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(37,99,235,0.2)"; }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+      <section className="dashboard-grid-main">
+        <div className="cyber-card cyber-card-hover dashboard-section">
+          <div className="dashboard-section__head">
             <div>
-              <h3 style={{ color: "#E2E8F0", marginBottom: "2px" }}>Real-time Network Traffic</h3>
-              <p style={{ fontSize: "11px", color: "#64748B" }}>Inbound / Outbound / Anomalies (Gbps)</p>
+              <div className="dashboard-section__eyebrow">AI Threat Intelligence</div>
+              <h2 className="dashboard-section__title">Threat Radar & Confidence Layer</h2>
+              <p className="dashboard-section__copy">Priority classification, confidence scoring, and live mitigation guidance.</p>
             </div>
-            <div style={{ display: "flex", gap: "6px" }}>
-              {(["1H", "6H", "24H", "7D"] as Range[]).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTrafficRange(t)}
-                  style={{
-                    padding: "4px 12px", borderRadius: "6px",
-                    background: trafficRange === t ? "#2563EB" : "rgba(255,255,255,0.05)",
-                    border: `1px solid ${trafficRange === t ? "#2563EB" : "rgba(37,99,235,0.2)"}`,
-                    color: trafficRange === t ? "#fff" : "#64748B",
-                    fontSize: "11px", fontWeight: 600, cursor: "pointer",
-                    transition: "all 0.15s",
-                    boxShadow: trafficRange === t ? "0 0 12px rgba(37,99,235,0.3)" : "none",
-                  }}
-                  onMouseEnter={(e) => { if (trafficRange !== t) (e.currentTarget as HTMLButtonElement).style.color = "#94A3B8"; }}
-                  onMouseLeave={(e) => { if (trafficRange !== t) (e.currentTarget as HTMLButtonElement).style.color = "#64748B"; }}
-                >
-                  {t}
-                </button>
-              ))}
+            <div className="cyber-pill dashboard-inline-pad">
+              <span className="dashboard-section__eyebrow dashboard-ai-online">AI online</span>
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={trafficData} key={trafficRange}>
-              <defs>
-                <linearGradient id="inbound" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#2563EB" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="outbound" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#06B6D4" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="time" stroke="#334155" tick={{ fill: "#475569", fontSize: 10 }} />
-              <YAxis stroke="#334155" tick={{ fill: "#475569", fontSize: 10 }} />
-              <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="inbound" stroke="#2563EB" fill="url(#inbound)" strokeWidth={2} name="Inbound" isAnimationActive={true} animationDuration={500} />
-              <Area type="monotone" dataKey="outbound" stroke="#06B6D4" fill="url(#outbound)" strokeWidth={2} name="Outbound" isAnimationActive={true} animationDuration={500} />
-              <Line type="monotone" dataKey="anomalies" stroke="#EF4444" strokeWidth={1.5} strokeDasharray="4 2" dot={false} name="Anomalies" isAnimationActive={true} animationDuration={500} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Attack Distribution */}
-        <div style={glassCard}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(37,99,235,0.4)"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(37,99,235,0.2)"; }}
-        >
-          <h3 style={{ color: "#E2E8F0", marginBottom: "4px" }}>Attack Distribution</h3>
-          <p style={{ fontSize: "11px", color: "#64748B", marginBottom: "16px" }}>By category — Last 7 days</p>
-          <ResponsiveContainer width="100%" height={160}>
-            <PieChart>
-              <Pie data={attackDistData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} dataKey="value" strokeWidth={0}>
-                {attackDistData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-              </Pie>
-              <Tooltip contentStyle={{ background: "#081122", border: "1px solid rgba(37,99,235,0.3)", borderRadius: "8px", fontSize: "11px" }} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            {attackDistData.map((item) => (
-              <div key={item.name} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <div style={{ width: "8px", height: "8px", borderRadius: "2px", background: item.color }} />
-                  <span style={{ fontSize: "11px", color: "#94A3B8" }}>{item.name}</span>
+          <div className="signal-stack">
+            {threatSources.map((item) => (
+              <div key={item.name} className="signal-row">
+                <div>
+                  <div className="signal-row__title">{item.name}</div>
+                  <div className="signal-row__meta">{item.region}</div>
                 </div>
-                <span style={{ fontSize: "12px", color: "#E2E8F0", fontFamily: "JetBrains Mono, monospace", fontWeight: 600 }}>{item.value}%</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Charts Row 2 */}
-      <div style={{ display: "grid", gridTemplateColumns: "3fr 1fr", gap: "16px", marginBottom: "20px" }}>
-        <div style={glassCard}>
-          <h3 style={{ color: "#E2E8F0", marginBottom: "2px" }}>Threat Trends</h3>
-          <p style={{ fontSize: "11px", color: "#64748B", marginBottom: "16px" }}>Weekly breakdown by severity</p>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={threatTrendData} barSize={12} barGap={2}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="day" stroke="#334155" tick={{ fill: "#475569", fontSize: 10 }} />
-              <YAxis stroke="#334155" tick={{ fill: "#475569", fontSize: 10 }} />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="critical" fill="#EF4444" radius={[3, 3, 0, 0]} name="Critical" />
-              <Bar dataKey="high" fill="#F59E0B" radius={[3, 3, 0, 0]} name="High" />
-              <Bar dataKey="medium" fill="#8B5CF6" radius={[3, 3, 0, 0]} name="Medium" />
-              <Bar dataKey="low" fill="#22C55E" radius={[3, 3, 0, 0]} name="Low" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div style={glassCard}>
-          <h3 style={{ color: "#E2E8F0", marginBottom: "4px" }}>Device Health</h3>
-          <p style={{ fontSize: "11px", color: "#64748B", marginBottom: "16px" }}>934 total devices</p>
-          <ResponsiveContainer width="100%" height={140}>
-            <PieChart>
-              <Pie data={deviceHealthData} cx="50%" cy="50%" outerRadius={60} dataKey="value" strokeWidth={0}>
-                {deviceHealthData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
-            {deviceHealthData.map((item) => (
-              <div key={item.name} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: item.color, boxShadow: `0 0 6px ${item.color}` }} />
-                  <span style={{ fontSize: "11px", color: "#94A3B8" }}>{item.name}</span>
+                <div className="dashboard-right">
+                  <div className="signal-row__value">{item.score}</div>
+                  <div className="signal-row__meta">{item.risk.toUpperCase()} RISK</div>
                 </div>
-                <span style={{ fontSize: "12px", color: "#E2E8F0", fontFamily: "JetBrains Mono, monospace", fontWeight: 600 }}>{item.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Row */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-        {/* Recent Alerts */}
-        <div style={glassCard}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-            <h3 style={{ color: "#E2E8F0" }}>Recent Threat Alerts</h3>
-            <button
-              onClick={() => navigate("/alerts")}
-              style={{ fontSize: "11px", color: "#2563EB", background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "6px", padding: "4px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontWeight: 600, transition: "all 0.15s" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(37,99,235,0.2)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(37,99,235,0.1)"; }}
-            >
-              View All <ArrowRight size={12} />
-            </button>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {recentAlerts.map((alert) => (
-              <div key={alert.id} style={{ display: "flex", alignItems: "flex-start", gap: "12px", padding: "10px", background: "rgba(255,255,255,0.03)", borderRadius: "8px", border: `1px solid ${alert.color}22`, transition: "background 0.15s, border-color 0.15s", cursor: "pointer" }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.05)"; (e.currentTarget as HTMLDivElement).style.borderColor = `${alert.color}44`; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.03)"; (e.currentTarget as HTMLDivElement).style.borderColor = `${alert.color}22`; }}
-              >
-                <alert.icon size={16} style={{ color: alert.color, marginTop: "1px", flexShrink: 0 }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: "12px", color: "#CBD5E1", marginBottom: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{alert.message}</p>
-                  <p style={{ fontSize: "10px", color: "#475569", fontFamily: "JetBrains Mono, monospace" }}>{alert.device} · {alert.time}</p>
-                </div>
-                <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", color: alert.color, background: `${alert.color}18`, padding: "2px 7px", borderRadius: "4px", flexShrink: 0 }}>{alert.severity}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* AI + Blockchain */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <div style={{ ...glassCard, flex: 1 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-              <h3 style={{ color: "#E2E8F0" }}>AI Recommendations</h3>
-              <span style={{ fontSize: "10px", background: "rgba(6,182,212,0.15)", color: "#06B6D4", padding: "2px 8px", borderRadius: "4px", fontWeight: 600 }}>LIVE</span>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {aiRecommendations.map((rec, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 12px", background: "rgba(255,255,255,0.03)", borderRadius: "8px", border: "1px solid rgba(37,99,235,0.12)", transition: "background 0.15s" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "rgba(37,99,235,0.07)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.03)"; }}
-                >
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: "12px", color: "#CBD5E1", marginBottom: "2px" }}>{rec.title}</p>
-                    <p style={{ fontSize: "10px", color: "#475569" }}>{rec.category} · {rec.confidence}% confidence</p>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <div style={{ width: "40px", height: "4px", background: "rgba(255,255,255,0.06)", borderRadius: "2px" }}>
-                      <div style={{ width: `${rec.confidence}%`, height: "100%", background: rec.confidence > 95 ? "#22C55E" : "#2563EB", borderRadius: "2px" }} />
-                    </div>
-                    <button
-                      style={{ fontSize: "10px", fontWeight: 600, color: "#2563EB", background: "rgba(37,99,235,0.12)", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "6px", padding: "3px 10px", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.15s" }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(37,99,235,0.25)"; (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(37,99,235,0.12)"; (e.currentTarget as HTMLButtonElement).style.transform = "none"; }}
-                      onClick={() => handleAiAction(rec)}
-                    >
-                      {rec.action}
-                    </button>
-                  </div>
-                </div>
-              ))}
+        <div className="cyber-card cyber-card-hover dashboard-section">
+          <div className="dashboard-section__head">
+            <div>
+              <div className="dashboard-section__eyebrow">System State</div>
+              <h2 className="dashboard-section__title">Operational Pulse</h2>
+              <p className="dashboard-section__copy">Everything is live, visible, and measurable across the security stack.</p>
             </div>
           </div>
-
-          <div style={{ ...glassCard, padding: "16px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-              <h3 style={{ color: "#E2E8F0" }}>Blockchain Verification</h3>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#22C55E", boxShadow: "0 0 8px #22C55E" }} />
-                <span style={{ fontSize: "11px", color: "#22C55E" }}>Verified</span>
-              </div>
+          <div className="hero-metrics">
+            <div className="hero-metric">
+              <div className="hero-metric__label">Active incidents</div>
+              <div className="hero-metric__value">{incidents.filter((incident) => incident.status !== "resolved").length}</div>
+              <div className="hero-metric__copy">SOC queue readiness</div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
-              {[
-                { label: "Chain Height", value: "47,291" },
-                { label: "Nodes", value: "12 / 12" },
-                { label: "Consensus", value: "99.8%" },
-              ].map((item) => (
-                <div key={item.label} style={{ textAlign: "center", padding: "8px", background: "rgba(139,92,246,0.08)", borderRadius: "8px", border: "1px solid rgba(139,92,246,0.15)" }}>
-                  <div style={{ fontSize: "15px", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: "#A78BFA" }}>{item.value}</div>
-                  <div style={{ fontSize: "10px", color: "#475569", marginTop: "2px" }}>{item.label}</div>
+            <div className="hero-metric">
+              <div className="hero-metric__label">Live notifications</div>
+              <div className="hero-metric__value">{notifications.filter((notification) => notification.unread).length}</div>
+              <div className="hero-metric__copy">Priority events streaming</div>
+            </div>
+            <div className="hero-metric">
+              <div className="hero-metric__label">Threats active</div>
+              <div className="hero-metric__value">{threats.filter((threat) => threat.status === "active").length}</div>
+              <div className="hero-metric__copy">AI triage in progress</div>
+            </div>
+            <div className="hero-metric">
+              <div className="hero-metric__label">Devices healthy</div>
+              <div className="hero-metric__value">{devices.filter((device) => device.status === "healthy").length}</div>
+              <div className="hero-metric__copy">SDN fabric stable</div>
+            </div>
+          </div>
+          <div className="timeline dashboard-timeline-gap">
+            {recentMoves.map((move) => (
+              <div key={move.time} className="timeline-item">
+                <div className="timeline-item__time">{move.time}</div>
+                <div>
+                  <div className="timeline-item__action">{move.action}</div>
+                  <div className="timeline-item__actor">{move.actor}</div>
                 </div>
-              ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="dashboard-grid-secondary">
+        <div className="cyber-card cyber-card-hover dashboard-section">
+          <div className="dashboard-section__head">
+            <div>
+              <div className="dashboard-section__eyebrow">Blockchain Layer</div>
+              <h2 className="dashboard-section__title">Integrity Verification</h2>
+            </div>
+            <Link2 size={18} color="#C084FC" />
+          </div>
+          <div className="signal-stack">
+            <div className="signal-row">
+              <div>
+                <div className="signal-row__title">Ledger integrity</div>
+                <div className="signal-row__meta">Immutable state confirmed</div>
+              </div>
+              <div className="signal-row__value">99.98%</div>
+            </div>
+            <div className="signal-row">
+              <div>
+                <div className="signal-row__title">Verified tx</div>
+                <div className="signal-row__meta">Security events on-chain</div>
+              </div>
+              <div className="signal-row__value">47,291</div>
+            </div>
+            <div className="signal-row">
+              <div>
+                <div className="signal-row__title">Audit depth</div>
+                <div className="signal-row__meta">Full provenance trail</div>
+              </div>
+              <div className="signal-row__value">L8</div>
             </div>
           </div>
         </div>
-      </div>
 
-      <GenerateReportModal open={reportOpen} onClose={() => setReportOpen(false)} />
+        <div className="cyber-card cyber-card-hover dashboard-section">
+          <div className="dashboard-section__head">
+            <div>
+              <div className="dashboard-section__eyebrow">SDN Topology</div>
+              <h2 className="dashboard-section__title">Visual Fabric Map</h2>
+            </div>
+            <Activity size={18} color="#C084FC" />
+          </div>
+          <div className="topology-pane">
+            {topologyNodes.map((node) => (
+              <div key={node.name} className="topology-node">
+                <div className="topology-node__type">{node.type}</div>
+                <div className="topology-node__name">{node.name}</div>
+                <div className="topology-node__copy">{node.meta}</div>
+              </div>
+            ))}
+          </div>
+          <div className="signal-stack">
+            <div className="signal-row">
+              <div>
+                <div className="signal-row__title">Connected devices</div>
+                <div className="signal-row__meta">{devices.length} nodes in scope</div>
+              </div>
+              <div className="signal-row__value">18</div>
+            </div>
+            <div className="signal-row">
+              <div>
+                <div className="signal-row__title">Controller status</div>
+                <div className="signal-row__meta">All policies synchronized</div>
+              </div>
+              <div className="signal-row__value">Live</div>
+            </div>
+            <div className="signal-row">
+              <div>
+                <div className="signal-row__title">Network health</div>
+                <div className="signal-row__meta">Traffic stable across zones</div>
+              </div>
+              <div className="signal-row__value">94%</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="cyber-card cyber-card-hover dashboard-section">
+          <div className="dashboard-section__head">
+            <div>
+              <div className="dashboard-section__eyebrow">Live Status</div>
+              <h2 className="dashboard-section__title">Threat & SOC Feed</h2>
+            </div>
+            <CircleAlert size={18} color="#C084FC" />
+          </div>
+          <div className="alert-list">
+            {alerts.slice(0, 4).map((alert) => (
+              <div key={alert.id} className="alert-card">
+                <div className="dashboard-row">
+                  <span className={alertSeverity(alert.severity)} />
+                  <div className="alert-card__title">{alert.title}</div>
+                </div>
+                <div className="alert-card__message">{alert.message}</div>
+                <div className="alert-card__meta">
+                  <span>{alert.device}</span>
+                  <span>{alert.time}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="dashboard-grid-secondary">
+        <div className="cyber-card cyber-card-hover dashboard-section">
+          <div className="dashboard-section__head">
+            <div>
+              <div className="dashboard-section__eyebrow">Automation</div>
+              <h2 className="dashboard-section__title">AI Response Engine</h2>
+            </div>
+            <Brain size={18} color="#C084FC" />
+          </div>
+          <div className="signal-stack">
+            <div className="signal-row">
+              <div>
+                <div className="signal-row__title">Confidence threshold</div>
+                <div className="signal-row__meta">Auto-enforcement enabled</div>
+              </div>
+              <div className="signal-row__value">94%</div>
+            </div>
+            <div className="signal-row">
+              <div>
+                <div className="signal-row__title">Containment actions</div>
+                <div className="signal-row__meta">Block, quarantine, isolate</div>
+              </div>
+              <div className="signal-row__value">23</div>
+            </div>
+            <div className="signal-row">
+              <div>
+                <div className="signal-row__title">Recommendations</div>
+                <div className="signal-row__meta">Real-time analyst guidance</div>
+              </div>
+              <div className="signal-row__value">12</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="cyber-card cyber-card-hover dashboard-section">
+          <div className="dashboard-section__head">
+            <div>
+              <div className="dashboard-section__eyebrow">Network Health</div>
+              <h2 className="dashboard-section__title">Control Plane Status</h2>
+            </div>
+            <Shield size={18} color="#C084FC" />
+          </div>
+          <div className="signal-stack">
+            <div className="signal-row">
+              <div>
+                <div className="signal-row__title">Controller uptime</div>
+                <div className="signal-row__meta">No drift detected</div>
+              </div>
+              <div className="signal-row__value">99.99%</div>
+            </div>
+            <div className="signal-row">
+              <div>
+                <div className="signal-row__title">Policy sync</div>
+                <div className="signal-row__meta">Distributed to all switches</div>
+              </div>
+              <div className="signal-row__value">Live</div>
+            </div>
+            <div className="signal-row">
+              <div>
+                <div className="signal-row__title">Attack surface</div>
+                <div className="signal-row__meta">Continuously measured</div>
+              </div>
+              <div className="signal-row__value">Reduced</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="cyber-card cyber-card-hover dashboard-section">
+          <div className="dashboard-section__head">
+            <div>
+              <div className="dashboard-section__eyebrow">Traffic</div>
+              <h2 className="dashboard-section__title">Live Monitoring</h2>
+            </div>
+            <Activity size={18} color="#C084FC" />
+          </div>
+          <div className="signal-stack">
+            <div className="signal-row">
+              <div>
+                <div className="signal-row__title">Inbound traffic</div>
+                <div className="signal-row__meta">Neon streams active</div>
+              </div>
+              <div className="signal-row__value">2.4 Gbps</div>
+            </div>
+            <div className="signal-row">
+              <div>
+                <div className="signal-row__title">Outbound traffic</div>
+                <div className="signal-row__meta">Egress stable</div>
+              </div>
+              <div className="signal-row__value">1.8 Gbps</div>
+            </div>
+            <div className="signal-row">
+              <div>
+                <div className="signal-row__title">Anomalies</div>
+                <div className="signal-row__meta">Adaptive inspection</div>
+              </div>
+              <div className="signal-row__value">23</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </div>
   );
 }

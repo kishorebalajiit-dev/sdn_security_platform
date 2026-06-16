@@ -66,57 +66,62 @@ export function TopHeader() {
   return (
     <header
       style={{
-        height: "64px",
-        background: "rgba(8, 17, 34, 0.9)",
-        backdropFilter: "blur(12px)",
-        borderBottom: "1px solid rgba(37, 99, 235, 0.15)",
+        height: "74px",
+        background: "linear-gradient(180deg, rgba(11,15,33,0.92), rgba(8,11,26,0.82))",
+        backdropFilter: "blur(20px)",
+        borderBottom: "1px solid rgba(168,85,247,0.16)",
         display: "flex",
         alignItems: "center",
         padding: "0 28px",
-        gap: "20px",
+        gap: "18px",
         flexShrink: 0,
         position: "relative",
         zIndex: 20,
       }}
+      className="cyber-card"
     >
       <div style={{ flex: 1, minWidth: 0 }}>
-        <h2 style={{ fontFamily: "Poppins, sans-serif", fontSize: "15px", fontWeight: 600, color: "#E2E8F0", lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
+          <span style={{ width: "8px", height: "8px", borderRadius: "999px", background: "#22C55E", boxShadow: "0 0 14px #22C55E" }} />
+          <span style={{ fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "#C084FC", fontWeight: 700 }}>Live defense grid</span>
+        </div>
+        <h2 style={{ fontFamily: "Poppins, sans-serif", fontSize: "18px", fontWeight: 700, color: "#F8FAFC", lineHeight: 1.1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} className="cyber-glow-text">
           {title}
         </h2>
-        <p style={{ fontSize: "11px", color: "#475569", marginTop: "1px" }}>{subtitle}</p>
+        <p style={{ fontSize: "12px", color: "#94A3B8", marginTop: "3px" }}>{subtitle}</p>
       </div>
 
       <div style={{ position: "relative" }} ref={searchRef}>
         {searchOpen ? (
           <div style={{ position: "relative" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(37,99,235,0.35)", borderRadius: "10px", padding: "7px 12px", width: "320px" }}>
-              <Search size={13} style={{ color: "#475569", flexShrink: 0 }} />
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(8,11,26,0.8)", border: "1px solid rgba(168,85,247,0.32)", borderRadius: "14px", padding: "9px 14px", width: "340px", boxShadow: "0 0 24px rgba(168,85,247,0.12)" }}>
+              <Search size={13} style={{ color: "#C084FC", flexShrink: 0, filter: "drop-shadow(0 0 8px rgba(168,85,247,0.6))" }} />
               <input
                 autoFocus
                 value={searchVal}
                 onChange={(e) => setSearchVal(e.target.value)}
                 placeholder="Search devices, threats, logs..."
-                style={{ flex: 1, background: "none", border: "none", outline: "none", color: "#E2E8F0", fontSize: "12px" }}
+                style={{ flex: 1, background: "none", border: "none", outline: "none", color: "#F8FAFC", fontSize: "12px" }}
               />
-              <button onClick={() => { setSearchOpen(false); setSearchVal(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#475569", padding: "0", display: "flex" }}>
+              <button onClick={() => { setSearchOpen(false); setSearchVal(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#94A3B8", padding: "0", display: "flex" }}>
                 <X size={13} />
               </button>
             </div>
             {searchVal.trim() && (
-              <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, background: "#081122", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "10px", overflow: "hidden", zIndex: 200, boxShadow: "0 16px 40px rgba(0,0,0,0.5)" }}>
+              <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0, background: "rgba(8,11,26,0.96)", border: "1px solid rgba(168,85,247,0.24)", borderRadius: "14px", overflow: "hidden", zIndex: 200, boxShadow: "0 18px 50px rgba(0,0,0,0.55), 0 0 24px rgba(168,85,247,0.12)" }}>
                 {searchResults.length === 0 ? (
-                  <p style={{ padding: "14px 16px", fontSize: "12px", color: "#64748B" }}>No results for "{searchVal}"</p>
+                  <p style={{ padding: "14px 16px", fontSize: "12px", color: "#94A3B8" }}>No results for "{searchVal}"</p>
                 ) : (
                   searchResults.map((r) => (
                     <button
                       key={`${r.type}-${r.id}`}
                       onClick={() => handleSearchSelect(r.path)}
-                      style={{ width: "100%", padding: "10px 16px", background: "none", border: "none", borderBottom: "1px solid rgba(37,99,235,0.06)", cursor: "pointer", textAlign: "left", display: "flex", flexDirection: "column", gap: "2px" }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(37,99,235,0.08)"; }}
+                      style={{ width: "100%", padding: "12px 16px", background: "none", border: "none", borderBottom: "1px solid rgba(168,85,247,0.06)", cursor: "pointer", textAlign: "left", display: "flex", flexDirection: "column", gap: "2px" }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(168,85,247,0.08)"; }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "none"; }}
                     >
-                      <span style={{ fontSize: "12px", color: "#E2E8F0" }}>{r.title}</span>
-                      <span style={{ fontSize: "10px", color: "#475569" }}>{r.type} · {r.subtitle}</span>
+                      <span style={{ fontSize: "12px", color: "#F8FAFC" }}>{r.title}</span>
+                      <span style={{ fontSize: "10px", color: "#94A3B8" }}>{r.type} · {r.subtitle}</span>
                     </button>
                   ))
                 )}
@@ -126,26 +131,26 @@ export function TopHeader() {
         ) : (
           <button
             onClick={() => setSearchOpen(true)}
-            style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(37,99,235,0.15)", borderRadius: "10px", padding: "7px 14px", color: "#475569", cursor: "pointer", fontSize: "12px", transition: "all 0.15s" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(37,99,235,0.4)"; (e.currentTarget as HTMLButtonElement).style.color = "#94A3B8"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(37,99,235,0.15)"; (e.currentTarget as HTMLButtonElement).style.color = "#475569"; }}
+            style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(17,24,39,0.62)", border: "1px solid rgba(168,85,247,0.18)", borderRadius: "14px", padding: "9px 16px", color: "#94A3B8", cursor: "pointer", fontSize: "12px", transition: "all 0.15s", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(168,85,247,0.42)"; (e.currentTarget as HTMLButtonElement).style.color = "#F8FAFC"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 20px rgba(168,85,247,0.15)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(168,85,247,0.18)"; (e.currentTarget as HTMLButtonElement).style.color = "#94A3B8"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "inset 0 1px 0 rgba(255,255,255,0.05)"; }}
           >
             <Search size={13} />
             <span>Search...</span>
-            <span style={{ fontSize: "10px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "4px", padding: "1px 6px" }}>⌘K</span>
+            <span style={{ fontSize: "10px", background: "rgba(168,85,247,0.12)", border: "1px solid rgba(168,85,247,0.16)", borderRadius: "999px", padding: "1px 6px" }}>⌘K</span>
           </button>
         )}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "6px", background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: "8px", padding: "5px 12px" }}>
-        <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#22C55E", boxShadow: "0 0 8px #22C55E" }} />
-        <span style={{ fontSize: "11px", color: "#22C55E", fontWeight: 600 }}>All Systems Operational</span>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.22)", borderRadius: "999px", padding: "7px 14px" }} className="cyber-pill">
+        <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#22C55E", boxShadow: "0 0 12px #22C55E" }} />
+        <span style={{ fontSize: "11px", color: "#86EFAC", fontWeight: 700, letterSpacing: "0.04em" }}>All Systems Operational</span>
       </div>
 
       <div style={{ position: "relative" }}>
         <button
           onClick={() => { setNotifOpen(!notifOpen); setProfileOpen(false); }}
-          style={{ position: "relative", width: "36px", height: "36px", borderRadius: "10px", background: notifOpen ? "rgba(37,99,235,0.15)" : "rgba(255,255,255,0.04)", border: "1px solid rgba(37,99,235,0.15)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#94A3B8", transition: "all 0.15s" }}
+          style={{ position: "relative", width: "40px", height: "40px", borderRadius: "14px", background: notifOpen ? "rgba(168,85,247,0.18)" : "rgba(17,24,39,0.68)", border: "1px solid rgba(168,85,247,0.18)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#C4B5FD", transition: "all 0.15s" }}
         >
           <Bell size={15} />
           {unreadCount > 0 && (
@@ -156,23 +161,23 @@ export function TopHeader() {
         </button>
 
         {notifOpen && (
-          <div style={{ position: "absolute", top: "calc(100% + 10px)", right: "0", width: "320px", background: "#081122", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "12px", boxShadow: "0 16px 40px rgba(0,0,0,0.5)", overflow: "hidden", zIndex: 100 }}>
-            <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(37,99,235,0.12)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: "13px", fontWeight: 600, color: "#E2E8F0" }}>Notifications</span>
-              <button onClick={markNotificationsRead} style={{ fontSize: "10px", color: "#2563EB", cursor: "pointer", background: "none", border: "none" }}>Mark all read</button>
+          <div style={{ position: "absolute", top: "calc(100% + 10px)", right: "0", width: "340px", background: "rgba(8,11,26,0.96)", border: "1px solid rgba(168,85,247,0.24)", borderRadius: "16px", boxShadow: "0 20px 50px rgba(0,0,0,0.55), 0 0 24px rgba(168,85,247,0.12)", overflow: "hidden", zIndex: 100 }}>
+            <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(168,85,247,0.12)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: "13px", fontWeight: 600, color: "#F8FAFC" }}>Notifications</span>
+              <button onClick={markNotificationsRead} style={{ fontSize: "10px", color: "#C084FC", cursor: "pointer", background: "none", border: "none" }}>Mark all read</button>
             </div>
             {notifications.map((n) => (
-              <div key={n.id} style={{ padding: "12px 16px", borderBottom: "1px solid rgba(37,99,235,0.06)", display: "flex", gap: "10px", alignItems: "flex-start", background: n.unread ? "rgba(37,99,235,0.04)" : "transparent" }}>
+              <div key={n.id} style={{ padding: "12px 16px", borderBottom: "1px solid rgba(168,85,247,0.06)", display: "flex", gap: "10px", alignItems: "flex-start", background: n.unread ? "rgba(168,85,247,0.05)" : "transparent" }}>
                 {n.unread && <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: n.color, marginTop: "5px", flexShrink: 0, boxShadow: `0 0 6px ${n.color}` }} />}
                 {!n.unread && <div style={{ width: "6px", flexShrink: 0 }} />}
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: "11px", color: n.unread ? "#CBD5E1" : "#64748B" }}>{n.text}</p>
-                  <p style={{ fontSize: "10px", color: "#475569", marginTop: "2px" }}>{n.time}</p>
+                  <p style={{ fontSize: "11px", color: n.unread ? "#F8FAFC" : "#94A3B8" }}>{n.text}</p>
+                  <p style={{ fontSize: "10px", color: "#64748B", marginTop: "2px" }}>{n.time}</p>
                 </div>
               </div>
             ))}
             <div style={{ padding: "10px 16px", textAlign: "center" }}>
-              <button onClick={() => { navigate("/alerts"); setNotifOpen(false); }} style={{ fontSize: "11px", color: "#2563EB", cursor: "pointer", background: "none", border: "none" }}>View all alerts →</button>
+              <button onClick={() => { navigate("/alerts"); setNotifOpen(false); }} style={{ fontSize: "11px", color: "#C084FC", cursor: "pointer", background: "none", border: "none" }}>View all alerts →</button>
             </div>
           </div>
         )}
@@ -181,36 +186,36 @@ export function TopHeader() {
       <div style={{ position: "relative" }}>
         <button
           onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false); }}
-          style={{ display: "flex", alignItems: "center", gap: "10px", background: profileOpen ? "rgba(37,99,235,0.12)" : "rgba(255,255,255,0.04)", border: "1px solid rgba(37,99,235,0.15)", borderRadius: "10px", padding: "6px 12px 6px 6px", cursor: "pointer", transition: "all 0.15s" }}
+          style={{ display: "flex", alignItems: "center", gap: "10px", background: profileOpen ? "rgba(168,85,247,0.14)" : "rgba(17,24,39,0.68)", border: "1px solid rgba(168,85,247,0.18)", borderRadius: "14px", padding: "6px 12px 6px 6px", cursor: "pointer", transition: "all 0.15s" }}
         >
-          <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: "linear-gradient(135deg, #2563EB, #06B6D4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 800, color: "#fff", flexShrink: 0 }}>
+          <div style={{ width: "30px", height: "30px", borderRadius: "10px", background: "linear-gradient(135deg, #A855F7, #EC4899)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 800, color: "#fff", flexShrink: 0, boxShadow: "0 0 18px rgba(168,85,247,0.3)" }}>
             {user?.initials ?? "?"}
           </div>
           <div style={{ textAlign: "left" }}>
-            <p style={{ fontSize: "12px", fontWeight: 600, color: "#E2E8F0", lineHeight: 1.2 }}>{user?.name ?? "User"}</p>
-            <p style={{ fontSize: "10px", color: "#475569" }}>{user?.role ?? ""}</p>
+            <p style={{ fontSize: "12px", fontWeight: 600, color: "#F8FAFC", lineHeight: 1.2 }}>{user?.name ?? "User"}</p>
+            <p style={{ fontSize: "10px", color: "#94A3B8" }}>{user?.role ?? ""}</p>
           </div>
-          <ChevronDown size={12} style={{ color: "#475569" }} />
+          <ChevronDown size={12} style={{ color: "#94A3B8" }} />
         </button>
 
         {profileOpen && (
-          <div style={{ position: "absolute", top: "calc(100% + 10px)", right: "0", width: "200px", background: "#081122", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "12px", boxShadow: "0 16px 40px rgba(0,0,0,0.5)", overflow: "hidden", zIndex: 100 }}>
-            <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(37,99,235,0.12)" }}>
-              <p style={{ fontSize: "13px", fontWeight: 600, color: "#E2E8F0" }}>{user?.name}</p>
-              <p style={{ fontSize: "11px", color: "#475569" }}>{user?.email}</p>
+          <div style={{ position: "absolute", top: "calc(100% + 10px)", right: "0", width: "220px", background: "rgba(8,11,26,0.96)", border: "1px solid rgba(168,85,247,0.24)", borderRadius: "16px", boxShadow: "0 20px 50px rgba(0,0,0,0.55), 0 0 24px rgba(168,85,247,0.12)", overflow: "hidden", zIndex: 100 }}>
+            <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(168,85,247,0.12)" }}>
+              <p style={{ fontSize: "13px", fontWeight: 600, color: "#F8FAFC" }}>{user?.name}</p>
+              <p style={{ fontSize: "11px", color: "#94A3B8" }}>{user?.email}</p>
             </div>
             {[
               { icon: User, label: "My Profile", action: () => navigate("/settings") },
               { icon: Shield, label: "Security", action: () => navigate("/settings") },
               { icon: Settings, label: "Preferences", action: () => navigate("/settings") },
             ].map((item) => (
-              <button key={item.label} onClick={() => { item.action(); setProfileOpen(false); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: "10px", padding: "10px 16px", background: "none", border: "none", color: "#94A3B8", cursor: "pointer", fontSize: "12px", textAlign: "left" }}>
+              <button key={item.label} onClick={() => { item.action(); setProfileOpen(false); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: "10px", padding: "10px 16px", background: "none", border: "none", color: "#94A3B8", cursor: "pointer", fontSize: "12px", textAlign: "left" }} onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(168,85,247,0.08)"; (e.currentTarget as HTMLButtonElement).style.color = "#F8FAFC"; }} onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "none"; (e.currentTarget as HTMLButtonElement).style.color = "#94A3B8"; }}>
                 <item.icon size={13} />
                 {item.label}
               </button>
             ))}
-            <div style={{ borderTop: "1px solid rgba(37,99,235,0.12)" }}>
-              <button onClick={handleLogout} style={{ width: "100%", display: "flex", alignItems: "center", gap: "10px", padding: "10px 16px", background: "none", border: "none", color: "#EF4444", cursor: "pointer", fontSize: "12px", textAlign: "left" }}>
+            <div style={{ borderTop: "1px solid rgba(168,85,247,0.12)" }}>
+              <button onClick={handleLogout} style={{ width: "100%", display: "flex", alignItems: "center", gap: "10px", padding: "10px 16px", background: "none", border: "none", color: "#F87171", cursor: "pointer", fontSize: "12px", textAlign: "left" }}>
                 <LogOut size={13} />
                 Logout
               </button>

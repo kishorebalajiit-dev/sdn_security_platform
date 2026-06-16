@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { Users, Plus, Shield, Search, Edit2, Trash2, CheckCircle, Lock, Key, Loader } from "lucide-react";
 import { Modal, Field, inputStyle, selectStyle, ConfirmDialog } from "./Modal";
 import { useToast } from "./Toast";
@@ -7,11 +7,12 @@ import { permissionMatrix, PERMISSION_MODULES } from "../../lib/permissions";
 import type { PlatformUser, UserRole, Department } from "../../types";
 
 const glassCard: React.CSSProperties = {
-  background: "rgba(13, 27, 42, 0.7)",
-  backdropFilter: "blur(12px)",
-  border: "1px solid rgba(37, 99, 235, 0.2)",
-  borderRadius: "12px",
+  background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
+  backdropFilter: "blur(18px)",
+  border: "1px solid rgba(168,85,247,0.2)",
+  borderRadius: "22px",
   padding: "20px",
+  boxShadow: "0 0 20px rgba(168,85,247,0.12), 0 0 36px rgba(168,85,247,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 type Role = UserRole;
@@ -26,6 +27,59 @@ const roleConfig: Record<Role, { color: string; bg: string; description: string 
 const modules = [...PERMISSION_MODULES];
 
 const emptyForm = { name: "", email: "", role: "Security Analyst" as Role, department: "SOC" as Department, mfa: true };
+
+interface UserFormBodyProps {
+  form: typeof emptyForm;
+  formErrors: Record<string, string>;
+  setField: (k: keyof typeof emptyForm, v: string | boolean) => void;
+}
+
+const UserFormBody = memo(function UserFormBody({ form, formErrors, setField }: UserFormBodyProps) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+        <Field label="Full Name" required>
+          <input value={form.name} onChange={(e) => setField("name", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.name ? "#EF4444" : "rgba(37,99,235,0.2)" }} placeholder="e.g. Jane Smith" />
+          {formErrors.name && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{formErrors.name}</p>}
+        </Field>
+        <Field label="Email" required>
+          <input type="email" value={form.email} onChange={(e) => setField("email", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.email ? "#EF4444" : "rgba(37,99,235,0.2)" }} placeholder="user@secnet.ai" />
+          {formErrors.email && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{formErrors.email}</p>}
+        </Field>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+        <Field label="Role" required>
+          <select value={form.role} onChange={(e) => setField("role", e.target.value)} style={selectStyle}>
+            <option value="Admin">Admin</option>
+            <option value="Security Analyst">Security Analyst</option>
+            <option value="Network Engineer">Network Engineer</option>
+            <option value="Auditor">Auditor</option>
+          </select>
+        </Field>
+        <Field label="Department">
+          <select value={form.department} onChange={(e) => setField("department", e.target.value)} style={selectStyle}>
+            <option value="SOC">SOC</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Finance">Finance</option>
+            <option value="HR">HR</option>
+            <option value="Management">Management</option>
+          </select>
+        </Field>
+      </div>
+      <Field label="MFA Required">
+        <button
+          onClick={() => setField("mfa", !form.mfa)}
+          style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 12px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: "8px", cursor: "pointer", width: "100%" }}
+        >
+          <div style={{ width: "36px", height: "20px", borderRadius: "10px", background: form.mfa ? "#22C55E" : "rgba(255,255,255,0.1)", transition: "background 0.2s", position: "relative", flexShrink: 0 }}>
+            <div style={{ position: "absolute", top: "2px", left: form.mfa ? "18px" : "2px", width: "16px", height: "16px", borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.3)" }} />
+          </div>
+          <span style={{ fontSize: "12px", color: form.mfa ? "#22C55E" : "#64748B" }}>{form.mfa ? "Enabled" : "Disabled"}</span>
+        </button>
+      </Field>
+    </div>
+  );
+});
 
 export function UserManagement() {
   const toast = useToast();
@@ -58,17 +112,17 @@ export function UserManagement() {
     return Object.keys(errors).length === 0;
   };
 
-  const openAdd = () => {
+  const openAdd = useCallback(() => {
     setForm(emptyForm);
     setFormErrors({});
     setAddOpen(true);
-  };
+  }, []);
 
-  const openEdit = (user: PlatformUser) => {
+  const openEdit = useCallback((user: PlatformUser) => {
     setForm({ name: user.name, email: user.email, role: user.role, department: user.department ?? "SOC", mfa: user.mfa });
     setFormErrors({});
     setEditUser(user);
-  };
+  }, []);
 
   const handleAdd = async () => {
     if (!validateForm()) return;
@@ -114,52 +168,7 @@ export function UserManagement() {
     );
   }
 
-  const setF = (k: keyof typeof emptyForm, v: string | boolean) => setForm((p) => ({ ...p, [k]: v }));
-
-  const UserFormBody = () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-        <Field label="Full Name" required>
-          <input value={form.name} onChange={(e) => setF("name", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.name ? "#EF4444" : "rgba(37,99,235,0.2)" }} placeholder="e.g. Jane Smith" />
-          {formErrors.name && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{formErrors.name}</p>}
-        </Field>
-        <Field label="Email" required>
-          <input type="email" value={form.email} onChange={(e) => setF("email", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.email ? "#EF4444" : "rgba(37,99,235,0.2)" }} placeholder="user@secnet.ai" />
-          {formErrors.email && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{formErrors.email}</p>}
-        </Field>
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-        <Field label="Role" required>
-          <select value={form.role} onChange={(e) => setF("role", e.target.value)} style={selectStyle}>
-            <option value="Admin">Admin</option>
-            <option value="Security Analyst">Security Analyst</option>
-            <option value="Network Engineer">Network Engineer</option>
-            <option value="Auditor">Auditor</option>
-          </select>
-        </Field>
-        <Field label="Department">
-          <select value={form.department} onChange={(e) => setF("department", e.target.value)} style={selectStyle}>
-            <option value="SOC">SOC</option>
-            <option value="Engineering">Engineering</option>
-            <option value="Finance">Finance</option>
-            <option value="HR">HR</option>
-            <option value="Management">Management</option>
-          </select>
-        </Field>
-      </div>
-      <Field label="MFA Required">
-        <button
-          onClick={() => setF("mfa", !form.mfa)}
-          style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 12px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: "8px", cursor: "pointer", width: "100%" }}
-        >
-          <div style={{ width: "36px", height: "20px", borderRadius: "10px", background: form.mfa ? "#22C55E" : "rgba(255,255,255,0.1)", transition: "background 0.2s", position: "relative", flexShrink: 0 }}>
-            <div style={{ position: "absolute", top: "2px", left: form.mfa ? "18px" : "2px", width: "16px", height: "16px", borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.3)" }} />
-          </div>
-          <span style={{ fontSize: "12px", color: form.mfa ? "#22C55E" : "#64748B" }}>{form.mfa ? "Enabled" : "Disabled"}</span>
-        </button>
-      </Field>
-    </div>
-  );
+  const setF = useCallback((k: keyof typeof emptyForm, v: string | boolean) => setForm((p) => ({ ...p, [k]: v })), []);
 
   const ModalFooter = ({ onSave }: { onSave: () => void }) => (
     <>

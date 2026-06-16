@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { Shield, Globe, Search, AlertTriangle, TrendingUp, Database, Eye } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useToast } from "./Toast";
 
 const glassCard: React.CSSProperties = {
-  background: "rgba(13, 27, 42, 0.7)",
-  backdropFilter: "blur(12px)",
-  border: "1px solid rgba(37, 99, 235, 0.2)",
-  borderRadius: "12px",
+  background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
+  backdropFilter: "blur(18px)",
+  border: "1px solid rgba(168,85,247,0.2)",
+  borderRadius: "22px",
   padding: "20px",
+  boxShadow: "0 0 20px rgba(168,85,247,0.12), 0 0 36px rgba(168,85,247,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const threatFeed = [
@@ -62,14 +64,22 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
 };
 
 export function ThreatIntelligence() {
+  const toast = useToast();
   const [search, setSearch] = useState("");
   const [sevFilter, setSevFilter] = useState<string>("all");
+  const [blockedSources, setBlockedSources] = useState<string[]>([]);
 
   const filtered = threatFeed.filter((t) => {
     const matchSearch = t.source.toLowerCase().includes(search.toLowerCase()) || t.type.toLowerCase().includes(search.toLowerCase());
     const matchSev = sevFilter === "all" || t.severity === sevFilter;
-    return matchSearch && matchSev;
+    const matchBlocked = !blockedSources.includes(t.id);
+    return matchSearch && matchSev && matchBlocked;
   });
+
+  const handleBlockSource = (source: typeof threatFeed[number]) => {
+    setBlockedSources((prev) => (prev.includes(source.id) ? prev : [...prev, source.id]));
+    toast.warning("IOC Blocked", `${source.source} added to the local block list`);
+  };
 
   return (
     <div style={{ padding: "28px", display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -152,7 +162,9 @@ export function ThreatIntelligence() {
                     </td>
                     <td style={{ padding: "10px 14px", fontSize: "11px", color: "#64748B", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.description}</td>
                     <td style={{ padding: "10px 14px" }}>
-                      <button style={{ padding: "4px 8px", fontSize: "10px", fontWeight: 600, background: "rgba(239,68,68,0.12)", color: "#EF4444", border: "1px solid rgba(239,68,68,0.25)", borderRadius: "5px", cursor: "pointer" }}>Block</button>
+                      <button onClick={() => handleBlockSource(t)} style={{ padding: "4px 8px", fontSize: "10px", fontWeight: 600, background: "rgba(239,68,68,0.12)", color: "#EF4444", border: "1px solid rgba(239,68,68,0.25)", borderRadius: "5px", cursor: "pointer" }}>
+                        Block IOC
+                      </button>
                     </td>
                   </tr>
                 ))}
