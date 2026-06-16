@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Brain, Search, Zap, ChevronDown, ChevronUp, Loader } from "lucide-react";
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, Tooltip } from "recharts";
 import { ConfirmDialog } from "./Modal";
 import { useToast } from "./Toast";
 import { useAppData } from "../../contexts/AppDataContext";
 import type { Threat, ThreatStatus } from "../../types";
+import { useDebouncedValue } from "../../lib/useDebouncedValue";
 
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
@@ -60,6 +61,7 @@ export function AIThreatDetection() {
   const [dialogKind, setDialogKind] = useState<DialogKind>(null);
   const [dialogTarget, setDialogTarget] = useState<Threat | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const debouncedSearch = useDebouncedValue(search, 140);
 
   const openDialog = (kind: DialogKind, threat: Threat, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -98,19 +100,22 @@ export function AIThreatDetection() {
     );
   }
 
-  const filtered = threats
+  const filtered = useMemo(() => threats
     .filter((t) => {
       const matchSearch =
-        t.device.toLowerCase().includes(search.toLowerCase()) ||
-        t.type.toLowerCase().includes(search.toLowerCase()) ||
-        t.ip.includes(search);
+        t.id.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        t.device.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        t.type.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        t.ip.includes(debouncedSearch) ||
+        String(t.risk).includes(debouncedSearch) ||
+        String(t.confidence).includes(debouncedSearch);
       const matchAction = actionFilter === "all" || t.status === actionFilter;
       return matchSearch && matchAction;
     })
     .sort((a, b) => {
       const mult = sortDir === "desc" ? -1 : 1;
       return (a[sortField] - b[sortField]) * mult;
-    });
+    }), [actionFilter, debouncedSearch, sortDir, sortField, threats]);
 
   const dialogConfig: Record<Exclude<DialogKind, null>, { title: string; message: string; confirmLabel: string; type: "danger" | "warning" | "info"; confirmColor: string }> = {
     block: {

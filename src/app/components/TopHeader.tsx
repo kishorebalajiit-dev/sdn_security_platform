@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { Search, Bell, Shield, ChevronDown, Settings, LogOut, User, X } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useAppData } from "../../contexts/AppDataContext";
 import { usePageId } from "../routes";
+import { useDebouncedValue } from "../../lib/useDebouncedValue";
 
 const pageTitles: Record<string, { title: string; subtitle: string }> = {
   dashboard: { title: "Security Operations Dashboard", subtitle: "Real-time threat monitoring & network intelligence" },
@@ -32,10 +33,12 @@ export function TopHeader() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const debouncedSearch = useDebouncedValue(searchVal, 120);
 
   const { title, subtitle } = pageTitles[activePage] ?? pageTitles.dashboard;
   const unreadCount = notifications.filter((n) => n.unread).length;
-  const searchResults = searchAll(searchVal);
+  const searchResults = useMemo(() => searchAll(debouncedSearch), [searchAll, debouncedSearch]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -46,22 +49,45 @@ export function TopHeader() {
       if (e.key === "Escape") {
         setSearchOpen(false);
         setSearchVal("");
+        setNotifOpen(false);
+        setProfileOpen(false);
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  const handleLogout = () => {
+  useEffect(() => {
+    if (searchOpen) {
+      window.setTimeout(() => searchInputRef.current?.focus(), 0);
+    }
+  }, [searchOpen]);
+
+  useEffect(() => {
+    const onMouseDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (searchRef.current && !searchRef.current.contains(target)) {
+        setSearchOpen(false);
+      }
+      if (!(event.target instanceof HTMLElement)) return;
+      if (!event.target.closest("[data-topheader-notifications]")) setNotifOpen(false);
+      if (!event.target.closest("[data-topheader-profile]")) setProfileOpen(false);
+    };
+
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, []);
+
+  const handleLogout = useCallback(() => {
     logout();
     navigate("/login", { replace: true });
-  };
+  }, [logout, navigate]);
 
-  const handleSearchSelect = (path: string) => {
+  const handleSearchSelect = useCallback((path: string) => {
     navigate(path);
     setSearchOpen(false);
     setSearchVal("");
-  };
+  }, [navigate]);
 
   return (
     <header
@@ -97,7 +123,7 @@ export function TopHeader() {
             <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(8,11,26,0.8)", border: "1px solid rgba(168,85,247,0.32)", borderRadius: "14px", padding: "9px 14px", width: "340px", boxShadow: "0 0 24px rgba(168,85,247,0.12)" }}>
               <Search size={13} style={{ color: "#C084FC", flexShrink: 0, filter: "drop-shadow(0 0 8px rgba(168,85,247,0.6))" }} />
               <input
-                autoFocus
+                ref={searchInputRef}
                 value={searchVal}
                 onChange={(e) => setSearchVal(e.target.value)}
                 placeholder="Search devices, threats, logs..."
@@ -147,7 +173,7 @@ export function TopHeader() {
         <span style={{ fontSize: "11px", color: "#86EFAC", fontWeight: 700, letterSpacing: "0.04em" }}>All Systems Operational</span>
       </div>
 
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative" }} data-topheader-notifications>
         <button
           onClick={() => { setNotifOpen(!notifOpen); setProfileOpen(false); }}
           style={{ position: "relative", width: "40px", height: "40px", borderRadius: "14px", background: notifOpen ? "rgba(168,85,247,0.18)" : "rgba(17,24,39,0.68)", border: "1px solid rgba(168,85,247,0.18)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#C4B5FD", transition: "all 0.15s" }}
@@ -183,7 +209,7 @@ export function TopHeader() {
         )}
       </div>
 
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative" }} data-topheader-profile>
         <button
           onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false); }}
           style={{ display: "flex", alignItems: "center", gap: "10px", background: profileOpen ? "rgba(168,85,247,0.14)" : "rgba(17,24,39,0.68)", border: "1px solid rgba(168,85,247,0.18)", borderRadius: "14px", padding: "6px 12px 6px 6px", cursor: "pointer", transition: "all 0.15s" }}

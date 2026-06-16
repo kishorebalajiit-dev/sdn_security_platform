@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link2, Search, Download, CheckCircle, XCircle, Clock, Shield, Copy, Loader } from "lucide-react";
 import { Modal, Field, inputStyle, selectStyle } from "./Modal";
 import { useToast } from "./Toast";
+import { useDebouncedValue } from "../../lib/useDebouncedValue";
 
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
@@ -61,12 +62,14 @@ export function BlockchainAudit() {
   const [downloading, setDownloading] = useState(false);
 
   const [exportForm, setExportForm] = useState({ dateFrom: "", dateTo: "", txType: "all", format: "CSV" });
+  const debouncedSearch = useDebouncedValue(search, 140);
 
-  const filtered = transactions.filter((t) => {
-    const matchSearch = t.device.toLowerCase().includes(search.toLowerCase()) || t.hash.includes(search) || t.id.includes(search);
+  const filtered = useMemo(() => transactions.filter((t) => {
+    const query = debouncedSearch.toLowerCase();
+    const matchSearch = t.id.toLowerCase().includes(query) || t.device.toLowerCase().includes(query) || t.hash.includes(debouncedSearch) || t.data.toLowerCase().includes(query);
     const matchType = typeFilter === "all" || t.type === typeFilter;
     return matchSearch && matchType;
-  });
+  }), [debouncedSearch, typeFilter]);
 
   const copyHash = (hash: string) => {
     navigator.clipboard.writeText(hash);

@@ -400,6 +400,24 @@
     margin-top: 20px;
   }
 
+  .dashboard-hero__actions > button {
+    min-width: 166px;
+    height: 46px;
+    padding: 0 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+    line-height: 1;
+    flex: 0 0 auto;
+    border-radius: 14px;
+  }
+
+  .dashboard-hero__actions > button svg {
+    flex-shrink: 0;
+  }
+
   .dashboard-grid-6 {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -416,6 +434,18 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 16px;
+  }
+
+  @media (max-width: 1180px) {
+    .dashboard-hero__actions > button {
+      min-width: 0;
+    }
+  }
+
+  @media (max-width: 960px) {
+    .dashboard-hero__actions > button {
+      width: 100%;
+    }
   }
 
   .dashboard-section {

@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from "react";
-import { Search, ZoomIn, ZoomOut, RotateCcw, Filter, Info, Shield, Monitor, Server, Wifi, Cloud, Cpu } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Search, ZoomIn, ZoomOut, RotateCcw, Info, Shield, Monitor, Server, Wifi, Cloud, Cpu } from "lucide-react";
+import { useToast } from "./Toast";
 
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
@@ -82,22 +83,23 @@ function getNodeCenter(node: NetworkNode) {
 }
 
 export function NetworkTopology() {
+  const toast = useToast();
   const [selectedNode, setSelectedNode] = useState<NetworkNode | null>(null);
   const [zoom, setZoom] = useState(1);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<NodeStatus | "all">("all");
+  const [nodesState, setNodesState] = useState(nodes);
 
-  const filteredNodes = nodes.filter((n) => {
-    const matchSearch = n.label.toLowerCase().includes(search.toLowerCase()) || n.ip.includes(search);
+  const filteredNodes = useMemo(() => nodesState.filter((n) => {
+    const query = search.trim().toLowerCase();
+    const matchSearch = n.label.toLowerCase().includes(query) || n.ip.includes(query) || n.details.toLowerCase().includes(query) || n.id.toLowerCase().includes(query);
     const matchFilter = filter === "all" || n.status === filter;
     return matchSearch && matchFilter;
-  });
+  }), [filter, nodesState, search]);
 
   const filterSet = new Set(filteredNodes.map((n) => n.id));
 
-  const visibleLinks = links.filter(
-    (l) => filterSet.has(l.source) && filterSet.has(l.target)
-  );
+  const visibleLinks = useMemo(() => links.filter((l) => filterSet.has(l.source) && filterSet.has(l.target)), [filterSet]);
 
   return (
     <div style={{ padding: "28px", height: "100%", display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -175,8 +177,8 @@ export function NetworkTopology() {
 
               {/* Links */}
               {visibleLinks.map((link, i) => {
-                const src = nodes.find((n) => n.id === link.source)!;
-                const tgt = nodes.find((n) => n.id === link.target)!;
+                const src = nodesState.find((n) => n.id === link.source)!;
+                const tgt = nodesState.find((n) => n.id === link.target)!;
                 const sc = getNodeCenter(src);
                 const tc = getNodeCenter(tgt);
                 return (
@@ -280,9 +282,21 @@ export function NetworkTopology() {
                   ))}
                 </div>
                 <div style={{ marginTop: "14px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  <button style={{ flex: 1, padding: "7px", fontSize: "11px", fontWeight: 600, background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "7px", cursor: "pointer" }}>Investigate</button>
+                    <button
+                      onClick={() => {
+                        toast.info("Investigate Node", `${selectedNode.label} queued for SOC review`);
+                        setSelectedNode({ ...selectedNode, status: selectedNode.status === "healthy" ? "warning" : selectedNode.status });
+                      }}
+                      style={{ flex: 1, padding: "7px", fontSize: "11px", fontWeight: 600, background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "7px", cursor: "pointer" }}
+                    >Investigate</button>
                   {selectedNode.status === "compromised" && (
-                    <button style={{ flex: 1, padding: "7px", fontSize: "11px", fontWeight: 600, background: "rgba(239,68,68,0.12)", color: "#EF4444", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "7px", cursor: "pointer" }}>Block</button>
+                    <button
+                      onClick={() => {
+                        toast.warning("Device Isolated", `${selectedNode.label} blocked from the network`);
+                        setNodesState((current) => current.map((n) => (n.id === selectedNode.id ? { ...n, status: "compromised" } : n)));
+                      }}
+                      style={{ flex: 1, padding: "7px", fontSize: "11px", fontWeight: 600, background: "rgba(239,68,68,0.12)", color: "#EF4444", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "7px", cursor: "pointer" }}
+                    >Block</button>
                   )}
                 </div>
               </div>

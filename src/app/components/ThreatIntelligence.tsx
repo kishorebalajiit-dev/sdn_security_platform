@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Shield, Globe, Search, AlertTriangle, TrendingUp, Database, Eye } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useToast } from "./Toast";
+import { useDebouncedValue } from "../../lib/useDebouncedValue";
 
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
@@ -68,13 +69,15 @@ export function ThreatIntelligence() {
   const [search, setSearch] = useState("");
   const [sevFilter, setSevFilter] = useState<string>("all");
   const [blockedSources, setBlockedSources] = useState<string[]>([]);
+  const debouncedSearch = useDebouncedValue(search, 140);
 
-  const filtered = threatFeed.filter((t) => {
-    const matchSearch = t.source.toLowerCase().includes(search.toLowerCase()) || t.type.toLowerCase().includes(search.toLowerCase());
+  const filtered = useMemo(() => threatFeed.filter((t) => {
+    const query = debouncedSearch.toLowerCase();
+    const matchSearch = t.id.toLowerCase().includes(query) || t.source.toLowerCase().includes(query) || t.type.toLowerCase().includes(query) || t.description.toLowerCase().includes(query);
     const matchSev = sevFilter === "all" || t.severity === sevFilter;
     const matchBlocked = !blockedSources.includes(t.id);
     return matchSearch && matchSev && matchBlocked;
-  });
+  }), [blockedSources, debouncedSearch, sevFilter]);
 
   const handleBlockSource = (source: typeof threatFeed[number]) => {
     setBlockedSources((prev) => (prev.includes(source.id) ? prev : [...prev, source.id]));

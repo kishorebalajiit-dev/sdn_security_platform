@@ -3,4 +3,5 @@ dist/
 .env
 .env.local
 *.log
+build.out
 .DS_Store

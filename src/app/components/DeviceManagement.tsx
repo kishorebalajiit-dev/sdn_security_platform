@@ -1,9 +1,10 @@
-import { memo, useCallback, useRef, useState } from "react";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
 import { Monitor, Search, Plus, CheckCircle, AlertTriangle, XCircle, Wifi, Server, Cpu, Edit2, Trash2, Ban, Loader } from "lucide-react";
 import { Modal, Field, inputStyle, selectStyle, ConfirmDialog } from "./Modal";
 import { useToast } from "./Toast";
 import { useAppData } from "../../contexts/AppDataContext";
 import type { Device, DeviceType, ConnType } from "../../types";
+import { useDebouncedValue } from "../../lib/useDebouncedValue";
 
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
@@ -117,16 +118,22 @@ export function DeviceManagement() {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const setField = useCallback((k: keyof DeviceForm, v: string) => setForm((p) => ({ ...p, [k]: v })), []);
+  const debouncedSearch = useDebouncedValue(search, 140);
 
-  const filtered = devices.filter((d) => {
+  const filtered = useMemo(() => devices.filter((d) => {
+    const query = debouncedSearch.trim().toLowerCase();
     const matchSearch =
-      d.name.toLowerCase().includes(search.toLowerCase()) ||
-      d.ip.includes(search) ||
-      d.location.toLowerCase().includes(search.toLowerCase());
+      d.id.toLowerCase().includes(query) ||
+      d.name.toLowerCase().includes(query) ||
+      d.ip.includes(query) ||
+      d.mac.toLowerCase().includes(query) ||
+      d.location.toLowerCase().includes(query) ||
+      d.owner?.toLowerCase().includes(query ?? "");
     const matchStatus = statusFilter === "all" || d.status === statusFilter;
     const matchType = typeFilter === "all" || d.type === typeFilter;
     return matchSearch && matchStatus && matchType;
-  });
+  }), [debouncedSearch, devices, statusFilter, typeFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -201,6 +208,10 @@ export function DeviceManagement() {
     }
   };
 
+  const formBody = useMemo(() => (
+    <DeviceFormBody form={form} formErrors={formErrors} setField={setField} />
+  ), [form, formErrors, setField]);
+
   if (!isHydrated) {
     return (
       <div style={{ padding: "28px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", color: "#64748B", gap: "10px" }}>
@@ -208,8 +219,6 @@ export function DeviceManagement() {
       </div>
     );
   }
-
-  const setField = useCallback((k: keyof DeviceForm, v: string) => setForm((p) => ({ ...p, [k]: v })), []);
 
   const ModalFooter = ({ onSave }: { onSave: () => void }) => (
     <>
@@ -235,12 +244,12 @@ export function DeviceManagement() {
     <div style={{ padding: "28px", display: "flex", flexDirection: "column", gap: "20px" }}>
       {/* Register Modal */}
       <Modal open={registerOpen} onClose={() => { if (!saving) setRegisterOpen(false); }} title="Register New Device" subtitle="Add a new device to the network inventory" width={560} footer={<ModalFooter onSave={handleRegisterSave} />}>
-        <DeviceFormBody />
+        {formBody}
       </Modal>
 
       {/* Edit Modal */}
       <Modal open={editDevice !== null} onClose={() => { if (!saving) setEditDevice(null); }} title="Edit Device" subtitle={editDevice?.name} width={560} footer={<ModalFooter onSave={handleEditSave} />}>
-        <DeviceFormBody />
+        {formBody}
       </Modal>
 
       {/* Delete Confirm */}

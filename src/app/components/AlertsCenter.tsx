@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Bell, XCircle, AlertTriangle, CheckCircle, Clock, Search, Eye, RefreshCw, Loader } from "lucide-react";
 import { useAppData } from "../../contexts/AppDataContext";
 import type { Alert } from "../../types";
+import { useDebouncedValue } from "../../lib/useDebouncedValue";
 
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
@@ -32,6 +33,7 @@ export function AlertsCenter() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 140);
 
   const acknowledge = (id: string) => updateAlertStatus(id, "acknowledged");
   const investigate = (id: string) => updateAlertStatus(id, "investigating");
@@ -45,7 +47,7 @@ export function AlertsCenter() {
     );
   }
 
-  const filtered = alerts.filter((a) => {
+  const filtered = useMemo(() => alerts.filter((a) => {
     const st = a.status;
     const matchSev = sevFilter === "all" || a.severity === sevFilter;
     const matchStatus = statusFilter === "all" || st === statusFilter;
@@ -54,11 +56,12 @@ export function AlertsCenter() {
       (dateFilter === "today" && a.date === "2026-06-15") ||
       (dateFilter === "yesterday" && a.date === "2026-06-14");
     const matchSearch =
-      a.title.toLowerCase().includes(search.toLowerCase()) ||
-      a.device.toLowerCase().includes(search.toLowerCase()) ||
-      a.message.toLowerCase().includes(search.toLowerCase());
+      a.id.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      a.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      a.device.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      a.message.toLowerCase().includes(debouncedSearch.toLowerCase());
     return matchSev && matchStatus && matchDate && matchSearch;
-  });
+  }), [alerts, dateFilter, debouncedSearch, sevFilter, statusFilter]);
 
   const newCount = alerts.filter((a) => a.status === "new").length;
 

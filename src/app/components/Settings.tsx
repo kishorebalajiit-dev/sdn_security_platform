@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Settings as SettingsIcon, Globe, Shield, Link2, Brain,
   Bell, Users, Save, Loader, CheckCircle, Wifi, Plus, Trash2, Edit2,
@@ -72,10 +72,53 @@ const roleColors: Record<string, string> = {
   Admin: "#EF4444", "Security Analyst": "#2563EB", "Network Engineer": "#22C55E", Auditor: "#8B5CF6",
 };
 
+const SETTINGS_KEY = "secureNetSettingsState";
+
+const defaultFieldValues = {
+  platformName: "SecureNet AI — SDN Security Platform",
+  organization: "CyberDefense Corp",
+  timezone: "UTC+08:00 (MYT)",
+  refreshRate: "10 seconds",
+  sessionTimeout: "30 minutes",
+  networkName: "SecureNet-SDN-01",
+  managementSubnet: "10.0.0.0/16",
+  iotSubnet: "172.16.5.0/24",
+  primaryDns: "10.0.0.53",
+  secondaryDns: "8.8.8.8",
+  defaultGateway: "10.0.0.1",
+  controllerIp: "10.0.0.1",
+  openflowVersion: "OpenFlow 1.5",
+  controllerPort: "6653",
+  riskThreshold: "80",
+  passwordPolicy: "Strong (12+ chars, symbols)",
+  consensusAlgorithm: "PBFT",
+  validatorNodes: "12",
+  blockTime: "2",
+  storageLimit: "100 GB",
+  detectionModel: "Transformer-v4 (Default)",
+  confidenceThreshold: "75",
+  alertEmail: "soc@cyberdefense.ai",
+  minimumSeverity: "P1 Critical Only",
+};
+
+type SettingsFieldState = typeof defaultFieldValues;
+
+function readStoredSettings(): SettingsFieldState {
+  if (typeof window === "undefined") return defaultFieldValues;
+  try {
+    const raw = window.localStorage.getItem(SETTINGS_KEY);
+    if (!raw) return defaultFieldValues;
+    return { ...defaultFieldValues, ...JSON.parse(raw) } as SettingsFieldState;
+  } catch {
+    return defaultFieldValues;
+  }
+}
+
 export function Settings() {
   const [activeTab, setActiveTab] = useState("general");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [fields, setFields] = useState<SettingsFieldState>(readStoredSettings);
   const [toggles, setToggles] = useState<Record<string, boolean>>({
     autoBlock: true, aiDetection: true, blockchain: true, mfaRequired: true,
     geoBlocking: false, alertEmails: true, slackAlerts: false, weeklyReport: true,
@@ -86,15 +129,29 @@ export function Settings() {
   const [newRoleName, setNewRoleName] = useState("");
   const { success, error, warning, info } = useToast();
 
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(fields));
+    } catch {
+      // ignore storage failures
+    }
+  }, [fields]);
+
   const setToggle = (key: string, val: boolean) => setToggles((t) => ({ ...t, [key]: val }));
+  const setField = (key: keyof SettingsFieldState, value: string) => setFields((current) => ({ ...current, [key]: value }));
 
   const handleSave = async () => {
     setSaving(true);
     setSaved(false);
+    try {
+      window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(fields));
+    } catch {
+      // ignore storage failures
+    }
     await new Promise((r) => setTimeout(r, 1000));
     setSaving(false);
     setSaved(true);
-    success("Settings Saved", "All configuration changes have been applied successfully");
+    success("Settings Saved", `Changes saved for ${fields.platformName}`);
     setTimeout(() => setSaved(false), 2500);
   };
 
@@ -123,6 +180,28 @@ export function Settings() {
     setNewRoleName("");
   };
 
+  const handleEditRole = (role: string) => {
+    const nextName = window.prompt("Rename role", role)?.trim();
+    if (!nextName || nextName === role) return;
+    setPerms((current) => {
+      const next = { ...current };
+      next[nextName] = next[role];
+      delete next[role];
+      return next;
+    });
+    warning("Role Updated", `${role} renamed to ${nextName}`);
+  };
+
+  const handleDiscard = () => {
+    setToggles({
+      autoBlock: true, aiDetection: true, blockchain: true, mfaRequired: true,
+      geoBlocking: false, alertEmails: true, slackAlerts: false, weeklyReport: true,
+      threatFeed: true, autoQuarantine: false, darkMode: true, testConnection: false,
+    });
+    setPerms(defaultPerms);
+    info("Changes Reverted", "Settings restored to the default platform profile");
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case "general":
@@ -130,15 +209,15 @@ export function Settings() {
           <div>
             <h3 style={{ color: "#E2E8F0", marginBottom: "18px" }}>General Settings</h3>
             <SettingRow label="Platform Name" description="Display name for the dashboard">
-              <InputField defaultValue="SecureNet AI — SDN Security Platform" width={300} />
+              <input value={fields.platformName} onChange={(e) => setField("platformName", e.target.value)} style={{ ...inputStyle, width: "300px" }} />
             </SettingRow>
             <SettingRow label="Organization" description="Your organization name">
-              <InputField defaultValue="CyberDefense Corp" />
+              <input value={fields.organization} onChange={(e) => setField("organization", e.target.value)} style={inputStyle} />
             </SettingRow>
             <SettingRow label="Timezone" description="Dashboard time display">
-              <select style={{ ...selectStyle, width: "200px" }}>
+              <select value={fields.timezone} onChange={(e) => setField("timezone", e.target.value)} style={{ ...selectStyle, width: "200px" }}>
                 <option>UTC+00:00</option>
-                <option selected>UTC+08:00 (MYT)</option>
+                <option>UTC+08:00 (MYT)</option>
                 <option>UTC+05:30 (IST)</option>
                 <option>UTC-05:00 (EST)</option>
               </select>
@@ -147,16 +226,16 @@ export function Settings() {
               <Toggle on={toggles.darkMode} onChange={(v) => setToggle("darkMode", v)} />
             </SettingRow>
             <SettingRow label="Data Refresh Rate" description="How often live data updates">
-              <select style={{ ...selectStyle, width: "160px" }}>
+              <select value={fields.refreshRate} onChange={(e) => setField("refreshRate", e.target.value)} style={{ ...selectStyle, width: "160px" }}>
                 <option>5 seconds</option>
-                <option selected>10 seconds</option>
+                <option>10 seconds</option>
                 <option>30 seconds</option>
               </select>
             </SettingRow>
             <SettingRow label="Session Timeout" description="Auto-logout after inactivity">
-              <select style={{ ...selectStyle, width: "160px" }}>
+              <select value={fields.sessionTimeout} onChange={(e) => setField("sessionTimeout", e.target.value)} style={{ ...selectStyle, width: "160px" }}>
                 <option>15 minutes</option>
-                <option selected>30 minutes</option>
+                <option>30 minutes</option>
                 <option>1 hour</option>
               </select>
             </SettingRow>
@@ -168,37 +247,37 @@ export function Settings() {
           <div>
             <h3 style={{ color: "#E2E8F0", marginBottom: "18px" }}>Network Configuration</h3>
             <SettingRow label="Network Name" description="Internal identifier for this SDN network">
-              <InputField defaultValue="SecureNet-SDN-01" />
+              <input value={fields.networkName} onChange={(e) => setField("networkName", e.target.value)} style={inputStyle} />
             </SettingRow>
             <SettingRow label="Management Subnet" description="Network management CIDR range">
-              <InputField defaultValue="10.0.0.0/16" />
+              <input value={fields.managementSubnet} onChange={(e) => setField("managementSubnet", e.target.value)} style={inputStyle} />
             </SettingRow>
             <SettingRow label="IoT VLAN Subnet" description="Isolated IoT device subnet">
-              <InputField defaultValue="172.16.5.0/24" />
+              <input value={fields.iotSubnet} onChange={(e) => setField("iotSubnet", e.target.value)} style={inputStyle} />
             </SettingRow>
             <SettingRow label="Primary DNS" description="DNS server for name resolution">
-              <InputField defaultValue="10.0.0.53" />
+              <input value={fields.primaryDns} onChange={(e) => setField("primaryDns", e.target.value)} style={inputStyle} />
             </SettingRow>
             <SettingRow label="Secondary DNS" description="Fallback DNS server">
-              <InputField defaultValue="8.8.8.8" />
+              <input value={fields.secondaryDns} onChange={(e) => setField("secondaryDns", e.target.value)} style={inputStyle} />
             </SettingRow>
             <SettingRow label="Default Gateway" description="Network default gateway IP">
-              <InputField defaultValue="10.0.0.1" />
+              <input value={fields.defaultGateway} onChange={(e) => setField("defaultGateway", e.target.value)} style={inputStyle} />
             </SettingRow>
             <div style={{ margin: "18px 0 0", padding: "16px", background: "rgba(37,99,235,0.06)", border: "1px solid rgba(37,99,235,0.15)", borderRadius: "10px" }}>
               <p style={{ fontSize: "12px", fontWeight: 600, color: "#E2E8F0", marginBottom: "12px" }}>SDN Controller Settings</p>
               <SettingRow label="Controller IP" description="OpenFlow controller address">
-                <InputField defaultValue="10.0.0.1" />
+                <input value={fields.controllerIp} onChange={(e) => setField("controllerIp", e.target.value)} style={inputStyle} />
               </SettingRow>
               <SettingRow label="OpenFlow Version" description="Protocol version">
-                <select style={{ ...selectStyle, width: "160px" }}>
-                  <option selected>OpenFlow 1.5</option>
+                <select value={fields.openflowVersion} onChange={(e) => setField("openflowVersion", e.target.value)} style={{ ...selectStyle, width: "160px" }}>
+                  <option>OpenFlow 1.5</option>
                   <option>OpenFlow 1.4</option>
                   <option>OpenFlow 1.3</option>
                 </select>
               </SettingRow>
               <SettingRow label="Controller Port" description="TCP port for controller communication">
-                <InputField defaultValue="6653" width={120} />
+                <input value={fields.controllerPort} onChange={(e) => setField("controllerPort", e.target.value)} style={{ ...inputStyle, width: "120px" }} />
               </SettingRow>
               <div style={{ marginTop: "14px", display: "flex", gap: "10px" }}>
                 <button
@@ -234,11 +313,11 @@ export function Settings() {
               <Toggle on={toggles.geoBlocking} onChange={(v) => setToggle("geoBlocking", v)} />
             </SettingRow>
             <SettingRow label="Risk Score Threshold" description="Auto-block when risk score exceeds this value">
-              <InputField defaultValue="80" width={100} />
+              <input value={fields.riskThreshold} onChange={(e) => setField("riskThreshold", e.target.value)} style={{ ...inputStyle, width: "100px" }} />
             </SettingRow>
             <SettingRow label="Password Policy" description="Minimum password complexity">
-              <select style={{ ...selectStyle, width: "200px" }}>
-                <option selected>Strong (12+ chars, symbols)</option>
+              <select value={fields.passwordPolicy} onChange={(e) => setField("passwordPolicy", e.target.value)} style={{ ...selectStyle, width: "200px" }}>
+                <option>Strong (12+ chars, symbols)</option>
                 <option>Very Strong (16+ chars)</option>
                 <option>Standard (8+ chars)</option>
               </select>
@@ -254,20 +333,20 @@ export function Settings() {
               <Toggle on={toggles.blockchain} onChange={(v) => setToggle("blockchain", v)} />
             </SettingRow>
             <SettingRow label="Consensus Algorithm">
-              <select style={{ ...selectStyle, width: "180px" }}>
-                <option selected>PBFT</option>
+              <select value={fields.consensusAlgorithm} onChange={(e) => setField("consensusAlgorithm", e.target.value)} style={{ ...selectStyle, width: "180px" }}>
+                <option>PBFT</option>
                 <option>Raft</option>
                 <option>HotStuff</option>
               </select>
             </SettingRow>
             <SettingRow label="Validator Nodes" description="Number of consensus validators">
-              <InputField defaultValue="12" width={100} />
+              <input value={fields.validatorNodes} onChange={(e) => setField("validatorNodes", e.target.value)} style={{ ...inputStyle, width: "100px" }} />
             </SettingRow>
             <SettingRow label="Block Time" description="Target block time in seconds">
-              <InputField defaultValue="2" width={100} />
+              <input value={fields.blockTime} onChange={(e) => setField("blockTime", e.target.value)} style={{ ...inputStyle, width: "100px" }} />
             </SettingRow>
             <SettingRow label="Storage Limit" description="Max on-chain storage allocation">
-              <InputField defaultValue="100 GB" width={120} />
+              <input value={fields.storageLimit} onChange={(e) => setField("storageLimit", e.target.value)} style={{ ...inputStyle, width: "120px" }} />
             </SettingRow>
           </div>
         );
@@ -277,23 +356,23 @@ export function Settings() {
           <div>
             <h3 style={{ color: "#E2E8F0", marginBottom: "18px" }}>AI Model Settings</h3>
             <SettingRow label="Detection Model">
-              <select style={{ ...selectStyle, width: "220px" }}>
-                <option selected>Transformer-v4 (Default)</option>
+              <select value={fields.detectionModel} onChange={(e) => setField("detectionModel", e.target.value)} style={{ ...selectStyle, width: "220px" }}>
+                <option>Transformer-v4 (Default)</option>
                 <option>LSTM-Hybrid</option>
                 <option>XGBoost-Ensemble</option>
               </select>
             </SettingRow>
             <SettingRow label="Confidence Threshold" description="Min confidence to trigger alert (%)">
-              <InputField defaultValue="75" width={100} />
+              <input value={fields.confidenceThreshold} onChange={(e) => setField("confidenceThreshold", e.target.value)} style={{ ...inputStyle, width: "100px" }} />
             </SettingRow>
             <SettingRow label="Global Threat Feed" description="Subscribe to external intelligence feeds">
               <Toggle on={toggles.threatFeed} onChange={(v) => setToggle("threatFeed", v)} />
             </SettingRow>
             <SettingRow label="Auto Retraining" description="Retrain model weekly with new data">
-              <Toggle on={true} onChange={() => {}} />
+              <Toggle on={toggles.testConnection} onChange={(v) => setToggle("testConnection", v)} />
             </SettingRow>
             <SettingRow label="Federated Learning" description="Share improvements with peer networks (privacy-preserving)">
-              <Toggle on={false} onChange={() => {}} />
+              <Toggle on={toggles.slackAlerts} onChange={(v) => setToggle("slackAlerts", v)} />
             </SettingRow>
           </div>
         );
@@ -306,7 +385,7 @@ export function Settings() {
               <Toggle on={toggles.alertEmails} onChange={(v) => setToggle("alertEmails", v)} />
             </SettingRow>
             <SettingRow label="Alert Email">
-              <InputField defaultValue="soc@cyberdefense.ai" width={240} />
+              <input value={fields.alertEmail} onChange={(e) => setField("alertEmail", e.target.value)} style={{ ...inputStyle, width: "240px" }} />
             </SettingRow>
             <SettingRow label="Slack Integration" description="Post alerts to Slack channel">
               <Toggle on={toggles.slackAlerts} onChange={(v) => setToggle("slackAlerts", v)} />
@@ -315,8 +394,8 @@ export function Settings() {
               <Toggle on={toggles.weeklyReport} onChange={(v) => setToggle("weeklyReport", v)} />
             </SettingRow>
             <SettingRow label="Minimum Alert Severity">
-              <select style={{ ...selectStyle, width: "200px" }}>
-                <option selected>P1 Critical Only</option>
+              <select value={fields.minimumSeverity} onChange={(e) => setField("minimumSeverity", e.target.value)} style={{ ...selectStyle, width: "200px" }}>
+                <option>P1 Critical Only</option>
                 <option>P1 + P2</option>
                 <option>All Incidents</option>
               </select>
@@ -370,7 +449,7 @@ export function Settings() {
                       <td style={{ padding: "12px 14px" }}>
                         {role !== "Admin" && (
                           <div style={{ display: "flex", gap: "4px" }}>
-                            <button title="Edit role" style={{ padding: "4px", background: "none", border: "none", cursor: "pointer", color: "#475569" }}
+                            <button title="Edit role" onClick={() => handleEditRole(role)} style={{ padding: "4px", background: "none", border: "none", cursor: "pointer", color: "#475569" }}
                               onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#60A5FA"; }}
                               onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#475569"; }}>
                               <Edit2 size={12} />
@@ -428,7 +507,7 @@ export function Settings() {
         <div style={glassCard}>
           {renderContent()}
           <div style={{ marginTop: "24px", display: "flex", gap: "10px", justifyContent: "flex-end", paddingTop: "16px", borderTop: "1px solid rgba(37,99,235,0.08)" }}>
-            <button style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: "rgba(255,255,255,0.05)", color: "#64748B", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", cursor: "pointer" }}>
+            <button onClick={handleDiscard} style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: "rgba(255,255,255,0.05)", color: "#64748B", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", cursor: "pointer" }}>
               Discard Changes
             </button>
             <button

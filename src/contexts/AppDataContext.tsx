@@ -268,28 +268,33 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (!q) return [];
       const results: SearchResult[] = [];
 
+      const matches = (...values: Array<string | number | undefined | null>) =>
+        values.some((value) => String(value ?? "").toLowerCase().includes(q));
+
       state.alerts.forEach((a) => {
-        if (a.title.toLowerCase().includes(q) || a.device.toLowerCase().includes(q)) {
+        if (matches(a.id, a.title, a.device, a.message, a.severity, a.status, a.date, a.time)) {
           results.push({ type: "alert", id: a.id, title: a.title, subtitle: a.device, path: "/alerts" });
         }
       });
       state.devices.forEach((d) => {
-        if (d.name.toLowerCase().includes(q) || d.ip.includes(q)) {
+        if (matches(d.id, d.name, d.ip, d.mac, d.location, d.owner, d.status, d.type, d.connType, d.os)) {
           results.push({ type: "device", id: d.id, title: d.name, subtitle: d.ip, path: "/devices" });
         }
       });
       state.threats.forEach((t) => {
-        if (t.type.toLowerCase().includes(q) || t.device.toLowerCase().includes(q)) {
+        if (matches(t.id, t.type, t.device, t.ip, t.classification, t.status, t.risk, t.confidence, t.timestamp)) {
           results.push({ type: "threat", id: t.id, title: t.type, subtitle: t.device, path: "/ai-threat" });
         }
       });
       state.incidents.forEach((i) => {
-        if (i.title.toLowerCase().includes(q) || i.device.toLowerCase().includes(q)) {
+        const timelineText = i.timeline.map((event) => event.action).join(" ");
+        const notesText = i.notes.map((note) => note.text).join(" ");
+        if (matches(i.id, i.title, i.device, i.assignee, i.status, i.severity, i.created, i.updated, timelineText, notesText)) {
           results.push({ type: "incident", id: i.id, title: i.title, subtitle: i.device, path: "/incidents" });
         }
       });
       state.users.forEach((u) => {
-        if (u.name.toLowerCase().includes(q) || u.email.includes(q)) {
+        if (matches(u.id, u.name, u.email, u.role, u.department, u.status, u.lastLogin)) {
           results.push({ type: "user", id: u.id, title: u.name, subtitle: u.email, path: "/users" });
         }
       });

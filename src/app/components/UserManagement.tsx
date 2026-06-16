@@ -1,10 +1,11 @@
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { Users, Plus, Shield, Search, Edit2, Trash2, CheckCircle, Lock, Key, Loader } from "lucide-react";
 import { Modal, Field, inputStyle, selectStyle, ConfirmDialog } from "./Modal";
 import { useToast } from "./Toast";
 import { useAppData } from "../../contexts/AppDataContext";
 import { permissionMatrix, PERMISSION_MODULES } from "../../lib/permissions";
 import type { PlatformUser, UserRole, Department } from "../../types";
+import { useDebouncedValue } from "../../lib/useDebouncedValue";
 
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
@@ -97,12 +98,15 @@ export function UserManagement() {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const setF = useCallback((k: keyof typeof emptyForm, v: string | boolean) => setForm((p) => ({ ...p, [k]: v })), []);
+  const debouncedSearch = useDebouncedValue(search, 140);
 
-  const filtered = users.filter((u) => {
-    const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) || u.email.includes(search) || u.role.toLowerCase().includes(search.toLowerCase());
+  const filtered = useMemo(() => users.filter((u) => {
+    const query = debouncedSearch.trim().toLowerCase();
+    const matchSearch = u.id.toLowerCase().includes(query) || u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query) || u.role.toLowerCase().includes(query) || u.department?.toLowerCase().includes(query);
     const matchRole = roleFilter === "all" || u.role === roleFilter;
     return matchSearch && matchRole;
-  });
+  }), [debouncedSearch, roleFilter, users]);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -160,6 +164,10 @@ export function UserManagement() {
     }
   };
 
+  const formBody = useMemo(() => (
+    <UserFormBody form={form} formErrors={formErrors} setField={setF} />
+  ), [form, formErrors, setF]);
+
   if (!isHydrated) {
     return (
       <div style={{ padding: "28px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", color: "#64748B", gap: "10px" }}>
@@ -167,8 +175,6 @@ export function UserManagement() {
       </div>
     );
   }
-
-  const setF = useCallback((k: keyof typeof emptyForm, v: string | boolean) => setForm((p) => ({ ...p, [k]: v })), []);
 
   const ModalFooter = ({ onSave }: { onSave: () => void }) => (
     <>
@@ -188,12 +194,12 @@ export function UserManagement() {
     <div style={{ padding: "28px", display: "flex", flexDirection: "column", gap: "20px" }}>
       {/* Add User Modal */}
       <Modal open={addOpen} onClose={() => { if (!saving) setAddOpen(false); }} title="Add User" subtitle="Create a new platform user" width={520} footer={<ModalFooter onSave={handleAdd} />}>
-        <UserFormBody />
+        {formBody}
       </Modal>
 
       {/* Edit User Modal */}
       <Modal open={editUser !== null} onClose={() => { if (!saving) setEditUser(null); }} title="Edit User" subtitle={editUser?.name} width={520} footer={<ModalFooter onSave={handleEdit} />}>
-        <UserFormBody />
+        {formBody}
       </Modal>
 
       {/* Delete Confirm */}

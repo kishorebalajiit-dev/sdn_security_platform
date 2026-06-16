@@ -106,7 +106,7 @@ export function Dashboard({ onNavigate }: { onNavigate?: (page: string) => void 
           <button className="cyber-button cyber-button-secondary cyber-pill" onClick={() => navigate("/reports")}>
             Generate Report <Database size={14} />
           </button>
-          <button className="cyber-button cyber-button-secondary cyber-pill" onClick={() => onNavigate?.("network-topology")}>
+          <button className="cyber-button cyber-button-secondary cyber-pill" onClick={() => navigate("/network-topology") }>
             Explore Topology <Globe size={14} />
           </button>
         </div>
