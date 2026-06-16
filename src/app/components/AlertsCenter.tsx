@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Bell, XCircle, AlertTriangle, CheckCircle, Clock, Search, Eye, RefreshCw } from "lucide-react";
+import { Bell, XCircle, AlertTriangle, CheckCircle, Clock, Search, Eye, RefreshCw, Loader } from "lucide-react";
+import { useAppData } from "../../contexts/AppDataContext";
+import type { Alert } from "../../types";
 
 const glassCard: React.CSSProperties = {
   background: "rgba(13, 27, 42, 0.7)",
@@ -8,30 +10,6 @@ const glassCard: React.CSSProperties = {
   borderRadius: "12px",
   padding: "20px",
 };
-
-interface Alert {
-  id: string;
-  severity: "critical" | "high" | "medium" | "low";
-  title: string;
-  message: string;
-  device: string;
-  date: string;
-  time: string;
-  status: "new" | "acknowledged" | "investigating" | "resolved";
-}
-
-const allAlerts: Alert[] = [
-  { id: "ALT-001", severity: "critical", title: "DDoS Attack Detected", message: "Volumetric attack on Edge-SW-03 — 4.2 Gbps spike detected, rate limiting applied", device: "Edge-SW-03", date: "2026-06-15", time: "14:23", status: "new" },
-  { id: "ALT-002", severity: "critical", title: "Botnet C2 Communication", message: "IoT-Sensor-48 communicating with known C2 server 45.33.42.18 — connection blocked", device: "IoT-Sensor-48", date: "2026-06-15", time: "14:05", status: "new" },
-  { id: "ALT-003", severity: "high", title: "Credential Stuffing Attack", message: "550 failed login attempts on finance portal in under 3 minutes from single source", device: "PC-Finance-03", date: "2026-06-15", time: "13:58", status: "acknowledged" },
-  { id: "ALT-004", severity: "high", title: "ARP Spoofing Detected", message: "MITM attack detected on IoT network segment 172.16.5.0/24 — VLAN isolated", device: "IoT Cluster", date: "2026-06-15", time: "13:41", status: "investigating" },
-  { id: "ALT-005", severity: "high", title: "Unauthorized SSH Access", message: "Multiple SSH brute force attempts from 103.88.45.201 — IP blocked at perimeter", device: "SVR-Web-01", date: "2026-06-15", time: "13:22", status: "acknowledged" },
-  { id: "ALT-006", severity: "medium", title: "SSL Certificate Expiry", message: "Certificate expires in 7 days — web-proxy-02.internal requires renewal", device: "Web-Proxy-02", date: "2026-06-15", time: "12:30", status: "new" },
-  { id: "ALT-007", severity: "medium", title: "Firmware Outdated", message: "24 IoT devices running vulnerable firmware v2.1.3 — patches available", device: "IoT Cluster", date: "2026-06-14", time: "18:14", status: "acknowledged" },
-  { id: "ALT-008", severity: "medium", title: "Port Scan Activity", message: "Systematic port scan from external IP 185.220.101.42 — Tor exit node identified", device: "Perimeter FW", date: "2026-06-14", time: "15:55", status: "resolved" },
-  { id: "ALT-009", severity: "low", title: "New Device Connected", message: "Unrecognized device joined the network — pending device registration approval", device: "172.16.5.48", date: "2026-06-14", time: "11:02", status: "new" },
-  { id: "ALT-010", severity: "low", title: "Backup Completed", message: "Full system configuration backup completed successfully — stored to encrypted vault", device: "SDN Controller", date: "2026-06-14", time: "02:00", status: "resolved" },
-];
 
 const sevConfig = {
   critical: { color: "#EF4444", bg: "rgba(239,68,68,0.08)", border: "rgba(239,68,68,0.2)", icon: XCircle, label: "Critical" },
@@ -48,23 +26,26 @@ const statusConfig = {
 };
 
 export function AlertsCenter() {
+  const { alerts, isHydrated, isRefreshing, updateAlertStatus, acknowledgeAllAlerts, refreshAlerts } = useAppData();
   const [sevFilter, setSevFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
   const [search, setSearch] = useState("");
-  const [alertStates, setAlertStates] = useState<Record<string, Alert["status"]>>({});
 
-  const getStatus = (a: Alert): Alert["status"] => alertStates[a.id] ?? a.status;
+  const acknowledge = (id: string) => updateAlertStatus(id, "acknowledged");
+  const investigate = (id: string) => updateAlertStatus(id, "investigating");
+  const resolve = (id: string) => updateAlertStatus(id, "resolved");
 
-  const acknowledge = (id: string) =>
-    setAlertStates((s) => ({ ...s, [id]: "acknowledged" }));
-  const investigate = (id: string) =>
-    setAlertStates((s) => ({ ...s, [id]: "investigating" }));
-  const resolve = (id: string) =>
-    setAlertStates((s) => ({ ...s, [id]: "resolved" }));
+  if (!isHydrated) {
+    return (
+      <div style={{ padding: "28px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", color: "#64748B", gap: "10px" }}>
+        <Loader size={18} style={{ animation: "spin 1s linear infinite" }} /> Loading alerts...
+      </div>
+    );
+  }
 
-  const filtered = allAlerts.filter((a) => {
-    const st = getStatus(a);
+  const filtered = alerts.filter((a) => {
+    const st = a.status;
     const matchSev = sevFilter === "all" || a.severity === sevFilter;
     const matchStatus = statusFilter === "all" || st === statusFilter;
     const matchDate =
@@ -78,7 +59,7 @@ export function AlertsCenter() {
     return matchSev && matchStatus && matchDate && matchSearch;
   });
 
-  const newCount = allAlerts.filter((a) => getStatus(a) === "new").length;
+  const newCount = alerts.filter((a) => a.status === "new").length;
 
   return (
     <div style={{ padding: "28px", display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -98,13 +79,17 @@ export function AlertsCenter() {
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
           <button
-            onClick={() => { allAlerts.forEach((a) => { if (getStatus(a) === "new") acknowledge(a.id); }); }}
+            onClick={() => acknowledgeAllAlerts()}
             style={{ padding: "8px 16px", fontSize: "12px", fontWeight: 600, background: "rgba(37,99,235,0.12)", color: "#60A5FA", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}
           >
             <CheckCircle size={13} /> Acknowledge All
           </button>
-          <button style={{ padding: "8px 16px", fontSize: "12px", fontWeight: 600, background: "rgba(255,255,255,0.05)", color: "#64748B", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}>
-            <RefreshCw size={13} /> Refresh
+          <button
+            onClick={() => refreshAlerts()}
+            disabled={isRefreshing}
+            style={{ padding: "8px 16px", fontSize: "12px", fontWeight: 600, background: "rgba(255,255,255,0.05)", color: "#64748B", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", cursor: isRefreshing ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: "6px" }}
+          >
+            {isRefreshing ? <Loader size={13} style={{ animation: "spin 1s linear infinite" }} /> : <RefreshCw size={13} />} Refresh
           </button>
         </div>
       </div>
@@ -112,7 +97,7 @@ export function AlertsCenter() {
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px" }}>
         {(["critical", "high", "medium", "low"] as const).map((sev) => {
-          const count = allAlerts.filter((a) => a.severity === sev).length;
+          const count = alerts.filter((a) => a.severity === sev).length;
           const cfg = sevConfig[sev];
           return (
             <div key={sev} style={{ ...glassCard, padding: "14px 18px", display: "flex", alignItems: "center", gap: "12px", borderColor: cfg.border, background: cfg.bg, cursor: "pointer" }}
@@ -185,7 +170,7 @@ export function AlertsCenter() {
         ) : (
           filtered.map((alert) => {
             const cfg = sevConfig[alert.severity];
-            const st = getStatus(alert);
+            const st = alert.status;
             const stCfg = statusConfig[st];
             const isNew = st === "new";
             return (

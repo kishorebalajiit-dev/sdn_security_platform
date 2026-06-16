@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router";
 import {
   AreaChart, Area, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 import { Modal } from "./Modal";
 import { useToast } from "./Toast";
+import { useAppData } from "../../contexts/AppDataContext";
 
 const glassCard: React.CSSProperties = {
   background: "rgba(13, 27, 42, 0.7)",
@@ -84,25 +86,11 @@ const attackDistData = [
   { name: "Zero-day", value: 11, color: "#06B6D4" },
 ];
 
-const recentAlerts = [
-  { id: "ALT-001", severity: "critical", message: "DDoS attack detected on edge router ER-04", device: "192.168.10.4", time: "2 min ago", icon: XCircle, color: "#EF4444" },
-  { id: "ALT-002", severity: "high", message: "Unauthorized access attempt on Server SVR-12", device: "10.0.0.12", time: "8 min ago", icon: AlertTriangle, color: "#F59E0B" },
-  { id: "ALT-003", severity: "high", message: "Anomalous traffic pattern on IoT cluster", device: "172.16.5.0/24", time: "15 min ago", icon: AlertTriangle, color: "#F59E0B" },
-  { id: "ALT-004", severity: "medium", message: "SSL certificate expiry warning — web-proxy-02", device: "10.0.1.2", time: "32 min ago", icon: Clock, color: "#8B5CF6" },
-  { id: "ALT-005", severity: "low", message: "New device registered: IoT sensor node", device: "172.16.5.48", time: "1 hr ago", icon: CheckCircle, color: "#22C55E" },
-];
-
 const aiRecommendations = [
   { title: "Block IP Range 45.33.x.x", confidence: 97, action: "Block", category: "DDoS Mitigation" },
   { title: "Quarantine IoT Device #48", confidence: 92, action: "Quarantine", category: "Malware Spread" },
   { title: "Update firewall rule FW-117", confidence: 88, action: "Update Rule", category: "Policy Gap" },
   { title: "Patch CVE-2024-3848 on SVR-09", confidence: 95, action: "Patch Now", category: "Vulnerability" },
-];
-
-const deviceHealthData = [
-  { name: "Healthy", value: 847, color: "#22C55E" },
-  { name: "Warning", value: 64, color: "#F59E0B" },
-  { name: "Critical", value: 23, color: "#EF4444" },
 ];
 
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string; color: string }>; label?: string }) => {
@@ -291,15 +279,48 @@ function GenerateReportModal({ open, onClose }: { open: boolean; onClose: () => 
   );
 }
 
-interface DashboardProps {
-  onNavigate?: (page: string) => void;
-}
-
-export function Dashboard({ onNavigate }: DashboardProps) {
-  const [liveThreats, setLiveThreats] = useState(23);
+export function Dashboard() {
+  const navigate = useNavigate();
+  const { alerts, threats, devices, updateThreatStatus } = useAppData();
+  const [liveThreats, setLiveThreats] = useState(threats.filter((t) => t.status === "active").length);
   const [trafficRange, setTrafficRange] = useState<Range>("24H");
   const [reportOpen, setReportOpen] = useState(false);
-  const { info } = useToast();
+  const { info, success } = useToast();
+
+  const sevIcons = { critical: XCircle, high: AlertTriangle, medium: Clock, low: CheckCircle };
+  const sevColors = { critical: "#EF4444", high: "#F59E0B", medium: "#8B5CF6", low: "#22C55E" };
+
+  const recentAlerts = useMemo(() =>
+    alerts.slice(0, 5).map((a) => ({
+      id: a.id,
+      severity: a.severity,
+      message: a.message,
+      device: a.device,
+      time: `${a.date} ${a.time}`,
+      icon: sevIcons[a.severity],
+      color: sevColors[a.severity],
+    })),
+  [alerts]);
+
+  const deviceHealthData = useMemo(() => [
+    { name: "Healthy", value: devices.filter((d) => d.status === "healthy").length, color: "#22C55E" },
+    { name: "Warning", value: devices.filter((d) => d.status === "warning").length, color: "#F59E0B" },
+    { name: "Critical", value: devices.filter((d) => d.status === "compromised" || d.status === "blocked").length, color: "#EF4444" },
+  ], [devices]);
+
+  const handleAiAction = async (rec: typeof aiRecommendations[0]) => {
+    if (rec.action === "Block") {
+      const threat = threats.find((t) => t.device.includes("IoT") || t.status === "active");
+      if (threat) await updateThreatStatus(threat.id, "blocked");
+      success("Action Applied", rec.title);
+    } else if (rec.action === "Quarantine") {
+      const threat = threats.find((t) => t.device === "IoT-Sensor-48");
+      if (threat) await updateThreatStatus(threat.id, "quarantined");
+      success("Device Quarantined", rec.title);
+    } else {
+      success("Action Queued", `${rec.action}: ${rec.title}`);
+    }
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -482,7 +503,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
             <h3 style={{ color: "#E2E8F0" }}>Recent Threat Alerts</h3>
             <button
-              onClick={() => onNavigate?.("alerts")}
+              onClick={() => navigate("/alerts")}
               style={{ fontSize: "11px", color: "#2563EB", background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "6px", padding: "4px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontWeight: 600, transition: "all 0.15s" }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(37,99,235,0.2)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(37,99,235,0.1)"; }}
@@ -532,7 +553,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                       style={{ fontSize: "10px", fontWeight: 600, color: "#2563EB", background: "rgba(37,99,235,0.12)", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "6px", padding: "3px 10px", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.15s" }}
                       onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(37,99,235,0.25)"; (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(37,99,235,0.12)"; (e.currentTarget as HTMLButtonElement).style.transform = "none"; }}
-                      onClick={() => info("Action Queued", `${rec.action} — ${rec.title}`)}
+                      onClick={() => handleAiAction(rec)}
                     >
                       {rec.action}
                     </button>

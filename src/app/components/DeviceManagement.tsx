@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Monitor, Search, Plus, CheckCircle, AlertTriangle, XCircle, Wifi, Server, Cpu, Edit2, Trash2, Ban, Loader } from "lucide-react";
 import { Modal, Field, inputStyle, selectStyle, ConfirmDialog } from "./Modal";
 import { useToast } from "./Toast";
+import { useAppData } from "../../contexts/AppDataContext";
+import type { Device, DeviceType, ConnType } from "../../types";
 
 const glassCard: React.CSSProperties = {
   background: "rgba(13, 27, 42, 0.7)",
@@ -24,42 +26,13 @@ const btnBase: React.CSSProperties = {
   gap: "4px",
 };
 
-type DeviceType = "controller" | "switch" | "server" | "pc" | "iot";
-type ConnType = "Fiber 10G" | "Fiber 1G" | "Ethernet 1G" | "WiFi 802.11ac" | "WiFi 802.11n";
-type DeviceStatus = "healthy" | "warning" | "compromised";
-
-interface Device {
-  id: string;
-  name: string;
-  type: DeviceType;
-  ip: string;
-  mac: string;
-  location: string;
-  os: string;
-  status: DeviceStatus;
-  lastSeen: string;
-  riskScore: number;
-  connType: ConnType;
-  owner?: string;
-}
-
-const initialDevices: Device[] = [
-  { id: "DEV-001", name: "SDN-Controller-01", type: "controller", ip: "10.0.0.1", mac: "00:1A:2B:3C:4D:5E", location: "Data Center A", os: "OpenFlow 1.5", status: "healthy", lastSeen: "Active", riskScore: 0, connType: "Fiber 10G" },
-  { id: "DEV-002", name: "Core-SW-01", type: "switch", ip: "10.0.1.1", mac: "00:2B:3C:4D:5E:6F", location: "DC Rack B3", os: "Cisco IOS 16.9", status: "healthy", lastSeen: "Active", riskScore: 5, connType: "Fiber 10G" },
-  { id: "DEV-003", name: "Core-SW-02", type: "switch", ip: "10.0.1.2", mac: "00:3C:4D:5E:6F:7A", location: "DC Rack B4", os: "Cisco IOS 16.9", status: "warning", lastSeen: "Active", riskScore: 42, connType: "Fiber 10G" },
-  { id: "DEV-004", name: "Edge-SW-03", type: "switch", ip: "10.0.2.3", mac: "00:4D:5E:6F:7A:8B", location: "Building C - Floor 2", os: "Cisco IOS 15.2", status: "compromised", lastSeen: "Active", riskScore: 94, connType: "Fiber 1G" },
-  { id: "DEV-005", name: "SVR-Web-01", type: "server", ip: "10.0.3.1", mac: "00:5E:6F:7A:8B:9C", location: "DC Rack A1", os: "Ubuntu 22.04 LTS", status: "healthy", lastSeen: "Active", riskScore: 18, connType: "Fiber 10G" },
-  { id: "DEV-006", name: "SVR-DB-02", type: "server", ip: "10.0.3.2", mac: "00:6F:7A:8B:9C:0D", location: "DC Rack A2", os: "RHEL 9.2", status: "healthy", lastSeen: "Active", riskScore: 11, connType: "Fiber 10G" },
-  { id: "DEV-007", name: "PC-Finance-03", type: "pc", ip: "192.168.1.23", mac: "00:7A:8B:9C:0D:1E", location: "Finance Dept - 3F", os: "Windows 11 Pro", status: "warning", lastSeen: "Active", riskScore: 68, connType: "Ethernet 1G" },
-  { id: "DEV-008", name: "IoT-Sensor-48", type: "iot", ip: "172.16.5.48", mac: "00:8B:9C:0D:1E:2F", location: "Building A - Rooftop", os: "FW v2.1.3 (outdated)", status: "compromised", lastSeen: "Active", riskScore: 97, connType: "WiFi 802.11n" },
-  { id: "DEV-009", name: "IoT-Camera-12", type: "iot", ip: "172.16.5.12", mac: "00:9C:0D:1E:2F:3A", location: "Building B - Lobby", os: "FW v3.0.1", status: "warning", lastSeen: "Active", riskScore: 55, connType: "WiFi 802.11ac" },
-  { id: "DEV-010", name: "PC-DevOps-07", type: "pc", ip: "192.168.2.17", mac: "00:AD:1B:2C:3D:4E", location: "Engineering - 5F", os: "macOS Ventura 13.4", status: "healthy", lastSeen: "Active", riskScore: 22, connType: "Ethernet 1G" },
-];
+type DeviceForm = { name: string; ip: string; mac: string; location: string; type: DeviceType; connType: ConnType; owner: string };
 
 const statusConfig = {
   healthy: { color: "#22C55E", icon: CheckCircle, label: "Healthy" },
   warning: { color: "#F59E0B", icon: AlertTriangle, label: "Warning" },
   compromised: { color: "#EF4444", icon: XCircle, label: "Compromised" },
+  blocked: { color: "#EF4444", icon: Ban, label: "Blocked" },
 };
 
 const typeIcons = { controller: Cpu, switch: Cpu, server: Server, pc: Monitor, iot: Wifi };
@@ -68,15 +41,20 @@ const emptyForm = { name: "", ip: "", mac: "", location: "", type: "controller" 
 
 export function DeviceManagement() {
   const toast = useToast();
-  const [devices, setDevices] = useState<Device[]>(initialDevices);
+  const { devices, isHydrated, addDevice, updateDevice, deleteDevice: removeDevice, blockDevice } = useAppData();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [selected, setSelected] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 5;
 
   const [registerOpen, setRegisterOpen] = useState(false);
   const [editDevice, setEditDevice] = useState<Device | null>(null);
   const [deleteDevice, setDeleteDevice] = useState<Device | null>(null);
+  const [viewDevice, setViewDevice] = useState<Device | null>(null);
+  const [blockTarget, setBlockTarget] = useState<Device | null>(null);
+  const [blocking, setBlocking] = useState(false);
 
   const [form, setForm] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -92,6 +70,9 @@ export function DeviceManagement() {
     const matchType = typeFilter === "all" || d.type === typeFilter;
     return matchSearch && matchStatus && matchType;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -115,59 +96,61 @@ export function DeviceManagement() {
     setEditDevice(dev);
   };
 
-  const handleRegisterSave = () => {
+  const handleRegisterSave = async () => {
     if (!validateForm()) return;
     setSaving(true);
-    setTimeout(() => {
-      const newId = `DEV-${String(devices.length + 1).padStart(3, "0")}`;
-      const newDev: Device = {
-        id: newId,
-        name: form.name,
-        type: form.type,
-        ip: form.ip,
-        mac: form.mac,
-        location: form.location,
-        os: "—",
-        status: "healthy",
-        lastSeen: "Active",
-        riskScore: 0,
-        connType: form.connType,
-        owner: form.owner,
-      };
-      setDevices((prev) => [...prev, newDev]);
+    try {
+      await addDevice({ name: form.name, type: form.type, ip: form.ip, mac: form.mac, location: form.location, connType: form.connType, owner: form.owner });
       toast.success("Device Registered", form.name);
-      setSaving(false);
       setRegisterOpen(false);
-    }, 800);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleEditSave = () => {
+  const handleEditSave = async () => {
     if (!validateForm() || !editDevice) return;
     setSaving(true);
-    setTimeout(() => {
-      setDevices((prev) =>
-        prev.map((d) =>
-          d.id === editDevice.id
-            ? { ...d, name: form.name, ip: form.ip, mac: form.mac, location: form.location, type: form.type, connType: form.connType, owner: form.owner }
-            : d
-        )
-      );
+    try {
+      await updateDevice({ ...editDevice, name: form.name, ip: form.ip, mac: form.mac, location: form.location, type: form.type, connType: form.connType, owner: form.owner });
       toast.success("Device Updated", form.name);
-      setSaving(false);
       setEditDevice(null);
-    }, 800);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteDevice) return;
     setDeleting(true);
-    setTimeout(() => {
-      setDevices((prev) => prev.filter((d) => d.id !== deleteDevice.id));
+    try {
+      await removeDevice(deleteDevice.id);
       toast.error("Device Removed", deleteDevice.name);
-      setDeleting(false);
       setDeleteDevice(null);
-    }, 800);
+    } finally {
+      setDeleting(false);
+    }
   };
+
+  const handleBlock = async () => {
+    if (!blockTarget) return;
+    setBlocking(true);
+    try {
+      await blockDevice(blockTarget.id);
+      toast.warning("Device Blocked", blockTarget.name);
+      setBlockTarget(null);
+    } finally {
+      setBlocking(false);
+    }
+  };
+
+  if (!isHydrated) {
+    return (
+      <div style={{ padding: "28px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", color: "#64748B", gap: "10px" }}>
+        <Loader size={18} style={{ animation: "spin 1s linear infinite" }} /> Loading devices...
+      </div>
+    );
+  }
 
   const setField = (k: keyof typeof emptyForm, v: string) => setForm((p) => ({ ...p, [k]: v }));
 
@@ -263,6 +246,37 @@ export function DeviceManagement() {
         loading={deleting}
       />
 
+      {/* Block Confirm */}
+      <ConfirmDialog
+        open={blockTarget !== null}
+        onClose={() => { if (!blocking) setBlockTarget(null); }}
+        onConfirm={handleBlock}
+        title="Block Device"
+        message={`Block ${blockTarget?.name} from the network? All traffic will be isolated.`}
+        confirmLabel="Block Device"
+        confirmColor="#EF4444"
+        type="danger"
+        loading={blocking}
+      />
+
+      {/* View Modal */}
+      <Modal open={viewDevice !== null} onClose={() => setViewDevice(null)} title="Device Details" subtitle={viewDevice?.name} width={480}>
+        {viewDevice && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {[
+              ["ID", viewDevice.id], ["IP", viewDevice.ip], ["MAC", viewDevice.mac],
+              ["Location", viewDevice.location], ["OS", viewDevice.os], ["Status", viewDevice.status],
+              ["Risk Score", String(viewDevice.riskScore)], ["Connection", viewDevice.connType],
+            ].map(([label, val]) => (
+              <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(37,99,235,0.08)" }}>
+                <span style={{ fontSize: "11px", color: "#64748B" }}>{label}</span>
+                <span style={{ fontSize: "12px", color: "#E2E8F0", fontFamily: "JetBrains Mono, monospace" }}>{val}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Modal>
+
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
@@ -348,8 +362,8 @@ export function DeviceManagement() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((dev, i) => {
-              const cfg = statusConfig[dev.status as keyof typeof statusConfig];
+            {paginated.map((dev, i) => {
+              const cfg = statusConfig[dev.status];
               const TypeIcon = typeIcons[dev.type as keyof typeof typeIcons] || Monitor;
               const isSelected = selected === dev.id;
               return (
@@ -396,9 +410,10 @@ export function DeviceManagement() {
                   </td>
                   <td style={{ padding: "11px 14px" }}>
                     <div style={{ display: "flex", gap: "5px" }} onClick={(e) => e.stopPropagation()}>
-                      <button style={{ ...btnBase, color: "#60A5FA", background: "rgba(37,99,235,0.1)", borderColor: "rgba(37,99,235,0.25)" }}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = ""; }}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setViewDevice(dev); }}
+                        style={{ ...btnBase, color: "#60A5FA", background: "rgba(37,99,235,0.1)", borderColor: "rgba(37,99,235,0.25)" }}
+                      >
                         <Search size={10} /> View
                       </button>
                       <button
@@ -408,10 +423,11 @@ export function DeviceManagement() {
                         onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = ""; }}>
                         <Edit2 size={10} /> Edit
                       </button>
-                      {dev.status === "compromised" && (
-                        <button style={{ ...btnBase, color: "#EF4444", background: "rgba(239,68,68,0.1)", borderColor: "rgba(239,68,68,0.25)" }}
-                          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-                          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = ""; }}>
+                      {(dev.status === "compromised" || dev.status === "warning") && dev.status !== "blocked" && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setBlockTarget(dev); }}
+                          style={{ ...btnBase, color: "#EF4444", background: "rgba(239,68,68,0.1)", borderColor: "rgba(239,68,68,0.25)" }}
+                        >
                           <Ban size={10} /> Block
                         </button>
                       )}
@@ -430,11 +446,13 @@ export function DeviceManagement() {
           </tbody>
         </table>
         <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(37,99,235,0.1)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: "11px", color: "#475569" }}>Showing {filtered.length} of {devices.length} devices</span>
+          <span style={{ fontSize: "11px", color: "#475569" }}>Showing {paginated.length} of {filtered.length} devices (page {page}/{totalPages})</span>
           <div style={{ display: "flex", gap: "6px" }}>
-            {["1", "2", "3", "...", "94"].map((p) => (
-              <button key={p} style={{ width: "28px", height: "28px", borderRadius: "6px", fontSize: "11px", border: "1px solid rgba(37,99,235,0.15)", background: p === "1" ? "#2563EB" : "transparent", color: p === "1" ? "#fff" : "#475569", cursor: "pointer" }}>{p}</button>
+            <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} style={{ padding: "0 10px", height: "28px", borderRadius: "6px", fontSize: "11px", border: "1px solid rgba(37,99,235,0.15)", background: "transparent", color: page <= 1 ? "#334155" : "#475569", cursor: page <= 1 ? "not-allowed" : "pointer" }}>Prev</button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button key={p} onClick={() => setPage(p)} style={{ width: "28px", height: "28px", borderRadius: "6px", fontSize: "11px", border: "1px solid rgba(37,99,235,0.15)", background: p === page ? "#2563EB" : "transparent", color: p === page ? "#fff" : "#475569", cursor: "pointer" }}>{p}</button>
             ))}
+            <button disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)} style={{ padding: "0 10px", height: "28px", borderRadius: "6px", fontSize: "11px", border: "1px solid rgba(37,99,235,0.15)", background: "transparent", color: page >= totalPages ? "#334155" : "#475569", cursor: page >= totalPages ? "not-allowed" : "pointer" }}>Next</button>
           </div>
         </div>
       </div>

@@ -1,7 +1,11 @@
-import { FileText, Download, TrendingUp, Shield, Monitor, BarChart2 } from "lucide-react";
+import { useState } from "react";
+import { FileText, Download, TrendingUp, Shield, Monitor, BarChart2, Loader } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from "recharts";
+import { useToast } from "./Toast";
+import { useAppData } from "../../contexts/AppDataContext";
+import { downloadCSV, downloadPDFReport } from "../../lib/exportUtils";
 
 const glassCard: React.CSSProperties = {
   background: "rgba(13, 27, 42, 0.7)",
@@ -29,7 +33,7 @@ const deviceReportData = [
 
 const reportTemplates = [
   { title: "Monthly Security Report — June 2026", icon: Shield, color: "#2563EB", description: "Comprehensive threat analysis, incidents, and response metrics" },
-  { title: "Device Health Report", icon: Monitor, color: "#22C55E", description: "Status of all 934 network devices with vulnerability assessment" },
+  { title: "Device Health Report", icon: Monitor, color: "#22C55E", description: "Status of all network devices with vulnerability assessment" },
   { title: "Threat Intelligence Summary", icon: TrendingUp, color: "#8B5CF6", description: "IOC database, global threat feed digest, and risk trends" },
   { title: "Blockchain Audit Report", icon: BarChart2, color: "#06B6D4", description: "Complete on-chain audit trail for compliance verification" },
   { title: "Incident Response Report", icon: FileText, color: "#F59E0B", description: "All incidents, response times, and resolution outcomes" },
@@ -50,6 +54,38 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
 };
 
 export function Reports() {
+  const toast = useToast();
+  const { alerts, devices, threats, incidents } = useAppData();
+  const [exporting, setExporting] = useState<string | null>(null);
+
+  const handleExport = async (title: string, format: "pdf" | "csv") => {
+    const key = `${title}-${format}`;
+    setExporting(key);
+    await new Promise((r) => setTimeout(r, 900));
+
+    if (format === "csv") {
+      downloadCSV(
+        `${title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.csv`,
+        ["Metric", "Value"],
+        [
+          ["Total Alerts", String(alerts.length)],
+          ["Active Threats", String(threats.filter((t) => t.status === "active").length)],
+          ["Devices Monitored", String(devices.length)],
+          ["Open Incidents", String(incidents.filter((i) => i.status === "open").length)],
+          ["Generated", new Date().toISOString()],
+        ]
+      );
+    } else {
+      downloadPDFReport(title, [
+        { heading: "Summary", lines: [`Alerts: ${alerts.length}`, `Threats: ${threats.length}`, `Devices: ${devices.length}`, `Incidents: ${incidents.length}`] },
+        { heading: "Report", lines: [title, `Generated: ${new Date().toLocaleString()}`] },
+      ]);
+    }
+
+    toast.success("Export Complete", `${title} downloaded as ${format.toUpperCase()}`);
+    setExporting(null);
+  };
+
   return (
     <div style={{ padding: "28px", display: "flex", flexDirection: "column", gap: "20px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -59,12 +95,11 @@ export function Reports() {
         </div>
       </div>
 
-      {/* Summary Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px" }}>
         {[
-          { label: "Total Threats YTD", value: "1,030", change: "-12%", color: "#EF4444" },
-          { label: "Blocked Attacks YTD", value: "997", change: "96.8%", color: "#22C55E" },
-          { label: "Incidents YTD", value: "78", change: "+8%", color: "#F59E0B" },
+          { label: "Total Threats YTD", value: String(threats.length), change: "-12%", color: "#EF4444" },
+          { label: "Blocked Attacks YTD", value: String(threats.filter((t) => t.status === "blocked").length), change: "96.8%", color: "#22C55E" },
+          { label: "Incidents YTD", value: String(incidents.length), change: "+8%", color: "#F59E0B" },
           { label: "Avg Response Time", value: "4.2 min", change: "-18%", color: "#2563EB" },
         ].map((s) => (
           <div key={s.label} style={{ ...glassCard, padding: "16px" }}>
@@ -75,7 +110,6 @@ export function Reports() {
         ))}
       </div>
 
-      {/* Charts */}
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "16px" }}>
         <div style={glassCard}>
           <h3 style={{ color: "#E2E8F0", marginBottom: "4px" }}>Monthly Threat Trends</h3>
@@ -122,7 +156,6 @@ export function Reports() {
         </div>
       </div>
 
-      {/* Report Templates */}
       <div style={glassCard}>
         <h3 style={{ color: "#E2E8F0", marginBottom: "16px" }}>Generate Reports</h3>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
@@ -136,17 +169,26 @@ export function Reports() {
               </div>
               <p style={{ fontSize: "11px", color: "#475569", marginBottom: "12px", lineHeight: 1.5 }}>{rpt.description}</p>
               <div style={{ display: "flex", gap: "8px" }}>
-                <button style={{ flex: 1, padding: "6px", fontSize: "10px", fontWeight: 600, background: "rgba(37,99,235,0.12)", color: "#60A5FA", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
-                  <Download size={11} /> PDF
+                <button
+                  onClick={() => handleExport(rpt.title, "pdf")}
+                  disabled={exporting === `${rpt.title}-pdf`}
+                  style={{ flex: 1, padding: "6px", fontSize: "10px", fontWeight: 600, background: "rgba(37,99,235,0.12)", color: "#60A5FA", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "6px", cursor: exporting ? "wait" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}
+                >
+                  {exporting === `${rpt.title}-pdf` ? <Loader size={11} style={{ animation: "spin 1s linear infinite" }} /> : <Download size={11} />} PDF
                 </button>
-                <button style={{ flex: 1, padding: "6px", fontSize: "10px", fontWeight: 600, background: "rgba(34,197,94,0.1)", color: "#22C55E", border: "1px solid rgba(34,197,94,0.25)", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
-                  <Download size={11} /> CSV
+                <button
+                  onClick={() => handleExport(rpt.title, "csv")}
+                  disabled={exporting === `${rpt.title}-csv`}
+                  style={{ flex: 1, padding: "6px", fontSize: "10px", fontWeight: 600, background: "rgba(34,197,94,0.1)", color: "#22C55E", border: "1px solid rgba(34,197,94,0.25)", borderRadius: "6px", cursor: exporting ? "wait" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}
+                >
+                  {exporting === `${rpt.title}-csv` ? <Loader size={11} style={{ animation: "spin 1s linear infinite" }} /> : <Download size={11} />} CSV
                 </button>
               </div>
             </div>
           ))}
         </div>
       </div>
+      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }

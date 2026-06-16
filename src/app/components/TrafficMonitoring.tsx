@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { Activity, Wifi, ArrowDown, ArrowUp, AlertCircle } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Activity, Wifi, ArrowDown, ArrowUp, AlertCircle, Loader } from "lucide-react";
 import {
-  AreaChart, Area, LineChart, Line, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
+  AreaChart, Area, BarChart, Bar,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from "recharts";
+import { getTrafficData, KPI_BY_RANGE, type TrafficChartRange } from "../../data/trafficData";
 
 const glassCard: React.CSSProperties = {
   background: "rgba(13, 27, 42, 0.7)",
@@ -12,13 +13,6 @@ const glassCard: React.CSSProperties = {
   borderRadius: "12px",
   padding: "20px",
 };
-
-const liveData = Array.from({ length: 20 }, (_, i) => ({
-  t: `${i * 3}s`,
-  in: Math.floor(Math.random() * 400 + 200),
-  out: Math.floor(Math.random() * 300 + 150),
-  packets: Math.floor(Math.random() * 5000 + 2000),
-}));
 
 const bandwidthByDevice = [
   { device: "SVR-Web-01", in: 420, out: 280, color: "#2563EB" },
@@ -64,11 +58,27 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
 };
 
 export function TrafficMonitoring() {
-  const [activeRange, setActiveRange] = useState("live");
+  const [activeRange, setActiveRange] = useState<TrafficChartRange>("live");
+  const [liveSeed, setLiveSeed] = useState(Date.now() % 10000);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeRange !== "live") return;
+    const id = setInterval(() => setLiveSeed(Date.now() % 10000), 3000);
+    return () => clearInterval(id);
+  }, [activeRange]);
+
+  const chartData = useMemo(() => getTrafficData(activeRange, liveSeed), [activeRange, liveSeed]);
+  const kpis = KPI_BY_RANGE[activeRange];
+
+  const handleRangeChange = (r: TrafficChartRange) => {
+    setLoading(true);
+    setActiveRange(r);
+    setTimeout(() => setLoading(false), 400);
+  };
 
   return (
     <div style={{ padding: "28px", display: "flex", flexDirection: "column", gap: "20px" }}>
-      {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
           <h1 style={{ color: "#E2E8F0", marginBottom: "4px", display: "flex", alignItems: "center", gap: "10px" }}>
@@ -78,21 +88,20 @@ export function TrafficMonitoring() {
           <p style={{ color: "#64748B", fontSize: "13px" }}>Real-time network traffic analysis and packet inspection</p>
         </div>
         <div style={{ display: "flex", gap: "8px" }}>
-          {["live", "1h", "6h", "24h", "7d"].map((r) => (
-            <button key={r} onClick={() => setActiveRange(r)} style={{ padding: "6px 14px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "uppercase", background: activeRange === r ? "#2563EB" : "rgba(255,255,255,0.04)", border: "1px solid rgba(37,99,235,0.2)", color: activeRange === r ? "#fff" : "#64748B" }}>
+          {(["live", "1h", "6h", "24h", "7d"] as TrafficChartRange[]).map((r) => (
+            <button key={r} onClick={() => handleRangeChange(r)} style={{ padding: "6px 14px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "uppercase", background: activeRange === r ? "#2563EB" : "rgba(255,255,255,0.04)", border: "1px solid rgba(37,99,235,0.2)", color: activeRange === r ? "#fff" : "#64748B" }}>
               {r}
             </button>
           ))}
         </div>
       </div>
 
-      {/* KPI Row */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px" }}>
         {[
-          { label: "Total Inbound", value: "2.4 Gbps", icon: ArrowDown, color: "#2563EB", bg: "rgba(37,99,235,0.1)" },
-          { label: "Total Outbound", value: "1.8 Gbps", icon: ArrowUp, color: "#06B6D4", bg: "rgba(6,182,212,0.1)" },
-          { label: "Packets / sec", value: "847K", icon: Activity, color: "#22C55E", bg: "rgba(34,197,94,0.1)" },
-          { label: "Anomalies Detected", value: "23", icon: AlertCircle, color: "#EF4444", bg: "rgba(239,68,68,0.1)" },
+          { label: "Total Inbound", value: kpis.inbound, icon: ArrowDown, color: "#2563EB", bg: "rgba(37,99,235,0.1)" },
+          { label: "Total Outbound", value: kpis.outbound, icon: ArrowUp, color: "#06B6D4", bg: "rgba(6,182,212,0.1)" },
+          { label: "Packets / sec", value: kpis.packets, icon: Activity, color: "#22C55E", bg: "rgba(34,197,94,0.1)" },
+          { label: "Anomalies Detected", value: kpis.anomalies, icon: AlertCircle, color: "#EF4444", bg: "rgba(239,68,68,0.1)" },
         ].map((kpi) => (
           <div key={kpi.label} style={{ ...glassCard, padding: "16px", display: "flex", alignItems: "center", gap: "14px" }}>
             <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: kpi.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -106,43 +115,48 @@ export function TrafficMonitoring() {
         ))}
       </div>
 
-      {/* Charts Row 1 */}
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "16px" }}>
-        {/* Live Traffic */}
         <div style={glassCard}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
             <div>
-              <h3 style={{ color: "#E2E8F0" }}>Live Traffic Flow</h3>
-              <p style={{ fontSize: "11px", color: "#64748B" }}>Mbps — updating every 3 seconds</p>
+              <h3 style={{ color: "#E2E8F0" }}>{activeRange === "live" ? "Live Traffic Flow" : `Traffic — ${activeRange.toUpperCase()}`}</h3>
+              <p style={{ fontSize: "11px", color: "#64748B" }}>{activeRange === "live" ? "Mbps — updating every 3 seconds" : "Historical bandwidth data"}</p>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#22C55E", boxShadow: "0 0 8px #22C55E" }} />
-              <span style={{ fontSize: "11px", color: "#22C55E" }}>Live</span>
-            </div>
+            {activeRange === "live" && (
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#22C55E", boxShadow: "0 0 8px #22C55E" }} />
+                <span style={{ fontSize: "11px", color: "#22C55E" }}>Live</span>
+              </div>
+            )}
           </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={liveData}>
-              <defs>
-                <linearGradient id="gin" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#2563EB" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="gout" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#06B6D4" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="t" stroke="#334155" tick={{ fill: "#475569", fontSize: 10 }} />
-              <YAxis stroke="#334155" tick={{ fill: "#475569", fontSize: 10 }} />
-              <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="in" name="Inbound (Mbps)" stroke="#2563EB" fill="url(#gin)" strokeWidth={2} />
-              <Area type="monotone" dataKey="out" name="Outbound (Mbps)" stroke="#06B6D4" fill="url(#gout)" strokeWidth={2} />
-            </AreaChart>
-          </ResponsiveContainer>
+          {loading ? (
+            <div style={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center", color: "#64748B", gap: "8px" }}>
+              <Loader size={18} style={{ animation: "spin 1s linear infinite" }} /> Loading chart...
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="gin" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#2563EB" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gout" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#06B6D4" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="t" stroke="#334155" tick={{ fill: "#475569", fontSize: 10 }} />
+                <YAxis stroke="#334155" tick={{ fill: "#475569", fontSize: 10 }} />
+                <Tooltip content={<CustomTooltip />} />
+                <Area type="monotone" dataKey="in" name="Inbound (Mbps)" stroke="#2563EB" fill="url(#gin)" strokeWidth={2} />
+                <Area type="monotone" dataKey="out" name="Outbound (Mbps)" stroke="#06B6D4" fill="url(#gout)" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
-        {/* Protocol Distribution */}
         <div style={glassCard}>
           <h3 style={{ color: "#E2E8F0", marginBottom: "4px" }}>Protocol Analysis</h3>
           <p style={{ fontSize: "11px", color: "#64748B", marginBottom: "16px" }}>Packet distribution by protocol</p>
@@ -166,9 +180,7 @@ export function TrafficMonitoring() {
         </div>
       </div>
 
-      {/* Charts Row 2 */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-        {/* Packet Analysis */}
         <div style={glassCard}>
           <h3 style={{ color: "#E2E8F0", marginBottom: "4px" }}>Packet Analysis</h3>
           <p style={{ fontSize: "11px", color: "#64748B", marginBottom: "16px" }}>Normal / Suspicious / Dropped</p>
@@ -185,7 +197,6 @@ export function TrafficMonitoring() {
           </ResponsiveContainer>
         </div>
 
-        {/* Bandwidth by Device */}
         <div style={glassCard}>
           <h3 style={{ color: "#E2E8F0", marginBottom: "4px" }}>Bandwidth by Device</h3>
           <p style={{ fontSize: "11px", color: "#64748B", marginBottom: "14px" }}>Top consumers (Mbps)</p>
@@ -207,6 +218,7 @@ export function TrafficMonitoring() {
           </div>
         </div>
       </div>
+      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }

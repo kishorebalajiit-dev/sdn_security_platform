@@ -2,6 +2,9 @@ import { useState } from "react";
 import { Users, Plus, Shield, Search, Edit2, Trash2, CheckCircle, Lock, Key, Loader } from "lucide-react";
 import { Modal, Field, inputStyle, selectStyle, ConfirmDialog } from "./Modal";
 import { useToast } from "./Toast";
+import { useAppData } from "../../contexts/AppDataContext";
+import { permissionMatrix, PERMISSION_MODULES } from "../../lib/permissions";
+import type { PlatformUser, UserRole, Department } from "../../types";
 
 const glassCard: React.CSSProperties = {
   background: "rgba(13, 27, 42, 0.7)",
@@ -11,20 +14,7 @@ const glassCard: React.CSSProperties = {
   padding: "20px",
 };
 
-type Role = "Admin" | "Security Analyst" | "Network Engineer" | "Auditor";
-type Department = "SOC" | "Engineering" | "Finance" | "HR" | "Management";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: Role;
-  status: "active" | "inactive";
-  mfa: boolean;
-  lastLogin: string;
-  department?: Department;
-  permissions: string[];
-}
+type Role = UserRole;
 
 const roleConfig: Record<Role, { color: string; bg: string; description: string }> = {
   "Admin": { color: "#EF4444", bg: "rgba(239,68,68,0.12)", description: "Full platform access — all modules, user management, system settings" },
@@ -33,39 +23,21 @@ const roleConfig: Record<Role, { color: string; bg: string; description: string 
   "Auditor": { color: "#8B5CF6", bg: "rgba(139,92,246,0.12)", description: "Read-only access to blockchain audit logs, reports, and analytics" },
 };
 
-const permissionMatrix: Record<Role, Record<string, boolean>> = {
-  "Admin": { Dashboard: true, "Network Topology": true, "AI Threat Detection": true, "Device Mgmt": true, "Blockchain Audit": true, "Traffic Monitor": true, "Threat Intel": true, "Incident Response": true, "Alerts": true, "Reports": true, "User Mgmt": true, "Settings": true },
-  "Security Analyst": { Dashboard: true, "Network Topology": true, "AI Threat Detection": true, "Device Mgmt": false, "Blockchain Audit": true, "Traffic Monitor": true, "Threat Intel": true, "Incident Response": true, "Alerts": true, "Reports": true, "User Mgmt": false, "Settings": false },
-  "Network Engineer": { Dashboard: true, "Network Topology": true, "AI Threat Detection": false, "Device Mgmt": true, "Blockchain Audit": false, "Traffic Monitor": true, "Threat Intel": false, "Incident Response": false, "Alerts": true, "Reports": true, "User Mgmt": false, "Settings": false },
-  "Auditor": { Dashboard: true, "Network Topology": false, "AI Threat Detection": false, "Device Mgmt": false, "Blockchain Audit": true, "Traffic Monitor": false, "Threat Intel": false, "Incident Response": false, "Alerts": false, "Reports": true, "User Mgmt": false, "Settings": false },
-};
-
-const initialUsers: User[] = [
-  { id: "USR-001", name: "Kamran Singh", email: "k.singh@secnet.ai", role: "Admin", status: "active", mfa: true, lastLogin: "2026-06-15 08:00", department: "SOC", permissions: [] },
-  { id: "USR-002", name: "Ahmad Rahman", email: "a.rahman@secnet.ai", role: "Security Analyst", status: "active", mfa: true, lastLogin: "2026-06-15 14:30", department: "SOC", permissions: [] },
-  { id: "USR-003", name: "Min Chen", email: "m.chen@secnet.ai", role: "Security Analyst", status: "active", mfa: true, lastLogin: "2026-06-15 14:12", department: "SOC", permissions: [] },
-  { id: "USR-004", name: "Ji-ho Park", email: "j.park@secnet.ai", role: "Security Analyst", status: "active", mfa: true, lastLogin: "2026-06-15 13:45", department: "SOC", permissions: [] },
-  { id: "USR-005", name: "Sasha Ivanova", email: "s.ivanova@secnet.ai", role: "Network Engineer", status: "active", mfa: false, lastLogin: "2026-06-14 16:22", department: "Engineering", permissions: [] },
-  { id: "USR-006", name: "David Okafor", email: "d.okafor@secnet.ai", role: "Network Engineer", status: "inactive", mfa: true, lastLogin: "2026-06-12 11:08", department: "Engineering", permissions: [] },
-  { id: "USR-007", name: "Priya Nair", email: "p.nair@secnet.ai", role: "Auditor", status: "active", mfa: true, lastLogin: "2026-06-15 09:30", department: "Finance", permissions: [] },
-  { id: "USR-008", name: "Carlos Mendez", email: "c.mendez@secnet.ai", role: "Auditor", status: "active", mfa: true, lastLogin: "2026-06-13 14:00", department: "Management", permissions: [] },
-];
-
-const modules = ["Dashboard", "Network Topology", "AI Threat Detection", "Device Mgmt", "Blockchain Audit", "Traffic Monitor", "Threat Intel", "Incident Response", "Alerts", "Reports", "User Mgmt", "Settings"];
+const modules = [...PERMISSION_MODULES];
 
 const emptyForm = { name: "", email: "", role: "Security Analyst" as Role, department: "SOC" as Department, mfa: true };
 
 export function UserManagement() {
   const toast = useToast();
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const { users, isHydrated, addUser, updateUser, deleteUser: removeUser } = useAppData();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<Role | "all">("all");
   const [activeTab, setActiveTab] = useState<"users" | "roles" | "permissions">("users");
   const [selectedRole, setSelectedRole] = useState<Role>("Admin");
 
   const [addOpen, setAddOpen] = useState(false);
-  const [editUser, setEditUser] = useState<User | null>(null);
-  const [deleteUser, setDeleteUser] = useState<User | null>(null);
+  const [editUser, setEditUser] = useState<PlatformUser | null>(null);
+  const [deleteUser, setDeleteUser] = useState<PlatformUser | null>(null);
 
   const [form, setForm] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -92,62 +64,55 @@ export function UserManagement() {
     setAddOpen(true);
   };
 
-  const openEdit = (user: User) => {
+  const openEdit = (user: PlatformUser) => {
     setForm({ name: user.name, email: user.email, role: user.role, department: user.department ?? "SOC", mfa: user.mfa });
     setFormErrors({});
     setEditUser(user);
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!validateForm()) return;
     setSaving(true);
-    setTimeout(() => {
-      const newId = `USR-${String(users.length + 1).padStart(3, "0")}`;
-      const newUser: User = {
-        id: newId,
-        name: form.name,
-        email: form.email,
-        role: form.role,
-        status: "active",
-        mfa: form.mfa,
-        lastLogin: "—",
-        department: form.department,
-        permissions: [],
-      };
-      setUsers((prev) => [...prev, newUser]);
+    try {
+      await addUser({ name: form.name, email: form.email, role: form.role, department: form.department, mfa: form.mfa });
       toast.success("User Added", form.name);
-      setSaving(false);
       setAddOpen(false);
-    }, 800);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleEdit = () => {
+  const handleEdit = async () => {
     if (!validateForm() || !editUser) return;
     setSaving(true);
-    setTimeout(() => {
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === editUser.id
-            ? { ...u, name: form.name, email: form.email, role: form.role, department: form.department, mfa: form.mfa }
-            : u
-        )
-      );
+    try {
+      await updateUser({ ...editUser, name: form.name, email: form.email, role: form.role, department: form.department, mfa: form.mfa });
       toast.success("User Updated", form.name);
-      setSaving(false);
       setEditUser(null);
-    }, 800);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteUser) return;
     setDeleting(true);
-    setTimeout(() => {
-      setUsers((prev) => prev.filter((u) => u.id !== deleteUser.id));
+    try {
+      await removeUser(deleteUser.id);
       toast.error("User Removed", deleteUser.name);
-      setDeleting(false);
       setDeleteUser(null);
-    }, 800);
+    } finally {
+      setDeleting(false);
+    }
   };
+
+  if (!isHydrated) {
+    return (
+      <div style={{ padding: "28px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", color: "#64748B", gap: "10px" }}>
+        <Loader size={18} style={{ animation: "spin 1s linear infinite" }} /> Loading users...
+      </div>
+    );
+  }
 
   const setF = (k: keyof typeof emptyForm, v: string | boolean) => setForm((p) => ({ ...p, [k]: v }));
 

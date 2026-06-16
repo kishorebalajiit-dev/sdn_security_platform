@@ -2,6 +2,8 @@ import { useState } from "react";
 import { AlertTriangle, Clock, CheckCircle, User, ArrowUp, FileText, ChevronRight, Plus, MessageSquare, Send, Loader } from "lucide-react";
 import { Modal, Field, inputStyle, selectStyle, ConfirmDialog } from "./Modal";
 import { useToast } from "./Toast";
+import { useAppData } from "../../contexts/AppDataContext";
+import type { Incident, TimelineEvent, AnalystNote } from "../../types";
 
 const glassCard: React.CSSProperties = {
   background: "rgba(13, 27, 42, 0.7)",
@@ -11,130 +13,13 @@ const glassCard: React.CSSProperties = {
   padding: "20px",
 };
 
-interface TimelineEvent {
-  time: string;
-  action: string;
-  actor: string;
-}
-
-interface AnalystNote {
-  author: string;
-  time: string;
-  text: string;
-}
-
-interface Incident {
-  id: string;
-  title: string;
-  severity: "P1" | "P2" | "P3" | "P4";
-  status: "open" | "assigned" | "resolved";
-  assignee: string;
-  device: string;
-  created: string;
-  updated: string;
-  timeline: TimelineEvent[];
-  notes: AnalystNote[];
-}
-
-const initialIncidents: Incident[] = [
-  {
-    id: "INC-2026-0041",
-    title: "DDoS Attack on Edge Router ER-04",
-    severity: "P1", status: "open", assignee: "Unassigned",
-    device: "Edge-SW-03 (10.0.2.3)",
-    created: "2026-06-15 14:23", updated: "2026-06-15 14:25",
-    timeline: [
-      { time: "14:23", action: "Incident created — DDoS traffic spike detected (4.2 Gbps)", actor: "AI Engine" },
-      { time: "14:24", action: "Automated rate limiting applied on Edge-SW-03", actor: "SDN Controller" },
-      { time: "14:25", action: "Incident escalated to SOC team — Severity P1", actor: "System" },
-    ],
-    notes: [
-      { author: "SOC System", time: "14:25", text: "Automated triage complete. Traffic signature matches Mirai botnet variant. Source IPs added to global blocklist." },
-    ],
-  },
-  {
-    id: "INC-2026-0040",
-    title: "Credential Stuffing on Finance Portal",
-    severity: "P2", status: "assigned", assignee: "A. Rahman",
-    device: "PC-Finance-03 (192.168.1.23)",
-    created: "2026-06-15 13:58", updated: "2026-06-15 14:10",
-    timeline: [
-      { time: "13:58", action: "550 failed login attempts from single IP in 3 minutes", actor: "AI Engine" },
-      { time: "14:02", action: "Account lockout policy triggered — 23 accounts locked", actor: "IAM System" },
-      { time: "14:10", action: "Assigned to A. Rahman for investigation", actor: "SOC Lead" },
-    ],
-    notes: [
-      { author: "A. Rahman", time: "14:15", text: "Source IP 103.88.45.201 confirmed as known threat actor. Running correlation across other portals. No successful logins confirmed so far." },
-      { author: "A. Rahman", time: "14:28", text: "Coordinated with IAM team — password reset enforced for all impacted accounts. Monitoring for lateral movement." },
-    ],
-  },
-  {
-    id: "INC-2026-0039",
-    title: "ARP Spoofing on IoT Network Segment",
-    severity: "P2", status: "assigned", assignee: "M. Chen",
-    device: "IoT-Cluster (172.16.5.0/24)",
-    created: "2026-06-15 13:41", updated: "2026-06-15 14:05",
-    timeline: [
-      { time: "13:41", action: "Anomalous ARP traffic detected in IoT VLAN", actor: "Network Monitor" },
-      { time: "13:45", action: "VLAN isolation applied to IoT segment", actor: "SDN Controller" },
-      { time: "14:05", action: "Assigned to M. Chen — forensic analysis in progress", actor: "SOC Lead" },
-    ],
-    notes: [
-      { author: "M. Chen", time: "14:10", text: "ARP table shows IoT-Sensor-48 (172.16.5.48) impersonating gateway. Suspect compromised firmware. Initiating packet capture on the segment." },
-    ],
-  },
-  {
-    id: "INC-2026-0038",
-    title: "SQL Injection Probe — Web Server",
-    severity: "P3", status: "assigned", assignee: "J. Park",
-    device: "SVR-Web-01 (10.0.3.1)",
-    created: "2026-06-15 12:55", updated: "2026-06-15 13:30",
-    timeline: [
-      { time: "12:55", action: "SQLi patterns in HTTP logs — 340 probes in 10 min", actor: "WAF Engine" },
-      { time: "13:10", action: "Source IP 45.33.42.18 blocked at perimeter", actor: "Firewall" },
-      { time: "13:30", action: "Assigned to J. Park — vulnerability patch review", actor: "SOC Lead" },
-    ],
-    notes: [
-      { author: "J. Park", time: "13:40", text: "Reviewed application logs — no successful injection found. Endpoint appears protected by WAF. Recommending patch review for 2 outdated input validators." },
-    ],
-  },
-  {
-    id: "INC-2026-0037",
-    title: "Port Scan Activity — External Source",
-    severity: "P4", status: "resolved", assignee: "K. Singh",
-    device: "Perimeter Firewall",
-    created: "2026-06-15 10:30", updated: "2026-06-15 11:45",
-    timeline: [
-      { time: "10:30", action: "External port scan from 185.220.101.42 (Tor exit node)", actor: "IDS Engine" },
-      { time: "10:35", action: "IP added to blocklist — geo-blocked AS range", actor: "Firewall" },
-      { time: "11:45", action: "Incident resolved — no breach confirmed", actor: "K. Singh" },
-    ],
-    notes: [
-      { author: "K. Singh", time: "11:45", text: "Confirmed Tor exit node scanning. No services exposed. Closing incident — no further action required. Tor exit node range added to permanent blocklist." },
-    ],
-  },
-];
-
-const sevConfig = {
-  P1: { label: "P1 — Critical", color: "#EF4444", bg: "rgba(239,68,68,0.12)" },
-  P2: { label: "P2 — High", color: "#F59E0B", bg: "rgba(245,158,11,0.12)" },
-  P3: { label: "P3 — Medium", color: "#8B5CF6", bg: "rgba(139,92,246,0.12)" },
-  P4: { label: "P4 — Low", color: "#22C55E", bg: "rgba(34,197,94,0.12)" },
-};
-
-const statusConfig = {
-  open: { label: "Open", color: "#EF4444", icon: AlertTriangle },
-  assigned: { label: "Assigned", color: "#F59E0B", icon: User },
-  resolved: { label: "Resolved", color: "#22C55E", icon: CheckCircle },
-};
-
 const ANALYSTS = ["A. Rahman", "M. Chen", "J. Park", "K. Singh", "Unassigned"];
 
 export function IncidentResponse() {
   const toast = useToast();
-  const [incidents, setIncidents] = useState<Incident[]>(initialIncidents);
+  const { incidents, isHydrated, addIncident, updateIncident } = useAppData();
   const [activeTab, setActiveTab] = useState<"open" | "assigned" | "resolved">("open");
-  const [selected, setSelected] = useState<Incident | null>(incidents[0]);
+  const [selected, setSelected] = useState<Incident | null>(null);
   const [detailTab, setDetailTab] = useState<"timeline" | "notes">("timeline");
   const [noteText, setNoteText] = useState("");
 
@@ -153,6 +38,19 @@ export function IncidentResponse() {
   const [resolving, setResolving] = useState(false);
   const [generating, setGenerating] = useState(false);
 
+  const sevConfig = {
+  P1: { label: "P1 — Critical", color: "#EF4444", bg: "rgba(239,68,68,0.12)" },
+  P2: { label: "P2 — High", color: "#F59E0B", bg: "rgba(245,158,11,0.12)" },
+  P3: { label: "P3 — Medium", color: "#8B5CF6", bg: "rgba(139,92,246,0.12)" },
+  P4: { label: "P4 — Low", color: "#22C55E", bg: "rgba(34,197,94,0.12)" },
+};
+
+  const statusConfig = {
+    open: { label: "Open", color: "#EF4444", icon: AlertTriangle },
+    assigned: { label: "Assigned", color: "#F59E0B", icon: User },
+    resolved: { label: "Resolved", color: "#22C55E", icon: CheckCircle },
+  };
+
   const grouped = {
     open: incidents.filter((i) => i.status === "open"),
     assigned: incidents.filter((i) => i.status === "assigned"),
@@ -169,10 +67,10 @@ export function IncidentResponse() {
     return Object.keys(errors).length === 0;
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!validateCreate()) return;
     setCreating(true);
-    setTimeout(() => {
+    try {
       const newId = `INC-2026-${String(incidents.length + 42).padStart(4, "0")}`;
       const newInc: Incident = {
         id: newId,
@@ -186,51 +84,66 @@ export function IncidentResponse() {
         timeline: [{ time: now.slice(11), action: `Incident created — ${createForm.description || "No description"}`, actor: "SOC Analyst" }],
         notes: [],
       };
-      setIncidents((prev) => [newInc, ...prev]);
+      await addIncident(newInc);
       toast.success("Incident Created", createForm.title);
-      setCreating(false);
       setCreateOpen(false);
       setCreateForm({ title: "", priority: "P3", severity: "Medium", device: "", description: "", analyst: "Unassigned" });
-    }, 800);
+    } finally {
+      setCreating(false);
+    }
   };
 
-  const handleAssign = () => {
+  const handleAssign = async () => {
     if (!selected) return;
     setAssigning(true);
-    setTimeout(() => {
-      setIncidents((prev) => prev.map((inc) => inc.id === selected.id ? { ...inc, assignee: assignAnalyst, status: assignAnalyst === "Unassigned" ? "open" : "assigned", updated: now } : inc));
-      setSelected((prev) => prev ? { ...prev, assignee: assignAnalyst, status: assignAnalyst === "Unassigned" ? "open" : "assigned" } : null);
+    try {
+      const updated = { ...selected, assignee: assignAnalyst, status: assignAnalyst === "Unassigned" ? "open" as const : "assigned" as const, updated: now };
+      await updateIncident(updated);
+      setSelected(updated);
       toast.info("Analyst Assigned", `${selected.id} assigned to ${assignAnalyst}`);
-      setAssigning(false);
       setAssignOpen(false);
-    }, 800);
+    } finally {
+      setAssigning(false);
+    }
   };
 
-  const handleEscalate = () => {
+  const handleEscalate = async () => {
     if (!selected) return;
     setEscalating(true);
-    setTimeout(() => {
+    try {
       const tlEvent: TimelineEvent = { time: now.slice(11), action: "Incident escalated to P1 — Critical priority", actor: "SOC Analyst" };
-      setIncidents((prev) => prev.map((inc) => inc.id === selected.id ? { ...inc, severity: "P1", updated: now, timeline: [...inc.timeline, tlEvent] } : inc));
-      setSelected((prev) => prev ? { ...prev, severity: "P1", timeline: [...prev.timeline, tlEvent] } : null);
+      const updated = { ...selected, severity: "P1" as const, updated: now, timeline: [...selected.timeline, tlEvent] };
+      await updateIncident(updated);
+      setSelected(updated);
       toast.warning("Incident Escalated", `${selected.id} escalated to P1`);
-      setEscalating(false);
       setEscalateOpen(false);
-    }, 800);
+    } finally {
+      setEscalating(false);
+    }
   };
 
-  const handleResolve = () => {
+  const handleResolve = async () => {
     if (!selected) return;
     setResolving(true);
-    setTimeout(() => {
+    try {
       const tlEvent: TimelineEvent = { time: now.slice(11), action: "Incident resolved and closed", actor: "SOC Analyst" };
-      setIncidents((prev) => prev.map((inc) => inc.id === selected.id ? { ...inc, status: "resolved", updated: now, timeline: [...inc.timeline, tlEvent] } : inc));
-      setSelected((prev) => prev ? { ...prev, status: "resolved", timeline: [...prev.timeline, tlEvent] } : null);
+      const updated = { ...selected, status: "resolved" as const, updated: now, timeline: [...selected.timeline, tlEvent] };
+      await updateIncident(updated);
+      setSelected(updated);
       toast.success("Incident Resolved", selected.id);
-      setResolving(false);
       setResolveOpen(false);
-    }, 800);
+    } finally {
+      setResolving(false);
+    }
   };
+
+  if (!isHydrated) {
+    return (
+      <div style={{ padding: "28px", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", color: "#64748B", gap: "10px" }}>
+        <Loader size={18} style={{ animation: "spin 1s linear infinite" }} /> Loading incidents...
+      </div>
+    );
+  }
 
   const handleGenerateReport = () => {
     if (!selected || generating) return;
@@ -565,11 +478,12 @@ export function IncidentResponse() {
                         style={{ flex: 1, padding: "8px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: "8px", color: "#E2E8F0", fontSize: "12px", outline: "none", resize: "none", fontFamily: "Inter, sans-serif" }}
                       />
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           if (!noteText.trim() || !selected) return;
                           const note: AnalystNote = { author: "SOC Analyst", time: now.slice(11), text: noteText.trim() };
-                          setIncidents((prev) => prev.map((inc) => inc.id === selected.id ? { ...inc, notes: [...inc.notes, note] } : inc));
-                          setSelected((prev) => prev ? { ...prev, notes: [...prev.notes, note] } : null);
+                          const updated = { ...selected, notes: [...selected.notes, note], updated: now };
+                          await updateIncident(updated);
+                          setSelected(updated);
                           setNoteText("");
                         }}
                         style={{ padding: "8px 12px", background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600 }}

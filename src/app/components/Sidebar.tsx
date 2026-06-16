@@ -1,46 +1,61 @@
 import { useState } from "react";
+import { NavLink, useNavigate } from "react-router";
 import {
   LayoutDashboard, Network, Brain, Monitor, Link2, Activity,
   Shield, BarChart2, AlertTriangle, Bell, FileText, Users,
   Settings, LogOut, ChevronLeft, ChevronRight, Zap
 } from "lucide-react";
-
-export type PageId =
-  | "dashboard" | "network-topology" | "ai-threat" | "device-management"
-  | "blockchain-audit" | "traffic-monitoring" | "threat-intelligence"
-  | "security-analytics" | "incident-response" | "alerts" | "reports"
-  | "user-management" | "settings";
+import { useAuth } from "../../contexts/AuthContext";
+import { useAppData } from "../../contexts/AppDataContext";
+import { canAccessPage } from "../../lib/permissions";
+import type { PageId } from "../../types";
+import { PAGE_TO_ROUTE } from "../routes";
 
 interface NavItem {
   id: PageId;
   label: string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
-  badge?: number;
+  icon: React.ComponentType<{ size?: number; style?: React.CSSProperties; className?: string }>;
+  badgeKey?: "threats" | "incidents" | "alerts";
 }
 
 const navItems: NavItem[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "network-topology", label: "Network Topology", icon: Network },
-  { id: "ai-threat", label: "AI Threat Detection", icon: Brain, badge: 3 },
+  { id: "ai-threat", label: "AI Threat Detection", icon: Brain, badgeKey: "threats" },
   { id: "device-management", label: "Device Management", icon: Monitor },
   { id: "blockchain-audit", label: "Blockchain Audit Logs", icon: Link2 },
   { id: "traffic-monitoring", label: "Traffic Monitoring", icon: Activity },
   { id: "threat-intelligence", label: "Threat Intelligence", icon: Shield },
   { id: "security-analytics", label: "Security Analytics", icon: BarChart2 },
-  { id: "incident-response", label: "Incident Response", icon: AlertTriangle, badge: 2 },
-  { id: "alerts", label: "Alerts Center", icon: Bell, badge: 7 },
+  { id: "incident-response", label: "Incident Response", icon: AlertTriangle, badgeKey: "incidents" },
+  { id: "alerts", label: "Alerts Center", icon: Bell, badgeKey: "alerts" },
   { id: "reports", label: "Reports", icon: FileText },
   { id: "user-management", label: "User Management", icon: Users },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
-interface SidebarProps {
-  activePage: PageId;
-  onNavigate: (page: PageId) => void;
-}
+export type { PageId };
 
-export function Sidebar({ activePage, onNavigate }: SidebarProps) {
+export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const { user, logout } = useAuth();
+  const { threats, incidents, alerts } = useAppData();
+  const navigate = useNavigate();
+
+  const badges = {
+    threats: threats.filter((t) => t.status === "active").length,
+    incidents: incidents.filter((i) => i.status === "open").length,
+    alerts: alerts.filter((a) => a.status === "new").length,
+  };
+
+  const visibleItems = navItems.filter(
+    (item) => user && canAccessPage(user.role, item.id)
+  );
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
+  };
 
   return (
     <aside
@@ -56,7 +71,6 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
         zIndex: 30,
       }}
     >
-      {/* Logo */}
       <div
         style={{
           padding: collapsed ? "20px 0" : "20px 20px",
@@ -95,16 +109,15 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
         )}
       </div>
 
-      {/* Nav Items */}
       <nav style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "12px 0" }}>
-        {navItems.map((item) => {
-          const isActive = activePage === item.id;
+        {visibleItems.map((item) => {
+          const badge = item.badgeKey ? badges[item.badgeKey] : 0;
           return (
-            <button
+            <NavLink
               key={item.id}
-              onClick={() => onNavigate(item.id)}
+              to={PAGE_TO_ROUTE[item.id]}
               title={collapsed ? item.label : undefined}
-              style={{
+              style={({ isActive }) => ({
                 width: "100%",
                 display: "flex",
                 alignItems: "center",
@@ -123,69 +136,61 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
                 borderBottom: "none",
                 transition: "all 0.18s ease",
                 position: "relative",
-                textAlign: "left",
-              }}
-              className="sidebar-nav-btn"
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  (e.currentTarget as HTMLButtonElement).style.color = "#94A3B8";
-                  (e.currentTarget as HTMLButtonElement).style.background = "rgba(37,99,235,0.08)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  (e.currentTarget as HTMLButtonElement).style.color = "#64748B";
-                  (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-                }
-              }}
+                textAlign: "left" as const,
+                textDecoration: "none",
+              })}
             >
-              {isActive && (
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    width: "2px",
-                    background: "linear-gradient(180deg, #2563EB, #06B6D4)",
-                    borderRadius: "0 2px 2px 0",
-                  }}
-                />
-              )}
-              <item.icon
-                size={18}
-                style={{ color: isActive ? "#2563EB" : "inherit", flexShrink: 0 }}
-              />
-              {!collapsed && (
+              {({ isActive }) => (
                 <>
-                  <span style={{ fontSize: "13px", fontWeight: isActive ? 500 : 400, flex: 1, whiteSpace: "nowrap" }}>
-                    {item.label}
-                  </span>
-                  {item.badge && (
-                    <span
+                  {isActive && (
+                    <div
                       style={{
-                        background: item.id === "alerts" ? "#EF4444" : "#2563EB",
-                        color: "#fff",
-                        fontSize: "10px",
-                        fontWeight: 700,
-                        borderRadius: "10px",
-                        padding: "1px 7px",
-                        lineHeight: "16px",
+                        position: "absolute",
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: "2px",
+                        background: "linear-gradient(180deg, #2563EB, #06B6D4)",
+                        borderRadius: "0 2px 2px 0",
                       }}
-                    >
-                      {item.badge}
-                    </span>
+                    />
+                  )}
+                  <item.icon
+                    size={18}
+                    style={{ color: isActive ? "#2563EB" : "inherit", flexShrink: 0 }}
+                  />
+                  {!collapsed && (
+                    <>
+                      <span style={{ fontSize: "13px", fontWeight: isActive ? 500 : 400, flex: 1, whiteSpace: "nowrap" }}>
+                        {item.label}
+                      </span>
+                      {badge > 0 && (
+                        <span
+                          style={{
+                            background: item.id === "alerts" ? "#EF4444" : "#2563EB",
+                            color: "#fff",
+                            fontSize: "10px",
+                            fontWeight: 700,
+                            borderRadius: "10px",
+                            padding: "1px 7px",
+                            lineHeight: "16px",
+                          }}
+                        >
+                          {badge}
+                        </span>
+                      )}
+                    </>
                   )}
                 </>
               )}
-            </button>
+            </NavLink>
           );
         })}
       </nav>
 
-      {/* Logout */}
       <div style={{ borderTop: "1px solid rgba(37, 99, 235, 0.12)", padding: "12px 0" }}>
         <button
+          onClick={handleLogout}
           style={{
             width: "100%",
             display: "flex",
@@ -211,7 +216,6 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
         </button>
       </div>
 
-      {/* Collapse toggle */}
       <button
         onClick={() => setCollapsed(!collapsed)}
         style={{
