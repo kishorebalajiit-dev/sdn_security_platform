@@ -1,0 +1,473 @@
+import { useState } from "react";
+import {
+  Settings as SettingsIcon, Globe, Shield, Link2, Brain,
+  Bell, Users, Save, Loader, CheckCircle, Wifi, Plus, Trash2, Edit2,
+} from "lucide-react";
+import { useToast } from "./Toast";
+import { Modal, Field, inputStyle, selectStyle } from "./Modal";
+
+const glassCard: React.CSSProperties = {
+  background: "rgba(13, 27, 42, 0.7)",
+  backdropFilter: "blur(12px)",
+  border: "1px solid rgba(37, 99, 235, 0.2)",
+  borderRadius: "12px",
+  padding: "20px",
+};
+
+const tabs = [
+  { id: "general", label: "General", icon: Globe },
+  { id: "network", label: "Network", icon: Wifi },
+  { id: "security", label: "Security", icon: Shield },
+  { id: "blockchain", label: "Blockchain", icon: Link2 },
+  { id: "ai", label: "AI Models", icon: Brain },
+  { id: "notifications", label: "Notifications", icon: Bell },
+  { id: "roles", label: "User Roles", icon: Users },
+];
+
+function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      onClick={() => onChange(!on)}
+      style={{ background: on ? "#2563EB" : "rgba(255,255,255,0.1)", border: "none", borderRadius: "12px", width: "40px", height: "22px", cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0, boxShadow: on ? "0 0 12px rgba(37,99,235,0.4)" : "none" }}
+    >
+      <div style={{ position: "absolute", top: "3px", left: on ? "20px" : "3px", width: "16px", height: "16px", borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.3)" }} />
+    </button>
+  );
+}
+
+function SettingRow({ label, description, children }: { label: string; description?: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 0", borderBottom: "1px solid rgba(37,99,235,0.08)" }}>
+      <div style={{ flex: 1, marginRight: "20px" }}>
+        <p style={{ fontSize: "13px", color: "#E2E8F0", marginBottom: description ? "3px" : 0 }}>{label}</p>
+        {description && <p style={{ fontSize: "11px", color: "#475569" }}>{description}</p>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function InputField({ defaultValue, placeholder, width = 240 }: { defaultValue?: string; placeholder?: string; width?: number }) {
+  return (
+    <input
+      defaultValue={defaultValue}
+      placeholder={placeholder}
+      style={{ ...inputStyle, width: `${width}px` }}
+      onFocus={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = "rgba(37,99,235,0.5)"; }}
+      onBlur={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = "rgba(37,99,235,0.2)"; }}
+    />
+  );
+}
+
+const permissionActions = ["View", "Create", "Edit", "Delete", "Approve", "Export"];
+const rolesList = ["Admin", "Security Analyst", "Network Engineer", "Auditor"];
+const defaultPerms: Record<string, Record<string, boolean>> = {
+  Admin: { View: true, Create: true, Edit: true, Delete: true, Approve: true, Export: true },
+  "Security Analyst": { View: true, Create: true, Edit: true, Delete: false, Approve: false, Export: true },
+  "Network Engineer": { View: true, Create: true, Edit: true, Delete: false, Approve: false, Export: false },
+  Auditor: { View: true, Create: false, Edit: false, Delete: false, Approve: false, Export: true },
+};
+const roleColors: Record<string, string> = {
+  Admin: "#EF4444", "Security Analyst": "#2563EB", "Network Engineer": "#22C55E", Auditor: "#8B5CF6",
+};
+
+export function Settings() {
+  const [activeTab, setActiveTab] = useState("general");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [toggles, setToggles] = useState<Record<string, boolean>>({
+    autoBlock: true, aiDetection: true, blockchain: true, mfaRequired: true,
+    geoBlocking: false, alertEmails: true, slackAlerts: false, weeklyReport: true,
+    threatFeed: true, autoQuarantine: false, darkMode: true, testConnection: false,
+  });
+  const [perms, setPerms] = useState(defaultPerms);
+  const [addRoleOpen, setAddRoleOpen] = useState(false);
+  const [newRoleName, setNewRoleName] = useState("");
+  const { success, error, warning, info } = useToast();
+
+  const setToggle = (key: string, val: boolean) => setToggles((t) => ({ ...t, [key]: val }));
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaved(false);
+    await new Promise((r) => setTimeout(r, 1000));
+    setSaving(false);
+    setSaved(true);
+    success("Settings Saved", "All configuration changes have been applied successfully");
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  const handleTestConnection = async () => {
+    info("Testing Connection...", "Sending ICMP ping to SDN controller");
+    await new Promise((r) => setTimeout(r, 1800));
+    success("Connection Successful", "SDN Controller reachable — latency 4ms");
+  };
+
+  const togglePerm = (role: string, action: string) => {
+    if (role === "Admin") return; // admin always full
+    setPerms((p) => ({
+      ...p,
+      [role]: { ...p[role], [action]: !p[role][action] },
+    }));
+  };
+
+  const handleAddRole = () => {
+    if (!newRoleName.trim()) { error("Role name required"); return; }
+    setPerms((p) => ({
+      ...p,
+      [newRoleName]: Object.fromEntries(permissionActions.map((a) => [a, false])),
+    }));
+    success("Role Created", newRoleName);
+    setAddRoleOpen(false);
+    setNewRoleName("");
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case "general":
+        return (
+          <div>
+            <h3 style={{ color: "#E2E8F0", marginBottom: "18px" }}>General Settings</h3>
+            <SettingRow label="Platform Name" description="Display name for the dashboard">
+              <InputField defaultValue="SecureNet AI — SDN Security Platform" width={300} />
+            </SettingRow>
+            <SettingRow label="Organization" description="Your organization name">
+              <InputField defaultValue="CyberDefense Corp" />
+            </SettingRow>
+            <SettingRow label="Timezone" description="Dashboard time display">
+              <select style={{ ...selectStyle, width: "200px" }}>
+                <option>UTC+00:00</option>
+                <option selected>UTC+08:00 (MYT)</option>
+                <option>UTC+05:30 (IST)</option>
+                <option>UTC-05:00 (EST)</option>
+              </select>
+            </SettingRow>
+            <SettingRow label="Dark Mode" description="Use dark theme (recommended for SOC)">
+              <Toggle on={toggles.darkMode} onChange={(v) => setToggle("darkMode", v)} />
+            </SettingRow>
+            <SettingRow label="Data Refresh Rate" description="How often live data updates">
+              <select style={{ ...selectStyle, width: "160px" }}>
+                <option>5 seconds</option>
+                <option selected>10 seconds</option>
+                <option>30 seconds</option>
+              </select>
+            </SettingRow>
+            <SettingRow label="Session Timeout" description="Auto-logout after inactivity">
+              <select style={{ ...selectStyle, width: "160px" }}>
+                <option>15 minutes</option>
+                <option selected>30 minutes</option>
+                <option>1 hour</option>
+              </select>
+            </SettingRow>
+          </div>
+        );
+
+      case "network":
+        return (
+          <div>
+            <h3 style={{ color: "#E2E8F0", marginBottom: "18px" }}>Network Configuration</h3>
+            <SettingRow label="Network Name" description="Internal identifier for this SDN network">
+              <InputField defaultValue="SecureNet-SDN-01" />
+            </SettingRow>
+            <SettingRow label="Management Subnet" description="Network management CIDR range">
+              <InputField defaultValue="10.0.0.0/16" />
+            </SettingRow>
+            <SettingRow label="IoT VLAN Subnet" description="Isolated IoT device subnet">
+              <InputField defaultValue="172.16.5.0/24" />
+            </SettingRow>
+            <SettingRow label="Primary DNS" description="DNS server for name resolution">
+              <InputField defaultValue="10.0.0.53" />
+            </SettingRow>
+            <SettingRow label="Secondary DNS" description="Fallback DNS server">
+              <InputField defaultValue="8.8.8.8" />
+            </SettingRow>
+            <SettingRow label="Default Gateway" description="Network default gateway IP">
+              <InputField defaultValue="10.0.0.1" />
+            </SettingRow>
+            <div style={{ margin: "18px 0 0", padding: "16px", background: "rgba(37,99,235,0.06)", border: "1px solid rgba(37,99,235,0.15)", borderRadius: "10px" }}>
+              <p style={{ fontSize: "12px", fontWeight: 600, color: "#E2E8F0", marginBottom: "12px" }}>SDN Controller Settings</p>
+              <SettingRow label="Controller IP" description="OpenFlow controller address">
+                <InputField defaultValue="10.0.0.1" />
+              </SettingRow>
+              <SettingRow label="OpenFlow Version" description="Protocol version">
+                <select style={{ ...selectStyle, width: "160px" }}>
+                  <option selected>OpenFlow 1.5</option>
+                  <option>OpenFlow 1.4</option>
+                  <option>OpenFlow 1.3</option>
+                </select>
+              </SettingRow>
+              <SettingRow label="Controller Port" description="TCP port for controller communication">
+                <InputField defaultValue="6653" width={120} />
+              </SettingRow>
+              <div style={{ marginTop: "14px", display: "flex", gap: "10px" }}>
+                <button
+                  onClick={handleTestConnection}
+                  style={{ padding: "8px 18px", fontSize: "12px", fontWeight: 600, background: "rgba(6,182,212,0.12)", color: "#06B6D4", border: "1px solid rgba(6,182,212,0.3)", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", transition: "all 0.15s" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(6,182,212,0.22)"; (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(6,182,212,0.12)"; (e.currentTarget as HTMLButtonElement).style.transform = "none"; }}
+                >
+                  <Wifi size={13} /> Test Connection
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "security":
+        return (
+          <div>
+            <h3 style={{ color: "#E2E8F0", marginBottom: "18px" }}>Security Settings</h3>
+            <SettingRow label="Auto-Block Threats" description="Automatically block P1/P2 threats without manual approval">
+              <Toggle on={toggles.autoBlock} onChange={(v) => setToggle("autoBlock", v)} />
+            </SettingRow>
+            <SettingRow label="AI Threat Detection" description="Enable real-time AI-powered analysis engine">
+              <Toggle on={toggles.aiDetection} onChange={(v) => setToggle("aiDetection", v)} />
+            </SettingRow>
+            <SettingRow label="Auto-Quarantine IoT" description="Automatically quarantine flagged IoT devices">
+              <Toggle on={toggles.autoQuarantine} onChange={(v) => setToggle("autoQuarantine", v)} />
+            </SettingRow>
+            <SettingRow label="MFA Required" description="Enforce multi-factor authentication for all users">
+              <Toggle on={toggles.mfaRequired} onChange={(v) => setToggle("mfaRequired", v)} />
+            </SettingRow>
+            <SettingRow label="Geo-Blocking" description="Block traffic from high-risk countries (RU, CN, KP, IR)">
+              <Toggle on={toggles.geoBlocking} onChange={(v) => setToggle("geoBlocking", v)} />
+            </SettingRow>
+            <SettingRow label="Risk Score Threshold" description="Auto-block when risk score exceeds this value">
+              <InputField defaultValue="80" width={100} />
+            </SettingRow>
+            <SettingRow label="Password Policy" description="Minimum password complexity">
+              <select style={{ ...selectStyle, width: "200px" }}>
+                <option selected>Strong (12+ chars, symbols)</option>
+                <option>Very Strong (16+ chars)</option>
+                <option>Standard (8+ chars)</option>
+              </select>
+            </SettingRow>
+          </div>
+        );
+
+      case "blockchain":
+        return (
+          <div>
+            <h3 style={{ color: "#E2E8F0", marginBottom: "18px" }}>Blockchain Settings</h3>
+            <SettingRow label="Blockchain Logging" description="Log all security events to blockchain">
+              <Toggle on={toggles.blockchain} onChange={(v) => setToggle("blockchain", v)} />
+            </SettingRow>
+            <SettingRow label="Consensus Algorithm">
+              <select style={{ ...selectStyle, width: "180px" }}>
+                <option selected>PBFT</option>
+                <option>Raft</option>
+                <option>HotStuff</option>
+              </select>
+            </SettingRow>
+            <SettingRow label="Validator Nodes" description="Number of consensus validators">
+              <InputField defaultValue="12" width={100} />
+            </SettingRow>
+            <SettingRow label="Block Time" description="Target block time in seconds">
+              <InputField defaultValue="2" width={100} />
+            </SettingRow>
+            <SettingRow label="Storage Limit" description="Max on-chain storage allocation">
+              <InputField defaultValue="100 GB" width={120} />
+            </SettingRow>
+          </div>
+        );
+
+      case "ai":
+        return (
+          <div>
+            <h3 style={{ color: "#E2E8F0", marginBottom: "18px" }}>AI Model Settings</h3>
+            <SettingRow label="Detection Model">
+              <select style={{ ...selectStyle, width: "220px" }}>
+                <option selected>Transformer-v4 (Default)</option>
+                <option>LSTM-Hybrid</option>
+                <option>XGBoost-Ensemble</option>
+              </select>
+            </SettingRow>
+            <SettingRow label="Confidence Threshold" description="Min confidence to trigger alert (%)">
+              <InputField defaultValue="75" width={100} />
+            </SettingRow>
+            <SettingRow label="Global Threat Feed" description="Subscribe to external intelligence feeds">
+              <Toggle on={toggles.threatFeed} onChange={(v) => setToggle("threatFeed", v)} />
+            </SettingRow>
+            <SettingRow label="Auto Retraining" description="Retrain model weekly with new data">
+              <Toggle on={true} onChange={() => {}} />
+            </SettingRow>
+            <SettingRow label="Federated Learning" description="Share improvements with peer networks (privacy-preserving)">
+              <Toggle on={false} onChange={() => {}} />
+            </SettingRow>
+          </div>
+        );
+
+      case "notifications":
+        return (
+          <div>
+            <h3 style={{ color: "#E2E8F0", marginBottom: "18px" }}>Notification Settings</h3>
+            <SettingRow label="Email Alerts" description="Send critical alerts to registered email">
+              <Toggle on={toggles.alertEmails} onChange={(v) => setToggle("alertEmails", v)} />
+            </SettingRow>
+            <SettingRow label="Alert Email">
+              <InputField defaultValue="soc@cyberdefense.ai" width={240} />
+            </SettingRow>
+            <SettingRow label="Slack Integration" description="Post alerts to Slack channel">
+              <Toggle on={toggles.slackAlerts} onChange={(v) => setToggle("slackAlerts", v)} />
+            </SettingRow>
+            <SettingRow label="Weekly Report" description="Automated weekly security summary">
+              <Toggle on={toggles.weeklyReport} onChange={(v) => setToggle("weeklyReport", v)} />
+            </SettingRow>
+            <SettingRow label="Minimum Alert Severity">
+              <select style={{ ...selectStyle, width: "200px" }}>
+                <option selected>P1 Critical Only</option>
+                <option>P1 + P2</option>
+                <option>All Incidents</option>
+              </select>
+            </SettingRow>
+          </div>
+        );
+
+      case "roles":
+        return (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
+              <h3 style={{ color: "#E2E8F0" }}>Role Management</h3>
+              <button
+                onClick={() => setAddRoleOpen(true)}
+                style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: "0 0 14px rgba(37,99,235,0.3)", transition: "all 0.15s" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 22px rgba(37,99,235,0.5)"; (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 14px rgba(37,99,235,0.3)"; (e.currentTarget as HTMLButtonElement).style.transform = "none"; }}
+              >
+                <Plus size={13} /> Add Role
+              </button>
+            </div>
+
+            {/* Permissions Matrix */}
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "600px" }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid rgba(37,99,235,0.15)" }}>
+                    <th style={{ padding: "10px 14px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", width: "200px" }}>Role</th>
+                    {permissionActions.map((action) => (
+                      <th key={action} style={{ padding: "10px 14px", textAlign: "center", fontSize: "10px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>{action}</th>
+                    ))}
+                    <th style={{ padding: "10px 14px", width: "80px" }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.keys(perms).map((role, i) => (
+                    <tr key={role} style={{ borderBottom: "1px solid rgba(37,99,235,0.06)", background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)" }}>
+                      <td style={{ padding: "12px 14px" }}>
+                        <span style={{ fontSize: "11px", fontWeight: 700, color: roleColors[role] || "#94A3B8", background: `${roleColors[role] || "#94A3B8"}15`, padding: "3px 10px", borderRadius: "5px" }}>{role}</span>
+                      </td>
+                      {permissionActions.map((action) => (
+                        <td key={action} style={{ padding: "12px 14px", textAlign: "center" }}>
+                          <button
+                            onClick={() => togglePerm(role, action)}
+                            style={{ width: "22px", height: "22px", borderRadius: "5px", border: "1px solid", cursor: role === "Admin" ? "not-allowed" : "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s", background: perms[role]?.[action] ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.04)", borderColor: perms[role]?.[action] ? "rgba(34,197,94,0.4)" : "rgba(255,255,255,0.1)" }}
+                          >
+                            {perms[role]?.[action] && <CheckCircle size={12} style={{ color: "#22C55E" }} />}
+                          </button>
+                        </td>
+                      ))}
+                      <td style={{ padding: "12px 14px" }}>
+                        {role !== "Admin" && (
+                          <div style={{ display: "flex", gap: "4px" }}>
+                            <button title="Edit role" style={{ padding: "4px", background: "none", border: "none", cursor: "pointer", color: "#475569" }}
+                              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#60A5FA"; }}
+                              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#475569"; }}>
+                              <Edit2 size={12} />
+                            </button>
+                            <button title="Delete role" style={{ padding: "4px", background: "none", border: "none", cursor: "pointer", color: "#475569" }}
+                              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#EF4444"; }}
+                              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#475569"; }}
+                              onClick={() => { const p = { ...perms }; delete p[role]; setPerms(p); warning("Role Deleted", role); }}>
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p style={{ fontSize: "11px", color: "#475569", marginTop: "12px" }}>Click a permission cell to toggle access. Admin role always has full permissions.</p>
+          </div>
+        );
+
+      default:
+        return (
+          <div style={{ textAlign: "center", padding: "40px 0", color: "#475569" }}>
+            <SettingsIcon size={32} style={{ margin: "0 auto 12px", opacity: 0.3 }} />
+            <p style={{ fontSize: "13px" }}>Settings for this tab coming soon</p>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div style={{ padding: "28px", display: "flex", flexDirection: "column", gap: "20px" }}>
+      <div>
+        <h1 style={{ color: "#E2E8F0", marginBottom: "4px" }}>Settings</h1>
+        <p style={{ color: "#64748B", fontSize: "13px" }}>Platform configuration and system preferences</p>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: "20px" }}>
+        {/* Tab Nav */}
+        <div style={{ ...glassCard, padding: "8px" }}>
+          {tabs.map((tab) => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              style={{ width: "100%", display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", borderRadius: "8px", background: activeTab === tab.id ? "rgba(37,99,235,0.15)" : "transparent", border: "none", color: activeTab === tab.id ? "#60A5FA" : "#64748B", cursor: "pointer", fontSize: "12px", fontWeight: activeTab === tab.id ? 600 : 400, transition: "all 0.15s", textAlign: "left" }}
+              onMouseEnter={(e) => { if (activeTab !== tab.id) { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLButtonElement).style.color = "#94A3B8"; } }}
+              onMouseLeave={(e) => { if (activeTab !== tab.id) { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = "#64748B"; } }}
+            >
+              <tab.icon size={15} /> {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
+        <div style={glassCard}>
+          {renderContent()}
+          <div style={{ marginTop: "24px", display: "flex", gap: "10px", justifyContent: "flex-end", paddingTop: "16px", borderTop: "1px solid rgba(37,99,235,0.08)" }}>
+            <button style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: "rgba(255,255,255,0.05)", color: "#64748B", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", cursor: "pointer" }}>
+              Discard Changes
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: saved ? "linear-gradient(135deg, #22C55E, #16A34A)" : "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "8px", cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: saved ? "0 0 16px rgba(34,197,94,0.4)" : "0 0 16px rgba(37,99,235,0.35)", opacity: saving ? 0.8 : 1, transition: "all 0.2s" }}
+              onMouseEnter={(e) => { if (!saving) { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; } }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "none"; }}
+            >
+              {saving ? (
+                <><Loader size={13} style={{ animation: "spin 1s linear infinite" }} /> Saving...</>
+              ) : saved ? (
+                <><CheckCircle size={13} /> Saved!</>
+              ) : (
+                <><Save size={13} /> Save Changes</>
+              )}
+            </button>
+            <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+          </div>
+        </div>
+      </div>
+
+      {/* Add Role Modal */}
+      <Modal open={addRoleOpen} onClose={() => setAddRoleOpen(false)} title="Add New Role" width={400}
+        footer={
+          <>
+            <button onClick={() => setAddRoleOpen(false)} style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: "rgba(255,255,255,0.05)", color: "#94A3B8", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", cursor: "pointer" }}>Cancel</button>
+            <button onClick={handleAddRole} style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", boxShadow: "0 0 14px rgba(37,99,235,0.35)" }}>Create Role</button>
+          </>
+        }
+      >
+        <Field label="Role Name" required>
+          <input
+            value={newRoleName}
+            onChange={(e) => setNewRoleName(e.target.value)}
+            placeholder="e.g. Compliance Officer"
+            style={{ ...inputStyle }}
+          />
+        </Field>
+      </Modal>
+    </div>
+  );
+}
