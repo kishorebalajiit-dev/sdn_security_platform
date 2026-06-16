@@ -1,53 +1,59 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Shield, Zap, Loader, Eye, EyeOff, Sparkles, LockKeyhole, Brain, Link2, Cpu, Activity, Database, Cloud, Server, Wifi, ShieldCheck, ArrowRight, Globe } from "lucide-react";
+import {
+  Shield,
+  Loader,
+  Eye,
+  EyeOff,
+  Brain,
+  Link2,
+  Laptop,
+  Activity,
+  ArrowRight,
+  Globe,
+  Mail,
+  Lock,
+  ChevronDown,
+  ShieldCheck,
+  Cloud,
+  Server,
+  Cpu,
+  Network,
+  Radio,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 
-const networkNodes = [
-  { label: "Edge-SW-01", meta: "10.0.1.2", top: "18%", left: "16%" },
-  { label: "Core-SW-02", meta: "10.0.1.3", top: "52%", left: "8%" },
-  { label: "IoT Cluster", meta: "172.16.5.0/24", top: "80%", left: "18%" },
-  { label: "Cloud Gateway", meta: "192.168.1.1", top: "16%", left: "68%" },
-  { label: "Server Farm", meta: "10.0.2.0/24", top: "52%", left: "76%" },
-  { label: "Blockchain Node", meta: "10.0.3.5", top: "80%", left: "66%" },
+type NetworkNode = {
+  label: string;
+  icon: LucideIcon;
+  top: string;
+  left: string;
+};
+
+const networkNodes: NetworkNode[] = [
+  { label: "SDN Controller", icon: Network, top: "10%", left: "50%" },
+  { label: "Cloud", icon: Cloud, top: "22%", left: "80%" },
+  { label: "Servers", icon: Server, top: "50%", left: "90%" },
+  { label: "Blockchain", icon: Link2, top: "78%", left: "74%" },
+  { label: "IoT Devices", icon: Radio, top: "78%", left: "26%" },
+  { label: "Edge Switch", icon: Cpu, top: "50%", left: "10%" },
 ];
 
 const statCards = [
-  { label: "Active Devices", value: "1,248", delta: "+12.5% ↑", icon: Cpu },
+  { label: "Active Devices", value: "1,248", delta: "+12.5% ↑", icon: Laptop },
   { label: "Threats Blocked", value: "8,734", delta: "+18.2% ↑", icon: Shield },
   { label: "AI Accuracy", value: "98.7%", delta: "+1.3% ↑", icon: Brain },
   { label: "Blockchain Integrity", value: "99.99%", delta: "+0.01% ↑", icon: Link2 },
   { label: "Network Health", value: "96%", delta: "+2.4% ↑", icon: Activity },
 ];
 
-const liveFeed = [
-  { title: "DDoS Attack Detected", target: "Edge-SW-03", time: "14:23", color: "#EF4444" },
-  { title: "Botnet C2 Communication", target: "IoT-Sensor-48", time: "14:05", color: "#EF4444" },
-  { title: "Credential Stuffing Attack", target: "PC-Finance-03", time: "13:58", color: "#F59E0B" },
-  { title: "ARP Spoofing Detected", target: "IoT Cluster", time: "13:41", color: "#F59E0B" },
+const trustBadges = [
+  { icon: ShieldCheck, label: "Blockchain Secured" },
+  { icon: Brain, label: "AI Protected" },
+  { icon: Shield, label: "SOC 2 Certified" },
+  { icon: Globe, label: "Enterprise Ready" },
 ];
-
-const glassCard: React.CSSProperties = {
-  background: "linear-gradient(180deg, rgba(17,24,39,0.84), rgba(8,11,26,0.76))",
-  backdropFilter: "blur(20px)",
-  border: "1px solid rgba(168,85,247,0.24)",
-  borderRadius: "24px",
-  padding: "34px",
-  width: "100%",
-  maxWidth: "460px",
-  boxShadow: "0 0 24px rgba(168,85,247,0.16), 0 0 44px rgba(168,85,247,0.10), 0 24px 70px rgba(0,0,0,0.55)",
-};
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "13px 14px",
-  background: "rgba(8,11,26,0.76)",
-  border: "1px solid rgba(168,85,247,0.18)",
-  borderRadius: "14px",
-  color: "#F8FAFC",
-  fontSize: "13px",
-  outline: "none",
-};
 
 const DEMO_ACCOUNTS = [
   { email: "k.singh@secnet.ai", password: "admin123", role: "Admin" },
@@ -56,12 +62,41 @@ const DEMO_ACCOUNTS = [
   { email: "p.nair@secnet.ai", password: "auditor123", role: "Auditor" },
 ];
 
+function GoogleIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="#EA4335" d="M12 10.2v3.6h5.1c-.2 1.2-1.6 3.5-5.1 3.5-3.1 0-5.6-2.5-5.6-5.6s2.5-5.6 5.6-5.6c1.8 0 3 .8 3.7 1.5l2.5-2.4C17.4 3.6 14.9 2.4 12 2.4 6.9 2.4 2.7 6.6 2.7 11.7S6.9 21 12 21c6.9 0 8.5-4.8 8.5-7.3 0-.5-.1-1-.2-1.5H12z" />
+    </svg>
+  );
+}
+
+function MicrosoftIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3" y="3" width="8" height="8" fill="#F25022" />
+      <rect x="13" y="3" width="8" height="8" fill="#7FBA00" />
+      <rect x="3" y="13" width="8" height="8" fill="#00A4EF" />
+      <rect x="13" y="13" width="8" height="8" fill="#FFB900" />
+    </svg>
+  );
+}
+
+function GitHubIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="#F8FAFC" aria-hidden="true">
+      <path d="M12 2C6.48 2 2 6.58 2 12.26c0 4.52 2.87 8.35 6.84 9.7.5.1.68-.22.68-.48 0-.24-.01-.87-.01-1.7-2.78.62-3.37-1.36-3.37-1.36-.45-1.18-1.1-1.5-1.1-1.5-.9-.63.07-.62.07-.62 1 .07 1.53 1.05 1.53 1.05.89 1.56 2.34 1.11 2.91.85.09-.67.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.7 0 0 .84-.27 2.75 1.05A9.2 9.2 0 0 1 12 6.84c.85 0 1.71.12 2.51.34 1.91-1.32 2.75-1.05 2.75-1.05.55 1.4.2 2.44.1 2.7.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.81-4.57 5.07.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.8 0 .27.18.59.69.49A10.03 10.03 0 0 0 22 12.26C22 6.58 17.52 2 12 2z" />
+    </svg>
+  );
+}
+
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -82,294 +117,262 @@ export function LoginPage() {
     setEmail(account.email);
     setPassword(account.password);
     setError("");
+    setShowDemo(false);
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        position: "relative",
-        overflow: "hidden",
-        padding: "20px",
-        background: "#050816",
-      }}
-      className="cyber-shell"
-    >
-      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(5,8,22,0.18), rgba(5,8,22,0.86))", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", inset: 0 }} className="cyber-grid" />
-      <div style={{ position: "absolute", top: "-120px", left: "18%", width: "760px", height: "760px", background: "radial-gradient(circle, rgba(168,85,247,0.20) 0%, transparent 66%)", pointerEvents: "none" }} />
+    <div className="login-page cyber-shell">
+      <div className="login-page__map" aria-hidden="true" />
+      <div className="login-page__glow login-page__glow--left" aria-hidden="true" />
+      <div className="login-page__glow login-page__glow--right" aria-hidden="true" />
 
-      <div style={{ position: "relative", zIndex: 1, maxWidth: "1420px", margin: "0 auto" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.25fr) minmax(380px, 0.85fr)", gap: "28px", alignItems: "stretch" }}>
-          <section style={{ display: "flex", flexDirection: "column", gap: "16px", minWidth: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", padding: "8px 14px", borderRadius: "999px", background: "rgba(17,24,39,0.72)", border: "1px solid rgba(168,85,247,0.18)", width: "fit-content", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)" }}>
-                <Sparkles size={14} color="#C084FC" />
-                <span style={{ fontSize: "10px", letterSpacing: "0.16em", textTransform: "uppercase", color: "#C084FC", fontWeight: 700 }}>AI + Blockchain + SDN</span>
+      <div className="login-page__container">
+        <div className="login-page__grid">
+          <section className="login-page__hero" aria-label="Platform overview">
+            <div className="login-page__brand">
+              <div className="login-page__logo">
+                <Shield size={18} strokeWidth={2} />
               </div>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "8px 12px", borderRadius: "12px", background: "rgba(17,24,39,0.72)", border: "1px solid rgba(34,197,94,0.22)" }}>
-                <span style={{ width: "8px", height: "8px", borderRadius: "999px", background: "#22C55E", boxShadow: "0 0 12px #22C55E" }} />
-                <span style={{ fontSize: "11px", color: "#E2E8F0", fontWeight: 600 }}>System Operational</span>
-              </div>
+              <span className="login-page__logo-text">SecureNet AI</span>
             </div>
 
-            <div style={{ maxWidth: "650px", paddingTop: "10px" }}>
-              <h1 style={{ fontFamily: "Poppins, sans-serif", fontSize: "clamp(34px, 4.4vw, 54px)", lineHeight: 1.02, letterSpacing: "-0.04em", color: "#F8FAFC", maxWidth: "610px" }} className="cyber-glow-text">
-                AI + Blockchain Powered
-                <br />
-                SDN Security Platform
+            <div className="login-page__hero-copy">
+              <p className="login-page__eyebrow">AI + BLOCKCHAIN POWERED</p>
+              <h1 className="login-page__title">
+                SDN <span className="login-page__title-accent">Security</span> Platform
               </h1>
-              <p style={{ marginTop: "14px", maxWidth: "660px", fontSize: "15px", lineHeight: 1.6, color: "#94A3B8" }}>
-                Next-generation security operations platform combining Artificial Intelligence, Blockchain integrity, and Software Defined Networking.
+              <p className="login-page__tagline">Intelligent. Decentralized. Secure.</p>
+              <p className="login-page__description">
+                Real-time threat detection, blockchain verification, and SDN visibility — all in one unified platform.
               </p>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: "10px", marginTop: "4px" }}>
-              {statCards.map((stat) => {
-                const Icon = stat.icon;
+            <div className="login-page__network">
+              <svg className="login-page__network-lines" viewBox="0 0 400 280" preserveAspectRatio="xMidYMid meet">
+                {networkNodes.map((node) => {
+                  const x = (parseFloat(node.left) / 100) * 400;
+                  const y = (parseFloat(node.top) / 100) * 280;
+                  return (
+                    <line
+                      key={node.label}
+                      x1="200"
+                      y1="140"
+                      x2={x}
+                      y2={y}
+                      stroke="rgba(168,85,247,0.4)"
+                      strokeWidth="1"
+                      strokeDasharray="5 5"
+                    />
+                  );
+                })}
+              </svg>
+
+              <div className="login-page__network-ring login-page__network-ring--outer" />
+              <div className="login-page__network-ring login-page__network-ring--mid" />
+              <div className="login-page__network-ring login-page__network-ring--inner" />
+
+              <div className="login-page__network-core">
+                <Shield size={34} strokeWidth={1.5} />
+              </div>
+
+              {networkNodes.map((node) => {
+                const Icon = node.icon;
                 return (
-                  <div key={stat.label} style={{ padding: "14px 14px 12px", borderRadius: "16px", background: "rgba(17,24,39,0.66)", border: "1px solid rgba(168,85,247,0.16)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px", color: "#C084FC" }}>
-                      <Icon size={14} />
-                      <span style={{ fontSize: "11px", color: "#C7D2FE", whiteSpace: "nowrap" }}>{stat.label}</span>
+                  <div
+                    key={node.label}
+                    className="login-page__network-node"
+                    style={{ top: node.top, left: node.left }}
+                  >
+                    <div className="login-page__network-node-icon">
+                      <Icon size={14} strokeWidth={1.75} />
                     </div>
-                    <div style={{ fontFamily: "Poppins, sans-serif", fontSize: "20px", fontWeight: 700, color: "#F8FAFC", lineHeight: 1 }}>{stat.value}</div>
-                    <div style={{ marginTop: "6px", fontSize: "11px", color: "#22C55E" }}>{stat.delta}</div>
+                    <span>{node.label}</span>
                   </div>
                 );
               })}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1.35fr 0.85fr", gap: "12px", marginTop: "6px" }}>
-              <div style={{ position: "relative", minHeight: "390px", borderRadius: "24px", border: "1px solid rgba(168,85,247,0.18)", background: "radial-gradient(circle at center, rgba(168,85,247,0.12), rgba(8,11,26,0.96) 58%)", overflow: "hidden", boxShadow: "0 24px 70px rgba(0,0,0,0.45)" }}>
-                <div style={{ position: "absolute", inset: "18px", borderRadius: "22px", border: "1px solid rgba(168,85,247,0.08)" }} />
-                <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 50% 50%, rgba(168,85,247,0.10) 0%, transparent 34%)" }} />
-                <div style={{ position: "absolute", top: "50%", left: "50%", width: "188px", height: "188px", transform: "translate(-50%, -50%)", borderRadius: "50%", border: "1px solid rgba(168,85,247,0.35)", boxShadow: "0 0 24px rgba(168,85,247,0.18), inset 0 0 28px rgba(168,85,247,0.18)" }} />
-                <div style={{ position: "absolute", top: "50%", left: "50%", width: "258px", height: "258px", transform: "translate(-50%, -50%)", borderRadius: "50%", border: "1px solid rgba(168,85,247,0.16)" }} />
-                <div style={{ position: "absolute", top: "50%", left: "50%", width: "330px", height: "330px", transform: "translate(-50%, -50%)", borderRadius: "50%", border: "1px solid rgba(168,85,247,0.10)" }} />
-                <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "88px", height: "88px", borderRadius: "24px", background: "linear-gradient(180deg, rgba(168,85,247,0.95), rgba(59,130,246,0.30))", border: "1px solid rgba(192,132,252,0.45)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 32px rgba(168,85,247,0.42)" }}>
-                  <div style={{ width: "42px", height: "42px", borderRadius: "14px", border: "2px solid rgba(255,255,255,0.82)", display: "flex", alignItems: "center", justifyContent: "center", color: "#F8FAFC" }}>
-                    <Database size={22} />
-                  </div>
-                </div>
-                {networkNodes.map((node) => (
-                  <div key={node.label} style={{ position: "absolute", top: node.top, left: node.left, transform: "translate(-50%, -50%)", padding: "10px 12px", borderRadius: "999px", background: "rgba(17,24,39,0.84)", border: "1px solid rgba(168,85,247,0.16)", boxShadow: "0 0 16px rgba(0,0,0,0.28)" }}>
-                    <div style={{ fontSize: "11px", color: "#E2E8F0", fontWeight: 600 }}>{node.label}</div>
-                    <div style={{ fontSize: "10px", color: "#94A3B8" }}>{node.meta}</div>
-                  </div>
-                ))}
-                <div style={{ position: "absolute", top: "16px", left: "16px", padding: "8px 10px", borderRadius: "999px", background: "rgba(17,24,39,0.80)", border: "1px solid rgba(168,85,247,0.16)", color: "#C084FC", fontSize: "10px", letterSpacing: "0.12em", textTransform: "uppercase", display: "inline-flex", alignItems: "center", gap: "8px" }}>
-                  <Sparkles size={13} /> Live AI Defense Grid
-                </div>
-                <div style={{ position: "absolute", bottom: "16px", left: "16px", right: "16px", display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "12px" }}>
-                  <div style={{ padding: "14px", borderRadius: "18px", background: "rgba(8,11,26,0.84)", border: "1px solid rgba(168,85,247,0.14)" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-                      <div style={{ fontSize: "12px", fontWeight: 700, color: "#F8FAFC" }}>Live Threat Feed</div>
-                      <button type="button" style={{ background: "none", border: "none", color: "#C084FC", fontSize: "11px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                        View All <ArrowRight size={12} />
-                      </button>
+            <div className="login-page__stats" role="list" aria-label="Platform metrics">
+              {statCards.map((stat) => {
+                const Icon = stat.icon;
+                return (
+                  <div key={stat.label} className="login-page__stat" role="listitem">
+                    <div className="login-page__stat-head">
+                      <Icon size={14} />
+                      <span>{stat.label}</span>
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                      {liveFeed.map((item) => (
-                        <div key={item.title} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "11px" }}>
-                          <span style={{ width: "8px", height: "8px", borderRadius: "999px", background: item.color, boxShadow: `0 0 10px ${item.color}` }} />
-                          <div style={{ flex: 1 }}>
-                            <div style={{ color: "#F8FAFC", fontWeight: 600 }}>{item.title}</div>
-                            <div style={{ color: "#64748B", marginTop: "2px" }}>{item.target}</div>
-                          </div>
-                          <div style={{ color: "#94A3B8" }}>{item.time}</div>
-                        </div>
-                      ))}
-                    </div>
+                    <div className="login-page__stat-value">{stat.value}</div>
+                    <div className="login-page__stat-delta">{stat.delta}</div>
                   </div>
-                  <div style={{ padding: "14px", borderRadius: "18px", background: "rgba(8,11,26,0.84)", border: "1px solid rgba(168,85,247,0.14)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
-                    <div style={{ width: "130px", height: "130px", borderRadius: "50%", border: "2px solid rgba(168,85,247,0.55)", boxShadow: "0 0 30px rgba(168,85,247,0.28), inset 0 0 24px rgba(168,85,247,0.10)", display: "grid", placeItems: "center" }}>
-                      <div>
-                        <div style={{ fontSize: "10px", letterSpacing: "0.12em", color: "#E2E8F0", textTransform: "uppercase" }}>Blockchain Verified</div>
-                        <div style={{ marginTop: "6px", fontFamily: "Poppins, sans-serif", fontSize: "28px", fontWeight: 700, color: "#F8FAFC" }}>99.99%</div>
-                        <div style={{ fontSize: "10px", color: "#94A3B8" }}>Integrity Score</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                );
+              })}
+            </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                <div style={{ padding: "16px", borderRadius: "20px", background: "rgba(17,24,39,0.66)", border: "1px solid rgba(168,85,247,0.16)" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "10px" }}>
-                    {[
-                      { icon: Brain, label: "AI Detection" },
-                      { icon: LockKeyhole, label: "Zero Trust" },
-                      { icon: Link2, label: "Blockchain Audit" },
-                      { icon: Shield, label: "SOC Visibility" },
-                    ].map((item) => (
-                      <div key={item.label} style={{ padding: "12px", borderRadius: "16px", background: "rgba(8,11,26,0.72)", border: "1px solid rgba(168,85,247,0.12)" }}>
-                        <item.icon size={15} color="#C084FC" />
-                        <p style={{ marginTop: "10px", fontSize: "11px", color: "#E2E8F0", fontWeight: 600 }}>{item.label}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div style={{ padding: "16px", borderRadius: "20px", background: "rgba(17,24,39,0.66)", border: "1px solid rgba(168,85,247,0.16)" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                    <button type="button" style={{ height: "44px", borderRadius: "14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(168,85,247,0.16)", color: "#F8FAFC", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", fontSize: "12px", whiteSpace: "nowrap" }}>
-                      <div style={{ width: "12px", height: "12px", borderRadius: "3px", background: "#F25022" }} /> Microsoft
-                    </button>
-                    <button type="button" style={{ height: "44px", borderRadius: "14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(168,85,247,0.16)", color: "#F8FAFC", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", fontSize: "12px", whiteSpace: "nowrap" }}>
-                      <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "linear-gradient(135deg, #EA4335, #FBBC05 50%, #34A853 75%, #4285F4)" }} /> Google
-                    </button>
-                    <button type="button" style={{ height: "44px", borderRadius: "14px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(168,85,247,0.16)", color: "#F8FAFC", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", fontSize: "12px", whiteSpace: "nowrap", gridColumn: "1 / -1" }}>
-                      <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#F8FAFC" }} /> GitHub
-                    </button>
-                  </div>
-                  <div style={{ marginTop: "14px", display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: "8px" }}>
-                    {[
-                      { icon: ShieldCheck, label: "Blockchain Secured" },
-                      { icon: Brain, label: "AI Protected" },
-                      { icon: Shield, label: "SOC 2 Certified" },
-                      { icon: Globe, label: "Enterprise Ready" },
-                    ].map((item) => (
-                      <div key={item.label} style={{ minHeight: "60px", padding: "10px", borderRadius: "14px", background: "rgba(8,11,26,0.72)", border: "1px solid rgba(168,85,247,0.12)" }}>
-                        <item.icon size={14} color="#C084FC" />
-                        <div style={{ marginTop: "8px", fontSize: "10px", color: "#E2E8F0", lineHeight: 1.2 }}>{item.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+            <div className="login-page__status">
+              <span className="login-page__status-dot" />
+              <span>
+                <strong>System Operational</strong>
+                <span className="login-page__status-sep">|</span>
+                All systems are secure and running smoothly
+              </span>
             </div>
           </section>
 
-          <section style={{ display: "flex", justifyContent: "center", alignItems: "stretch" }}>
-            <div style={{ ...glassCard, maxWidth: "100%", padding: "32px 28px 24px", alignSelf: "stretch", display: "flex", flexDirection: "column" }} className="cyber-card">
-              <div style={{ textAlign: "center", marginBottom: "24px" }}>
-                <div style={{ width: "62px", height: "62px", borderRadius: "20px", background: "linear-gradient(135deg, #A855F7 0%, #EC4899 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", boxShadow: "0 0 34px rgba(168,85,247,0.45)" }}>
-                  <Zap size={28} style={{ color: "#fff" }} />
+          <section className="login-page__form-section" aria-label="Sign in">
+            <div className="login-page__card cyber-card">
+              <button type="button" className="login-page__lang" aria-label="Select language">
+                <Globe size={14} />
+                <span>English</span>
+                <ChevronDown size={14} />
+              </button>
+
+              <div className="login-page__card-header">
+                <div className="login-page__card-icon">
+                  <Shield size={28} strokeWidth={1.5} />
                 </div>
-                <h2 style={{ fontFamily: "Poppins, sans-serif", fontSize: "24px", fontWeight: 700, color: "#F8FAFC", marginBottom: "6px" }} className="cyber-glow-text">
-                  SecureNet AI
-                </h2>
-                <p style={{ fontSize: "13px", color: "#94A3B8" }}>Enterprise Security Operations Platform</p>
-                <p style={{ fontSize: "13px", color: "#94A3B8", marginTop: "14px" }}>Sign in to your account</p>
+                <h2 className="login-page__card-title">Welcome Back!</h2>
+                <p className="login-page__card-subtitle">Sign in to continue to SecureNet AI</p>
               </div>
 
-              <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-                <div>
-                  <label style={{ display: "block", fontSize: "11px", color: "#C084FC", marginBottom: "6px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email address"
-                    required
-                    style={{ ...inputStyle, height: "46px" }}
-                    className="cyber-input"
-                  />
+              <form className="login-page__form" onSubmit={handleSubmit}>
+                <div className="login-page__field">
+                  <div className="login-page__input-wrap">
+                    <Mail size={16} className="login-page__input-icon" />
+                    <input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Email Address"
+                      required
+                      aria-label="Email Address"
+                      className="login-page__input cyber-input"
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label style={{ display: "block", fontSize: "11px", color: "#C084FC", marginBottom: "6px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                    Password
-                  </label>
-                  <div style={{ position: "relative" }}>
+                <div className="login-page__field">
+                  <div className="login-page__input-wrap">
+                    <Lock size={16} className="login-page__input-icon" />
                     <input
+                      id="password"
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Password"
                       required
-                      style={{ ...inputStyle, height: "46px", paddingRight: "44px" }}
-                      className="cyber-input"
+                      aria-label="Password"
+                      className="login-page__input cyber-input"
                     />
                     <button
                       type="button"
+                      className="login-page__toggle-pw"
                       onClick={() => setShowPassword(!showPassword)}
-                      style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94A3B8", display: "flex", padding: 0 }}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
                 </div>
 
-                {error && (
-                  <div style={{ padding: "10px 12px", background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.28)", borderRadius: "12px", fontSize: "12px", color: "#FCA5A5", boxShadow: "0 0 18px rgba(239,68,68,0.12)" }}>
-                    {error}
-                  </div>
-                )}
+                {error && <div className="login-page__error" role="alert">{error}</div>}
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  style={{
-                    height: "48px",
-                    background: loading ? "rgba(168,85,247,0.45)" : "linear-gradient(135deg, #A855F7, #EC4899)",
-                    border: "none",
-                    borderRadius: "16px",
-                    color: "#fff",
-                    fontSize: "14px",
-                    fontWeight: 700,
-                    cursor: loading ? "not-allowed" : "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                    marginTop: "4px",
-                    boxShadow: loading ? "none" : "0 0 24px rgba(168,85,247,0.34), 0 0 44px rgba(236,72,153,0.16)",
-                  }}
-                  className="cyber-button"
-                >
-                  {loading ? <><Loader size={16} style={{ animation: "spin 1s linear infinite" }} /> Signing In...</> : <><span>Sign In</span><ArrowRight size={16} /></>}
+                <div className="login-page__options">
+                  <label className="login-page__remember">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                    />
+                    <span>Remember me</span>
+                  </label>
+                  <button type="button" className="login-page__forgot">
+                    Forgot Password?
+                  </button>
+                </div>
+
+                <button type="submit" disabled={loading} className="login-page__submit cyber-button">
+                  {loading ? (
+                    <>
+                      <Loader size={16} className="login-page__spinner" />
+                      Signing In...
+                    </>
+                  ) : (
+                    <>
+                      Sign In
+                      <ArrowRight size={16} />
+                    </>
+                  )}
                 </button>
               </form>
 
-              <div style={{ marginTop: "22px", paddingTop: "18px", borderTop: "1px solid rgba(168,85,247,0.12)" }}>
-                <p style={{ fontSize: "11px", color: "#94A3B8", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                  <Shield size={12} /> Demo Accounts - Click to Autofill
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  {DEMO_ACCOUNTS.map((acc) => (
-                    <button
-                      key={acc.email}
-                      type="button"
-                      onClick={() => fillDemo(acc)}
-                      style={{
-                        padding: "10px 12px",
-                        background: "rgba(17,24,39,0.65)",
-                        border: "1px solid rgba(168,85,247,0.12)",
-                        borderRadius: "12px",
-                        cursor: "pointer",
-                        textAlign: "left",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        gap: "12px",
-                      }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(168,85,247,0.08)"; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(17,24,39,0.65)"; }}
-                    >
-                      <span style={{ fontSize: "11px", color: "#F8FAFC" }}>{acc.email}</span>
-                      <span style={{ fontSize: "10px", color: "#C084FC", whiteSpace: "nowrap" }}>{acc.role}</span>
-                    </button>
-                  ))}
-                </div>
+              <div className="login-page__divider">
+                <span>or continue with</span>
               </div>
 
-              <div style={{ marginTop: "auto", paddingTop: "18px", display: "flex", justifyContent: "space-between", gap: "12px", borderTop: "1px solid rgba(168,85,247,0.10)", fontSize: "11px", color: "#94A3B8" }}>
+              <div className="login-page__social">
+                <button type="button" className="login-page__social-btn">
+                  <GoogleIcon />
+                  Google
+                </button>
+                <button type="button" className="login-page__social-btn">
+                  <MicrosoftIcon />
+                  Microsoft
+                </button>
+                <button type="button" className="login-page__social-btn">
+                  <GitHubIcon />
+                  GitHub
+                </button>
+              </div>
+
+              <div className="login-page__trust">
+                {trustBadges.map((badge) => {
+                  const Icon = badge.icon;
+                  return (
+                    <div key={badge.label} className="login-page__trust-item">
+                      <Icon size={13} />
+                      <span>{badge.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="login-page__demo">
+                <button
+                  type="button"
+                  className="login-page__demo-toggle"
+                  onClick={() => setShowDemo(!showDemo)}
+                >
+                  {showDemo ? "Hide demo accounts" : "Use demo account"}
+                </button>
+                {showDemo && (
+                  <div className="login-page__demo-list">
+                    {DEMO_ACCOUNTS.map((acc) => (
+                      <button
+                        key={acc.email}
+                        type="button"
+                        className="login-page__demo-item"
+                        onClick={() => fillDemo(acc)}
+                      >
+                        <span>{acc.email}</span>
+                        <span>{acc.role}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="login-page__footer">
                 <span>© 2026 SecureNet AI. All rights reserved.</span>
-                <span style={{ display: "flex", gap: "14px" }}>
-                  <a href="#" onClick={(e) => e.preventDefault()} style={{ color: "#C084FC" }}>Privacy Policy</a>
-                  <a href="#" onClick={(e) => e.preventDefault()} style={{ color: "#C084FC" }}>Terms of Service</a>
-                </span>
+                <div className="login-page__footer-links">
+                  <a href="#" onClick={(e) => e.preventDefault()}>Privacy Policy</a>
+                  <a href="#" onClick={(e) => e.preventDefault()}>Terms of Service</a>
+                </div>
               </div>
             </div>
           </section>
         </div>
       </div>
-
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
