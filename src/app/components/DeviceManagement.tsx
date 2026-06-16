@@ -9,10 +9,10 @@ import { useDebouncedValue } from "../../lib/useDebouncedValue";
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
   backdropFilter: "blur(18px)",
-  border: "1px solid rgba(168,85,247,0.2)",
+  border: "1px solid rgba(0,255,65,0.2)",
   borderRadius: "22px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(168,85,247,0.12), 0 0 36px rgba(168,85,247,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const btnBase: React.CSSProperties = {
@@ -39,26 +39,26 @@ interface DeviceFormBodyProps {
 const DeviceFormBody = memo(function DeviceFormBody({ form, formErrors, setField }: DeviceFormBodyProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+      <div className="app-page__grid-2">
         <Field label="Device Name" required>
-          <input value={form.name} onChange={(e) => setField("name", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.name ? "#EF4444" : "rgba(37,99,235,0.2)" }} placeholder="e.g. Core-SW-05" />
+          <input value={form.name} onChange={(e) => setField("name", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.name ? "#EF4444" : "var(--border)" }} placeholder="e.g. Core-SW-05" />
           {formErrors.name && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{formErrors.name}</p>}
         </Field>
         <Field label="IP Address" required>
-          <input value={form.ip} onChange={(e) => setField("ip", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.ip ? "#EF4444" : "rgba(37,99,235,0.2)" }} placeholder="e.g. 10.0.1.5" />
+          <input value={form.ip} onChange={(e) => setField("ip", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.ip ? "#EF4444" : "var(--border)" }} placeholder="e.g. 10.0.1.5" />
           {formErrors.ip && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{formErrors.ip}</p>}
         </Field>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+      <div className="app-page__grid-2">
         <Field label="MAC Address" required>
-          <input value={form.mac} onChange={(e) => setField("mac", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.mac ? "#EF4444" : "rgba(37,99,235,0.2)" }} placeholder="00:1A:2B:3C:4D:5E" />
+          <input value={form.mac} onChange={(e) => setField("mac", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.mac ? "#EF4444" : "var(--border)" }} placeholder="00:1A:2B:3C:4D:5E" />
           {formErrors.mac && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{formErrors.mac}</p>}
         </Field>
         <Field label="Location">
           <input value={form.location} onChange={(e) => setField("location", e.target.value)} style={inputStyle} placeholder="e.g. DC Rack A3" />
         </Field>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+      <div className="app-page__grid-2">
         <Field label="Device Type">
           <select value={form.type} onChange={(e) => setField("type", e.target.value)} style={selectStyle}>
             <option value="controller">Controller</option>
@@ -225,14 +225,14 @@ export function DeviceManagement() {
       <button
         onClick={() => { setRegisterOpen(false); setEditDevice(null); }}
         disabled={saving}
-        style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: "rgba(255,255,255,0.05)", color: "#94A3B8", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", cursor: "pointer" }}
+        className="app-btn app-btn--ghost"
       >
         Cancel
       </button>
       <button
         onClick={onSave}
         disabled={saving}
-        style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: saving ? "rgba(255,255,255,0.08)" : "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "8px", cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: "6px", opacity: saving ? 0.7 : 1, boxShadow: saving ? "none" : "0 0 16px rgba(37,99,235,0.4)", transition: "all 0.15s" }}
+        className="app-btn app-btn--primary"
       >
         {saving ? <><Loader size={13} style={{ animation: "spin 1s linear infinite" }} /> Saving...</> : "Save Device"}
       </button>
@@ -305,15 +305,13 @@ export function DeviceManagement() {
         <div style={{ display: "flex", gap: "10px" }}>
           <button
             onClick={() => searchInputRef.current?.focus()}
-            style={{ padding: "8px 16px", fontSize: "12px", fontWeight: 600, background: "rgba(37,99,235,0.12)", color: "#60A5FA", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", transition: "all 0.15s" }}
+            className="app-btn app-btn--secondary"
           >
             <Search size={13} /> Search Device
           </button>
           <button
             onClick={openRegister}
-            style={{ padding: "8px 16px", fontSize: "12px", fontWeight: 600, background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: "0 0 18px rgba(37,99,235,0.35)", transition: "all 0.15s" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 28px rgba(37,99,235,0.55)"; (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 18px rgba(37,99,235,0.35)"; (e.currentTarget as HTMLButtonElement).style.transform = ""; }}
+            className="app-btn app-btn--primary"
           >
             <Plus size={14} /> Register Device
           </button>
@@ -321,9 +319,9 @@ export function DeviceManagement() {
       </div>
 
       {/* KPI Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px" }}>
+      <div className="app-page__grid-4">
         {[
-          { label: "Total Devices", value: devices.length, color: "#2563EB" },
+          { label: "Total Devices", value: devices.length, color: "var(--primary)" },
           { label: "Healthy", value: devices.filter((d) => d.status === "healthy").length, color: "#22C55E" },
           { label: "Warning", value: devices.filter((d) => d.status === "warning").length, color: "#F59E0B" },
           { label: "Compromised", value: devices.filter((d) => d.status === "compromised").length, color: "#EF4444" },
@@ -347,13 +345,13 @@ export function DeviceManagement() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search device, IP, or location..."
-            style={{ paddingLeft: "30px", paddingRight: "12px", paddingTop: "8px", paddingBottom: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: "8px", color: "#E2E8F0", fontSize: "12px", outline: "none", width: "260px" }}
+            style={{ paddingLeft: "30px", paddingRight: "12px", paddingTop: "8px", paddingBottom: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid var(--border)", borderRadius: "8px", color: "#E2E8F0", fontSize: "12px", outline: "none", width: "260px" }}
           />
         </div>
         <div style={{ display: "flex", gap: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "8px", padding: "3px" }}>
           {["all", "healthy", "warning", "compromised"].map((s) => (
             <button key={s} onClick={() => setStatusFilter(s)}
-              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", border: "none", background: statusFilter === s ? "#2563EB" : "transparent", color: statusFilter === s ? "#fff" : "#64748B" }}>
+              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", border: "none", background: statusFilter === s ? "var(--primary)" : "transparent", color: statusFilter === s ? "var(--primary-foreground)" : "#6EE7A0" }}>
               {s}
             </button>
           ))}
@@ -361,7 +359,7 @@ export function DeviceManagement() {
         <div style={{ display: "flex", gap: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "8px", padding: "3px" }}>
           {["all", "controller", "switch", "server", "pc", "iot"].map((t) => (
             <button key={t} onClick={() => setTypeFilter(t)}
-              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", border: "none", background: typeFilter === t ? "#2563EB" : "transparent", color: typeFilter === t ? "#fff" : "#64748B" }}>
+              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", border: "none", background: typeFilter === t ? "var(--primary)" : "transparent", color: typeFilter === t ? "var(--primary-foreground)" : "#6EE7A0" }}>
               {t}
             </button>
           ))}
@@ -372,7 +370,7 @@ export function DeviceManagement() {
       <div style={{ ...glassCard, padding: "0", overflow: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "960px" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid rgba(37,99,235,0.12)", background: "rgba(13,27,42,0.95)", position: "sticky", top: 0 }}>
+            <tr style={{ borderBottom: "1px solid var(--border)", background: "rgba(13,27,42,0.95)", position: "sticky", top: 0 }}>
               {["Device / ID", "IP Address", "MAC Address", "Location", "OS / Firmware", "Connection", "Risk Score", "Status", "Actions"].map((h) => (
                 <th key={h} style={{ padding: "12px 14px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
                   {h}
@@ -464,14 +462,14 @@ export function DeviceManagement() {
             })}
           </tbody>
         </table>
-        <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(37,99,235,0.1)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ padding: "12px 16px", borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span style={{ fontSize: "11px", color: "#475569" }}>Showing {paginated.length} of {filtered.length} devices (page {page}/{totalPages})</span>
           <div style={{ display: "flex", gap: "6px" }}>
-            <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} style={{ padding: "0 10px", height: "28px", borderRadius: "6px", fontSize: "11px", border: "1px solid rgba(37,99,235,0.15)", background: "transparent", color: page <= 1 ? "#334155" : "#475569", cursor: page <= 1 ? "not-allowed" : "pointer" }}>Prev</button>
+            <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} style={{ padding: "0 10px", height: "28px", borderRadius: "6px", fontSize: "11px", border: "1px solid var(--border)", background: "transparent", color: page <= 1 ? "#334155" : "#475569", cursor: page <= 1 ? "not-allowed" : "pointer" }}>Prev</button>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <button key={p} onClick={() => setPage(p)} style={{ width: "28px", height: "28px", borderRadius: "6px", fontSize: "11px", border: "1px solid rgba(37,99,235,0.15)", background: p === page ? "#2563EB" : "transparent", color: p === page ? "#fff" : "#475569", cursor: "pointer" }}>{p}</button>
+              <button key={p} onClick={() => setPage(p)} style={{ width: "28px", height: "28px", borderRadius: "6px", fontSize: "11px", border: "1px solid var(--border)", background: p === page ? "var(--primary)" : "transparent", color: p === page ? "var(--primary-foreground)" : "#6EE7A0", cursor: "pointer" }}>{p}</button>
             ))}
-            <button disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)} style={{ padding: "0 10px", height: "28px", borderRadius: "6px", fontSize: "11px", border: "1px solid rgba(37,99,235,0.15)", background: "transparent", color: page >= totalPages ? "#334155" : "#475569", cursor: page >= totalPages ? "not-allowed" : "pointer" }}>Next</button>
+            <button disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)} style={{ padding: "0 10px", height: "28px", borderRadius: "6px", fontSize: "11px", border: "1px solid var(--border)", background: "transparent", color: page >= totalPages ? "#334155" : "#475569", cursor: page >= totalPages ? "not-allowed" : "pointer" }}>Next</button>
           </div>
         </div>
       </div>

@@ -10,10 +10,10 @@ import { useDebouncedValue } from "../../lib/useDebouncedValue";
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
   backdropFilter: "blur(18px)",
-  border: "1px solid rgba(168,85,247,0.2)",
+  border: "1px solid rgba(0,255,65,0.2)",
   borderRadius: "22px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(168,85,247,0.12), 0 0 36px rgba(168,85,247,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const radarData = [
@@ -137,7 +137,7 @@ export function AIThreatDetection() {
       message: `Confirm that ${dialogTarget?.device} has been reviewed and poses no current threat?`,
       confirmLabel: "Mark Safe",
       type: "info",
-      confirmColor: "#2563EB",
+      confirmColor: "#00FF41",
     },
   };
 
@@ -173,7 +173,7 @@ export function AIThreatDetection() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: "16px", flex: 1, minHeight: 0 }}>
+      <div className="app-page__grid-sidebar-right-280" style={{ flex: 1, minHeight: 0 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "16px", minHeight: 0 }}>
           <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
             <div style={{ position: "relative", flex: 1, maxWidth: "320px" }}>
@@ -182,14 +182,14 @@ export function AIThreatDetection() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search device, IP, or threat type..."
-                style={{ width: "100%", paddingLeft: "30px", paddingRight: "10px", paddingTop: "8px", paddingBottom: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: "8px", color: "#E2E8F0", fontSize: "12px", outline: "none" }}
+                style={{ width: "100%", paddingLeft: "30px", paddingRight: "10px", paddingTop: "8px", paddingBottom: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid var(--border)", borderRadius: "8px", color: "#E2E8F0", fontSize: "12px", outline: "none" }}
               />
             </div>
             {(["all", "active", "blocked", "quarantined", "safe", "investigating"] as const).map((s) => (
               <button
                 key={s}
                 onClick={() => setActionFilter(s)}
-                style={{ padding: "6px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", background: actionFilter === s ? "#2563EB" : "rgba(255,255,255,0.04)", border: "1px solid rgba(37,99,235,0.2)", color: actionFilter === s ? "#fff" : "#64748B" }}
+                style={{ padding: "6px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", background: actionFilter === s ? "var(--primary)" : "rgba(255,255,255,0.04)", border: "1px solid var(--border)", color: actionFilter === s ? "var(--primary-foreground)" : "#6EE7A0" }}
               >
                 {s}
               </button>
@@ -202,7 +202,7 @@ export function AIThreatDetection() {
             ) : (
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid rgba(37,99,235,0.12)" }}>
+                  <tr style={{ borderBottom: "1px solid var(--border)" }}>
                     {[
                       { key: "id", label: "Threat ID" },
                       { key: "device", label: "Device / IP" },
@@ -260,11 +260,11 @@ export function AIThreatDetection() {
                       <td style={{ padding: "11px 14px", fontSize: "11px", color: "#94A3B8" }}>{t.classification}</td>
                       <td style={{ padding: "11px 14px" }}>{getStatusBadge(t.status)}</td>
                       <td style={{ padding: "11px 14px" }}>
-                        <div style={{ display: "flex", gap: "5px" }} onClick={(e) => e.stopPropagation()}>
-                          <button onClick={(e) => openDialog("block", t, e)} style={{ padding: "4px 7px", fontSize: "10px", fontWeight: 600, background: "rgba(239,68,68,0.12)", color: "#EF4444", border: "1px solid rgba(239,68,68,0.25)", borderRadius: "5px", cursor: "pointer" }}>Block</button>
-                          <button onClick={(e) => openDialog("quarantine", t, e)} style={{ padding: "4px 7px", fontSize: "10px", fontWeight: 600, background: "rgba(245,158,11,0.12)", color: "#F59E0B", border: "1px solid rgba(245,158,11,0.25)", borderRadius: "5px", cursor: "pointer" }}>Quarantine</button>
-                          <button onClick={(e) => handleInvestigate(t, e)} style={{ padding: "4px 7px", fontSize: "10px", fontWeight: 600, background: "rgba(37,99,235,0.12)", color: "#2563EB", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "5px", cursor: "pointer" }}>Investigate</button>
-                          <button onClick={(e) => openDialog("safe", t, e)} style={{ padding: "4px 7px", fontSize: "10px", fontWeight: 600, background: "rgba(34,197,94,0.12)", color: "#22C55E", border: "1px solid rgba(34,197,94,0.25)", borderRadius: "5px", cursor: "pointer" }}>Mark Safe</button>
+                        <div style={{ display: "flex", gap: "6px" }} onClick={(e) => e.stopPropagation()}>
+                          <button onClick={(e) => openDialog("block", t, e)} className="app-btn app-btn--danger" style={{ padding: "4px 8px", fontSize: "10px" }}>Block</button>
+                          <button onClick={(e) => openDialog("quarantine", t, e)} className="app-btn app-btn--warning" style={{ padding: "4px 8px", fontSize: "10px" }}>Quarantine</button>
+                          <button onClick={(e) => handleInvestigate(t, e)} className="app-btn app-btn--primary" style={{ padding: "4px 8px", fontSize: "10px" }}>Investigate</button>
+                          <button onClick={(e) => openDialog("safe", t, e)} className="app-btn app-btn--success" style={{ padding: "4px 8px", fontSize: "10px" }}>Mark Safe</button>
                         </div>
                       </td>
                     </tr>

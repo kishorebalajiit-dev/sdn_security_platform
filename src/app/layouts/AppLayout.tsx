@@ -1,7 +1,9 @@
-import { Outlet } from "react-router";
+import { useState, useEffect } from "react";
+import { Outlet, useLocation } from "react-router";
 import { Sidebar } from "../components/Sidebar";
 import { TopHeader } from "../components/TopHeader";
 import { ToastProvider } from "../components/Toast";
+import { HackerShell } from "../components/hacker";
 import { usePageId } from "../routes";
 
 const breadcrumbs: Record<string, string[]> = {
@@ -44,12 +46,12 @@ function Breadcrumb() {
   const crumbs = breadcrumbs[path] ?? ["Dashboard"];
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: "10px 28px 0" }}>
-      <span style={{ fontSize: "11px", color: "#475569" }}>SecureNet AI</span>
+    <div className="hacker-breadcrumb" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+      <span>&gt;&gt; SECURENET AI</span>
       {crumbs.map((c, i) => (
         <span key={i} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <span style={{ fontSize: "11px", color: "#334155" }}>/</span>
-          <span style={{ fontSize: "11px", color: i === crumbs.length - 1 ? "#94A3B8" : "#475569" }}>{c}</span>
+          <span className="hacker-breadcrumb__sep">/</span>
+          <span className={i === crumbs.length - 1 ? "hacker-breadcrumb__active" : ""}>{c}</span>
         </span>
       ))}
     </div>
@@ -57,37 +59,48 @@ function Breadcrumb() {
 }
 
 export function AppLayout() {
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileSidebarOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileSidebarOpen]);
+
   return (
     <ToastProvider>
-      <div
-        style={{
-          display: "flex",
-          height: "100vh",
-          width: "100vw",
-          overflow: "hidden",
-          background: "#050816",
-          fontFamily: "'Inter', sans-serif",
-        }}
-        className="cyber-shell"
-      >
-        <Sidebar />
+      <HackerShell rainOpacity={0.06} showScanline>
+        <div className="app-layout cyber-shell" style={{ fontFamily: "'Inter', sans-serif" }}>
+          <div
+            className={`app-layout__sidebar-backdrop ${mobileSidebarOpen ? "is-visible" : ""}`}
+            onClick={() => setMobileSidebarOpen(false)}
+            aria-hidden="true"
+          />
 
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
-          <div className="cyber-grid" />
-          <div style={{ position: "absolute", top: "-220px", right: "-120px", width: "640px", height: "640px", background: "radial-gradient(circle, rgba(168,85,247,0.16) 0%, transparent 68%)", pointerEvents: "none", zIndex: 0 }} />
-          <div style={{ position: "absolute", bottom: "-120px", left: "20%", width: "440px", height: "440px", background: "radial-gradient(circle, rgba(236,72,153,0.10) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
+          <Sidebar
+            mobileOpen={mobileSidebarOpen}
+            onMobileClose={() => setMobileSidebarOpen(false)}
+          />
 
-          <TopHeader />
+          <div className="app-layout__main">
+            <TopHeader onMenuClick={() => setMobileSidebarOpen(true)} />
 
-          <div style={{ position: "relative", zIndex: 1, flexShrink: 0 }}>
-            <Breadcrumb />
-          </div>
+            <div style={{ position: "relative", zIndex: 1, flexShrink: 0 }}>
+              <Breadcrumb />
+            </div>
 
-          <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", position: "relative", zIndex: 1 }}>
-            <Outlet />
+            <div className="app-layout__content">
+              <Outlet />
+            </div>
           </div>
         </div>
-      </div>
+      </HackerShell>
     </ToastProvider>
   );
 }

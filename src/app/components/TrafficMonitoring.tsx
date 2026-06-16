@@ -9,10 +9,10 @@ import { getTrafficData, KPI_BY_RANGE, type TrafficChartRange } from "../../data
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
   backdropFilter: "blur(18px)",
-  border: "1px solid rgba(168,85,247,0.2)",
+  border: "1px solid rgba(0,255,65,0.2)",
   borderRadius: "22px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(168,85,247,0.12), 0 0 36px rgba(168,85,247,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const bandwidthByDevice = [
@@ -79,8 +79,8 @@ export function TrafficMonitoring() {
   };
 
   return (
-    <div style={{ padding: "28px", display: "flex", flexDirection: "column", gap: "20px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+    <div className="app-page">
+      <div className="app-page__header">
         <div>
           <h1 style={{ color: "#E2E8F0", marginBottom: "4px", display: "flex", alignItems: "center", gap: "10px" }}>
             <Activity size={22} style={{ color: "#06B6D4" }} />
@@ -88,16 +88,16 @@ export function TrafficMonitoring() {
           </h1>
           <p style={{ color: "#64748B", fontSize: "13px" }}>Real-time network traffic analysis and packet inspection</p>
         </div>
-        <div style={{ display: "flex", gap: "8px" }}>
+        <div className="app-page__header-actions">
           {(["live", "1h", "6h", "24h", "7d"] as TrafficChartRange[]).map((r) => (
-            <button key={r} onClick={() => handleRangeChange(r)} style={{ padding: "6px 14px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "uppercase", background: activeRange === r ? "#2563EB" : "rgba(255,255,255,0.04)", border: "1px solid rgba(37,99,235,0.2)", color: activeRange === r ? "#fff" : "#64748B" }}>
+            <button key={r} onClick={() => handleRangeChange(r)} className={`app-btn ${activeRange === r ? "app-btn--primary" : "app-btn--secondary"}`} style={{ fontSize: "11px", padding: "6px 14px", textTransform: "uppercase" }}>
               {r}
             </button>
           ))}
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px" }}>
+      <div className="app-page__grid-4">
         {[
           { label: "Total Inbound", value: kpis.inbound, icon: ArrowDown, color: "#2563EB", bg: "rgba(37,99,235,0.1)" },
           { label: "Total Outbound", value: kpis.outbound, icon: ArrowUp, color: "#06B6D4", bg: "rgba(6,182,212,0.1)" },
@@ -116,7 +116,7 @@ export function TrafficMonitoring() {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "16px" }}>
+      <div className="app-page__grid-2fr-1fr">
         <div style={glassCard}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
             <div>
@@ -181,7 +181,7 @@ export function TrafficMonitoring() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+      <div className="app-page__grid-2">
         <div style={glassCard}>
           <h3 style={{ color: "#E2E8F0", marginBottom: "4px" }}>Packet Analysis</h3>
           <p style={{ fontSize: "11px", color: "#64748B", marginBottom: "16px" }}>Normal / Suspicious / Dropped</p>

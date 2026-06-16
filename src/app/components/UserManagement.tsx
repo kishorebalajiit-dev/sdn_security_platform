@@ -10,10 +10,10 @@ import { useDebouncedValue } from "../../lib/useDebouncedValue";
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
   backdropFilter: "blur(18px)",
-  border: "1px solid rgba(168,85,247,0.2)",
+  border: "1px solid rgba(0,255,65,0.2)",
   borderRadius: "22px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(168,85,247,0.12), 0 0 36px rgba(168,85,247,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 type Role = UserRole;
@@ -191,7 +191,7 @@ export function UserManagement() {
   );
 
   return (
-    <div style={{ padding: "28px", display: "flex", flexDirection: "column", gap: "20px" }}>
+    <div className="app-page">
       {/* Add User Modal */}
       <Modal open={addOpen} onClose={() => { if (!saving) setAddOpen(false); }} title="Add User" subtitle="Create a new platform user" width={520} footer={<ModalFooter onSave={handleAdd} />}>
         {formBody}
@@ -216,23 +216,22 @@ export function UserManagement() {
       />
 
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div className="app-page__header">
         <div>
           <h1 style={{ color: "#E2E8F0", marginBottom: "4px" }}>User Management</h1>
           <p style={{ color: "#64748B", fontSize: "13px" }}>Manage platform users, roles, permissions, and access control</p>
         </div>
         <button
           onClick={openAdd}
-          style={{ padding: "8px 16px", fontSize: "12px", fontWeight: 600, background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: "0 0 18px rgba(37,99,235,0.35)", transition: "all 0.15s" }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 28px rgba(37,99,235,0.55)"; (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 18px rgba(37,99,235,0.35)"; (e.currentTarget as HTMLButtonElement).style.transform = ""; }}
+          className="app-btn app-btn--primary"
+          style={{ display: "flex", alignItems: "center", gap: "6px" }}
         >
           <Plus size={14} /> Add User
         </button>
       </div>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px" }}>
+      <div className="app-page__grid-4">
         {[
           { label: "Total Users", value: users.length, color: "#2563EB" },
           { label: "Active", value: users.filter((u) => u.status === "active").length, color: "#22C55E" },
@@ -250,7 +249,7 @@ export function UserManagement() {
       </div>
 
       {/* Tab Navigation */}
-      <div style={{ display: "flex", gap: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "10px", padding: "4px", width: "fit-content" }}>
+      <div style={{ display: "flex", gap: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "10px", padding: "4px", width: "fit-content", flexWrap: "wrap" }}>
         {([
           { key: "users", label: "Users", icon: Users },
           { key: "roles", label: "Roles", icon: Shield },
@@ -269,12 +268,12 @@ export function UserManagement() {
       {/* Tab: Users */}
       {activeTab === "users" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <div className="app-page__filters">
             <div style={{ position: "relative" }}>
               <Search size={13} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#475569" }} />
               <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search users..." style={{ paddingLeft: "30px", paddingRight: "12px", paddingTop: "8px", paddingBottom: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: "8px", color: "#E2E8F0", fontSize: "12px", outline: "none", width: "220px" }} />
             </div>
-            <div style={{ display: "flex", gap: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "8px", padding: "3px" }}>
+            <div style={{ display: "flex", gap: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "8px", padding: "3px", flexWrap: "wrap" }}>
               {(["all", "Admin", "Security Analyst", "Network Engineer", "Auditor"] as const).map((r) => (
                 <button key={r} onClick={() => setRoleFilter(r)}
                   style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", border: "none", background: roleFilter === r ? "#2563EB" : "transparent", color: roleFilter === r ? "#fff" : "#64748B", whiteSpace: "nowrap" }}>
@@ -285,76 +284,76 @@ export function UserManagement() {
           </div>
 
           <div style={{ ...glassCard, padding: "0", overflow: "hidden" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ borderBottom: "1px solid rgba(37,99,235,0.12)", background: "rgba(13,27,42,0.9)" }}>
-                  {["User", "Email", "Role", "MFA", "Status", "Last Login", "Actions"].map((h) => (
-                    <th key={h} style={{ padding: "12px 16px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((user, i) => {
-                  const rc = roleConfig[user.role];
-                  return (
-                    <tr key={user.id} style={{ borderBottom: "1px solid rgba(37,99,235,0.06)", background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)", transition: "background 0.12s" }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = "rgba(255,255,255,0.03)"; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)"; }}
-                    >
-                      <td style={{ padding: "11px 16px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                          <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: rc.bg, border: `1px solid ${rc.color}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 800, color: rc.color, flexShrink: 0 }}>
-                            {user.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "800px" }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid rgba(37,99,235,0.12)", background: "rgba(13,27,42,0.9)" }}>
+                    {["User", "Email", "Role", "MFA", "Status", "Last Login", "Actions"].map((h) => (
+                      <th key={h} style={{ padding: "12px 16px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((user, i) => {
+                    const rc = roleConfig[user.role];
+                    return (
+                      <tr key={user.id} style={{ borderBottom: "1px solid rgba(37,99,235,0.06)", background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)", transition: "background 0.12s" }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = "rgba(255,255,255,0.03)"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)"; }}
+                      >
+                        <td style={{ padding: "11px 16px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: rc.bg, border: `1px solid ${rc.color}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 800, color: rc.color, flexShrink: 0 }}>
+                              {user.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                            </div>
+                            <span style={{ fontSize: "13px", color: "#E2E8F0", fontWeight: 500 }}>{user.name}</span>
                           </div>
-                          <span style={{ fontSize: "13px", color: "#E2E8F0", fontWeight: 500 }}>{user.name}</span>
-                        </div>
-                      </td>
-                      <td style={{ padding: "11px 16px", fontSize: "11px", color: "#64748B" }}>{user.email}</td>
-                      <td style={{ padding: "11px 16px" }}>
-                        <span style={{ fontSize: "10px", fontWeight: 700, color: rc.color, background: rc.bg, padding: "3px 9px", borderRadius: "5px" }}>{user.role}</span>
-                      </td>
-                      <td style={{ padding: "11px 16px" }}>
-                        {user.mfa
-                          ? <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", color: "#22C55E" }}><CheckCircle size={12} /> On</span>
-                          : <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", color: "#F59E0B" }}><Lock size={12} /> Off</span>
-                        }
-                      </td>
-                      <td style={{ padding: "11px 16px" }}>
-                        <span style={{ fontSize: "10px", fontWeight: 600, color: user.status === "active" ? "#22C55E" : "#475569", background: user.status === "active" ? "rgba(34,197,94,0.12)" : "rgba(255,255,255,0.05)", padding: "2px 8px", borderRadius: "4px", textTransform: "capitalize" }}>{user.status}</span>
-                      </td>
-                      <td style={{ padding: "11px 16px", fontSize: "11px", color: "#475569", fontFamily: "JetBrains Mono, monospace" }}>{user.lastLogin}</td>
-                      <td style={{ padding: "11px 16px" }}>
-                        <div style={{ display: "flex", gap: "6px" }}>
-                          <button
-                            onClick={() => openEdit(user)}
-                            style={{ padding: "4px 9px", fontSize: "10px", fontWeight: 600, background: "rgba(37,99,235,0.1)", color: "#60A5FA", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "5px", cursor: "pointer", display: "flex", alignItems: "center", gap: "3px", transition: "all 0.15s" }}
-                            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 3px 10px rgba(37,99,235,0.3)"; }}
-                            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = ""; (e.currentTarget as HTMLButtonElement).style.boxShadow = ""; }}
-                          >
-                            <Edit2 size={9} /> Edit
-                          </button>
-                          <button
-                            onClick={() => setDeleteUser(user)}
-                            style={{ padding: "4px 9px", fontSize: "10px", fontWeight: 600, background: "rgba(239,68,68,0.08)", color: "#EF4444", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "5px", cursor: "pointer", display: "flex", alignItems: "center", gap: "3px", transition: "all 0.15s" }}
-                            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 3px 10px rgba(239,68,68,0.3)"; }}
-                            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = ""; (e.currentTarget as HTMLButtonElement).style.boxShadow = ""; }}
-                          >
-                            <Trash2 size={9} /> Remove
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        </td>
+                        <td style={{ padding: "11px 16px", fontSize: "11px", color: "#64748B" }}>{user.email}</td>
+                        <td style={{ padding: "11px 16px" }}>
+                          <span style={{ fontSize: "10px", fontWeight: 700, color: rc.color, background: rc.bg, padding: "3px 9px", borderRadius: "5px" }}>{user.role}</span>
+                        </td>
+                        <td style={{ padding: "11px 16px" }}>
+                          {user.mfa
+                            ? <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", color: "#22C55E" }}><CheckCircle size={12} /> On</span>
+                            : <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", color: "#F59E0B" }}><Lock size={12} /> Off</span>
+                          }
+                        </td>
+                        <td style={{ padding: "11px 16px" }}>
+                          <span style={{ fontSize: "10px", fontWeight: 600, color: user.status === "active" ? "#22C55E" : "#475569", background: user.status === "active" ? "rgba(34,197,94,0.12)" : "rgba(255,255,255,0.05)", padding: "2px 8px", borderRadius: "4px", textTransform: "capitalize" }}>{user.status}</span>
+                        </td>
+                        <td style={{ padding: "11px 16px", fontSize: "11px", color: "#475569", fontFamily: "JetBrains Mono, monospace" }}>{user.lastLogin}</td>
+                        <td style={{ padding: "11px 16px" }}>
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            <button
+                              onClick={() => openEdit(user)}
+                              className="app-btn app-btn--secondary"
+                              style={{ padding: "4px 9px", fontSize: "10px", display: "flex", alignItems: "center", gap: "3px" }}
+                            >
+                              <Edit2 size={9} /> Edit
+                            </button>
+                            <button
+                              onClick={() => setDeleteUser(user)}
+                              className="app-btn app-btn--danger"
+                              style={{ padding: "4px 9px", fontSize: "10px", display: "flex", alignItems: "center", gap: "3px" }}
+                            >
+                              <Trash2 size={9} /> Remove
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
 
       {/* Tab: Roles */}
       {activeTab === "roles" && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
+        <div className="app-page__grid-2">
           {(Object.entries(roleConfig) as [Role, typeof roleConfig[Role]][]).map(([role, cfg]) => {
             const count = users.filter((u) => u.role === role).length;
             const perms = permissionMatrix[role];
@@ -388,12 +387,12 @@ export function UserManagement() {
       {/* Tab: Permissions */}
       {activeTab === "permissions" && (
         <div style={glassCard}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px", flexWrap: "wrap", gap: "10px" }}>
             <h3 style={{ color: "#E2E8F0", display: "flex", alignItems: "center", gap: "8px" }}>
               <Key size={15} style={{ color: "#2563EB" }} />
               Access Control Matrix
             </h3>
-            <div style={{ display: "flex", gap: "6px" }}>
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
               {(Object.keys(roleConfig) as Role[]).map((r) => (
                 <button key={r} onClick={() => setSelectedRole(r)}
                   style={{ padding: "5px 12px", fontSize: "10px", fontWeight: 700, borderRadius: "6px", cursor: "pointer", border: "1px solid", borderColor: selectedRole === r ? roleConfig[r].color : "rgba(37,99,235,0.15)", background: selectedRole === r ? roleConfig[r].bg : "transparent", color: selectedRole === r ? roleConfig[r].color : "#64748B" }}>
@@ -403,7 +402,7 @@ export function UserManagement() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
+          <div className="app-page__grid-3">
             {modules.map((mod) => {
               const hasAccess = permissionMatrix[selectedRole][mod];
               return (

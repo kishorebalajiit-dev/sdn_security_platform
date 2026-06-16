@@ -7,10 +7,10 @@ import { useDebouncedValue } from "../../lib/useDebouncedValue";
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
   backdropFilter: "blur(18px)",
-  border: "1px solid rgba(168,85,247,0.2)",
+  border: "1px solid rgba(0,255,65,0.2)",
   borderRadius: "22px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(168,85,247,0.12), 0 0 36px rgba(168,85,247,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const threatFeed = [
@@ -85,9 +85,9 @@ export function ThreatIntelligence() {
   };
 
   return (
-    <div style={{ padding: "28px", display: "flex", flexDirection: "column", gap: "20px" }}>
+    <div className="app-page">
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div className="app-page__header">
         <div>
           <h1 style={{ color: "#E2E8F0", marginBottom: "4px", display: "flex", alignItems: "center", gap: "10px" }}>
             <Shield size={22} style={{ color: "#8B5CF6" }} />
@@ -95,7 +95,7 @@ export function ThreatIntelligence() {
           </h1>
           <p style={{ color: "#64748B", fontSize: "13px" }}>Global threat feed, IOC database, and attack source intelligence</p>
         </div>
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div className="app-page__header-actions">
           <div style={{ padding: "6px 14px", background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.25)", borderRadius: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
             <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#22C55E", boxShadow: "0 0 8px #22C55E" }} />
             <span style={{ fontSize: "12px", color: "#A78BFA", fontWeight: 600 }}>Feed Active — Updated 2 min ago</span>
@@ -104,7 +104,7 @@ export function ThreatIntelligence() {
       </div>
 
       {/* IOC Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px" }}>
+      <div className="app-page__grid-4">
         {iocDatabase.map((ioc) => (
           <div key={ioc.type} style={{ ...glassCard, padding: "16px", display: "flex", alignItems: "center", gap: "14px" }}>
             <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: `${ioc.color}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -119,60 +119,64 @@ export function ThreatIntelligence() {
       </div>
 
       {/* Main content */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: "16px" }}>
+      <div className="app-page__grid-sidebar-right-280">
         {/* Threat Feed */}
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <div className="app-page__filters">
             <div style={{ position: "relative" }}>
               <Search size={13} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#475569" }} />
               <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search IOC, type..." style={{ paddingLeft: "30px", paddingRight: "12px", paddingTop: "8px", paddingBottom: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: "8px", color: "#E2E8F0", fontSize: "12px", outline: "none", width: "240px" }} />
             </div>
-            {["all", "critical", "high", "medium"].map((s) => (
-              <button key={s} onClick={() => setSevFilter(s)} style={{ padding: "6px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", background: sevFilter === s ? (s === "all" ? "#2563EB" : s === "critical" ? "#EF4444" : s === "high" ? "#F59E0B" : "#8B5CF6") : "rgba(255,255,255,0.04)", border: "1px solid rgba(37,99,235,0.2)", color: sevFilter === s ? "#fff" : "#64748B" }}>
-                {s}
-              </button>
-            ))}
+            <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+              {["all", "critical", "high", "medium"].map((s) => (
+                <button key={s} onClick={() => setSevFilter(s)} style={{ padding: "6px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", background: sevFilter === s ? (s === "all" ? "#2563EB" : s === "critical" ? "#EF4444" : s === "high" ? "#F59E0B" : "#8B5CF6") : "rgba(255,255,255,0.04)", border: "1px solid rgba(37,99,235,0.2)", color: sevFilter === s ? "#fff" : "#64748B" }}>
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div style={{ ...glassCard, padding: "0", overflow: "hidden" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ borderBottom: "1px solid rgba(37,99,235,0.12)", background: "rgba(13,27,42,0.9)" }}>
-                  {["IOC", "Country", "Threat Type", "IOC Type", "Confidence", "Severity", "Description", "Action"].map((h) => (
-                    <th key={h} style={{ padding: "11px 14px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((t, i) => (
-                  <tr key={t.id} style={{ borderBottom: "1px solid rgba(37,99,235,0.06)", background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)" }}>
-                    <td style={{ padding: "10px 14px", fontSize: "11px", color: "#8B5CF6", fontFamily: "JetBrains Mono, monospace" }}>{t.source}</td>
-                    <td style={{ padding: "10px 14px", fontSize: "12px", color: "#94A3B8" }}>{t.country}</td>
-                    <td style={{ padding: "10px 14px", fontSize: "11px", color: "#94A3B8" }}>{t.type}</td>
-                    <td style={{ padding: "10px 14px" }}>
-                      <span style={{ fontSize: "10px", fontWeight: 600, color: "#06B6D4", background: "rgba(6,182,212,0.12)", padding: "2px 8px", borderRadius: "4px" }}>{t.ioc}</span>
-                    </td>
-                    <td style={{ padding: "10px 14px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <div style={{ width: "40px", height: "3px", background: "rgba(255,255,255,0.06)", borderRadius: "2px" }}>
-                          <div style={{ width: `${t.confidence}%`, height: "100%", background: t.confidence > 90 ? "#22C55E" : "#F59E0B", borderRadius: "2px" }} />
-                        </div>
-                        <span style={{ fontSize: "10px", color: "#64748B", fontFamily: "JetBrains Mono, monospace" }}>{t.confidence}%</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: "10px 14px" }}>
-                      <span style={{ fontSize: "10px", fontWeight: 700, color: levelColors[t.severity as keyof typeof levelColors], background: `${levelColors[t.severity as keyof typeof levelColors]}18`, padding: "2px 8px", borderRadius: "4px", textTransform: "capitalize" }}>{t.severity}</span>
-                    </td>
-                    <td style={{ padding: "10px 14px", fontSize: "11px", color: "#64748B", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.description}</td>
-                    <td style={{ padding: "10px 14px" }}>
-                      <button onClick={() => handleBlockSource(t)} style={{ padding: "4px 8px", fontSize: "10px", fontWeight: 600, background: "rgba(239,68,68,0.12)", color: "#EF4444", border: "1px solid rgba(239,68,68,0.25)", borderRadius: "5px", cursor: "pointer" }}>
-                        Block IOC
-                      </button>
-                    </td>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "800px" }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid rgba(37,99,235,0.12)", background: "rgba(13,27,42,0.9)" }}>
+                    {["IOC", "Country", "Threat Type", "IOC Type", "Confidence", "Severity", "Description", "Action"].map((h) => (
+                      <th key={h} style={{ padding: "11px 14px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filtered.map((t, i) => (
+                    <tr key={t.id} style={{ borderBottom: "1px solid rgba(37,99,235,0.06)", background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)" }}>
+                      <td style={{ padding: "10px 14px", fontSize: "11px", color: "#8B5CF6", fontFamily: "JetBrains Mono, monospace" }}>{t.source}</td>
+                      <td style={{ padding: "10px 14px", fontSize: "12px", color: "#94A3B8" }}>{t.country}</td>
+                      <td style={{ padding: "10px 14px", fontSize: "11px", color: "#94A3B8" }}>{t.type}</td>
+                      <td style={{ padding: "10px 14px" }}>
+                        <span style={{ fontSize: "10px", fontWeight: 600, color: "#06B6D4", background: "rgba(6,182,212,0.12)", padding: "2px 8px", borderRadius: "4px" }}>{t.ioc}</span>
+                      </td>
+                      <td style={{ padding: "10px 14px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <div style={{ width: "40px", height: "3px", background: "rgba(255,255,255,0.06)", borderRadius: "2px" }}>
+                            <div style={{ width: `${t.confidence}%`, height: "100%", background: t.confidence > 90 ? "#22C55E" : "#F59E0B", borderRadius: "2px" }} />
+                          </div>
+                          <span style={{ fontSize: "10px", color: "#64748B", fontFamily: "JetBrains Mono, monospace" }}>{t.confidence}%</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: "10px 14px" }}>
+                        <span style={{ fontSize: "10px", fontWeight: 700, color: levelColors[t.severity as keyof typeof levelColors], background: `${levelColors[t.severity as keyof typeof levelColors]}18`, padding: "2px 8px", borderRadius: "4px", textTransform: "capitalize" }}>{t.severity}</span>
+                      </td>
+                      <td style={{ padding: "10px 14px", fontSize: "11px", color: "#64748B", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.description}</td>
+                      <td style={{ padding: "10px 14px" }}>
+                        <button onClick={() => handleBlockSource(t)} className="app-btn app-btn--danger" style={{ padding: "4px 8px", fontSize: "10px" }}>
+                          Block IOC
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 

@@ -5,10 +5,10 @@ import { useToast } from "./Toast";
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
   backdropFilter: "blur(18px)",
-  border: "1px solid rgba(168,85,247,0.2)",
+  border: "1px solid rgba(0,255,65,0.2)",
   borderRadius: "22px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(168,85,247,0.12), 0 0 36px rgba(168,85,247,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 type NodeStatus = "healthy" | "warning" | "compromised";
@@ -122,9 +122,9 @@ export function NetworkTopology() {
                 cursor: "pointer",
                 border: "1px solid",
                 textTransform: "capitalize",
-                background: filter === s ? (s === "all" ? "#2563EB" : s === "healthy" ? "#22C55E" : s === "warning" ? "#F59E0B" : "#EF4444") : "rgba(255,255,255,0.04)",
-                borderColor: s === "all" ? "#2563EB" : s === "healthy" ? "#22C55E" : s === "warning" ? "#F59E0B" : "#EF4444",
-                color: filter === s ? "#fff" : (s === "all" ? "#2563EB" : s === "healthy" ? "#22C55E" : s === "warning" ? "#F59E0B" : "#EF4444"),
+                background: filter === s ? (s === "all" ? "var(--primary)" : s === "healthy" ? "#22C55E" : s === "warning" ? "#F59E0B" : "#EF4444") : "rgba(255,255,255,0.04)",
+                borderColor: s === "all" ? "var(--primary)" : s === "healthy" ? "#22C55E" : s === "warning" ? "#F59E0B" : "#EF4444",
+                color: filter === s ? (s === "all" ? "var(--primary-foreground)" : "#fff") : (s === "all" ? "#00FF41" : s === "healthy" ? "#22C55E" : s === "warning" ? "#F59E0B" : "#EF4444"),
               }}
             >
               {s === "all" ? "All" : s}
@@ -133,11 +133,11 @@ export function NetworkTopology() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "16px", flex: 1 }}>
+      <div className="app-page__grid-sidebar-right-300" style={{ flex: 1 }}>
         {/* Topology Canvas */}
         <div style={{ ...glassCard, padding: "0", overflow: "hidden", position: "relative" }}>
           {/* Toolbar */}
-          <div style={{ padding: "12px 16px", borderBottom: "1px solid rgba(37,99,235,0.12)", display: "flex", gap: "10px", alignItems: "center" }}>
+          <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)", display: "flex", gap: "10px", alignItems: "center" }}>
             <div style={{ position: "relative", flex: 1, maxWidth: "280px" }}>
               <Search size={13} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#475569" }} />
               <input
@@ -215,13 +215,13 @@ export function NetworkTopology() {
                   >
                     {/* Glow ring */}
                     {(node.status !== "healthy" || isSelected) && (
-                      <circle cx="32" cy="32" r="30" fill="none" stroke={isSelected ? "#2563EB" : color} strokeWidth="1.5" strokeOpacity="0.4" filter="url(#glow)" />
+                      <circle cx="32" cy="32" r="30" fill="none" stroke={isSelected ? "#00FF41" : color} strokeWidth="1.5" strokeOpacity="0.4" filter="url(#glow)" />
                     )}
                     {/* Node background */}
                     <rect
                       x="8" y="8" width="48" height="48" rx="12"
-                      fill={isSelected ? "rgba(37,99,235,0.25)" : "rgba(13,27,42,0.9)"}
-                      stroke={isSelected ? "#2563EB" : color}
+                      fill={isSelected ? "rgba(0,255,65,0.18)" : "rgba(13,27,42,0.9)"}
+                      stroke={isSelected ? "#00FF41" : color}
                       strokeWidth={isSelected ? 2 : 1.5}
                     />
                     {/* Status dot */}
@@ -255,7 +255,7 @@ export function NetworkTopology() {
           {/* Device Detail */}
           <div style={glassCard}>
             <h3 style={{ color: "#E2E8F0", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <Info size={15} style={{ color: "#2563EB" }} />
+              <Info size={15} style={{ color: "var(--primary)" }} />
               Device Details
             </h3>
             {selectedNode ? (
@@ -275,7 +275,7 @@ export function NetworkTopology() {
                     { label: "Status", value: selectedNode.status },
                     { label: "Details", value: selectedNode.details },
                   ].map((row) => (
-                    <div key={row.label} style={{ borderBottom: "1px solid rgba(37,99,235,0.08)", paddingBottom: "8px" }}>
+                    <div key={row.label} style={{ borderBottom: "1px solid var(--border)", paddingBottom: "8px" }}>
                       <p style={{ fontSize: "10px", color: "#475569", marginBottom: "2px", textTransform: "uppercase", letterSpacing: "0.06em" }}>{row.label}</p>
                       <p style={{ fontSize: "11px", color: row.label === "Status" ? nodeColors[selectedNode.status] : "#94A3B8" }}>{row.value}</p>
                     </div>
@@ -287,7 +287,8 @@ export function NetworkTopology() {
                         toast.info("Investigate Node", `${selectedNode.label} queued for SOC review`);
                         setSelectedNode({ ...selectedNode, status: selectedNode.status === "healthy" ? "warning" : selectedNode.status });
                       }}
-                      style={{ flex: 1, padding: "7px", fontSize: "11px", fontWeight: 600, background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "7px", cursor: "pointer" }}
+                      className="app-btn app-btn--primary"
+                      style={{ flex: 1, padding: "7px", fontSize: "11px", minHeight: "34px" }}
                     >Investigate</button>
                   {selectedNode.status === "compromised" && (
                     <button
@@ -310,7 +311,7 @@ export function NetworkTopology() {
             <h3 style={{ color: "#E2E8F0", marginBottom: "14px" }}>Network Summary</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               {[
-                { label: "Total Nodes", value: String(nodes.length), color: "#2563EB" },
+                { label: "Total Nodes", value: String(nodes.length), color: "var(--primary)" },
                 { label: "Healthy", value: String(nodes.filter((n) => n.status === "healthy").length), color: "#22C55E" },
                 { label: "Warning", value: String(nodes.filter((n) => n.status === "warning").length), color: "#F59E0B" },
                 { label: "Compromised", value: String(nodes.filter((n) => n.status === "compromised").length), color: "#EF4444" },

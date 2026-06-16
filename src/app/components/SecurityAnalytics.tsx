@@ -7,10 +7,10 @@ import {
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
   backdropFilter: "blur(18px)",
-  border: "1px solid rgba(168,85,247,0.2)",
+  border: "1px solid rgba(0,255,65,0.2)",
   borderRadius: "22px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(168,85,247,0.12), 0 0 36px rgba(168,85,247,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const scoreData = [
@@ -93,20 +93,20 @@ export function SecurityAnalytics() {
     <div style={{ padding: "28px", display: "flex", flexDirection: "column", gap: "20px" }}>
       <div>
         <h1 style={{ color: "#E2E8F0", marginBottom: "4px", display: "flex", alignItems: "center", gap: "10px" }}>
-          <BarChart2 size={22} style={{ color: "#2563EB" }} />
+          <BarChart2 size={22} style={{ color: "var(--primary)" }} />
           Security Analytics
         </h1>
         <p style={{ color: "#64748B", fontSize: "13px" }}>Deep-dive security posture, AI prediction metrics, and risk intelligence</p>
       </div>
 
       {/* Top Row: Score + Trend */}
-      <div style={{ display: "grid", gridTemplateColumns: "280px 1fr 280px", gap: "16px" }}>
+      <div className="app-page__grid-three-col-280">
         {/* Security Score Gauge */}
         <div style={{ ...glassCard, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
           <p style={{ fontSize: "11px", color: "#64748B", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Security Score</p>
           <div style={{ position: "relative", width: "130px", height: "130px" }}>
             <svg viewBox="0 0 130 130" width="130" height="130">
-              <circle cx="65" cy="65" r="55" fill="none" stroke="rgba(37,99,235,0.1)" strokeWidth="11" />
+              <circle cx="65" cy="65" r="55" fill="none" stroke="rgba(0, 255, 65, 0.1)" strokeWidth="11" />
               <circle
                 cx="65" cy="65" r="55"
                 fill="none"
@@ -118,7 +118,7 @@ export function SecurityAnalytics() {
               />
               <defs>
                 <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#2563EB" />
+                  <stop offset="0%" stopColor="#00FF41" />
                   <stop offset="100%" stopColor="#06B6D4" />
                 </linearGradient>
               </defs>
@@ -142,7 +142,7 @@ export function SecurityAnalytics() {
               <XAxis dataKey="day" stroke="#334155" tick={{ fill: "#475569", fontSize: 10 }} />
               <YAxis stroke="#334155" tick={{ fill: "#475569", fontSize: 10 }} domain={[60, 100]} />
               <Tooltip content={<CustomTooltip />} />
-              <Line type="monotone" dataKey="score" stroke="#2563EB" strokeWidth={2.5} dot={{ fill: "#2563EB", r: 4, strokeWidth: 0 }} activeDot={{ r: 6, fill: "#06B6D4" }} name="Score" />
+              <Line type="monotone" dataKey="score" stroke="#00FF41" strokeWidth={2.5} dot={{ fill: "#00FF41", r: 4, strokeWidth: 0 }} activeDot={{ r: 6, fill: "#06B6D4" }} name="Score" />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -233,7 +233,7 @@ export function SecurityAnalytics() {
       </div>
 
       {/* Bottom Row */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
+      <div className="app-page__grid-3">
         {/* Vulnerabilities Bar */}
         <div style={glassCard}>
           <h3 style={{ color: "#E2E8F0", marginBottom: "4px" }}>Vulnerability Summary</h3>
@@ -267,7 +267,7 @@ export function SecurityAnalytics() {
               <YAxis stroke="#334155" tick={{ fill: "#475569", fontSize: 10 }} />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="mttd" fill="#06B6D4" radius={[2, 2, 0, 0]} name="MTTD" />
-              <Bar dataKey="mttr" fill="#2563EB" radius={[2, 2, 0, 0]} name="MTTR" />
+              <Bar dataKey="mttr" fill="#00FF41" radius={[2, 2, 0, 0]} name="MTTR" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -279,8 +279,8 @@ export function SecurityAnalytics() {
             {[
               { label: "Model Accuracy", value: "97.4%", color: "#22C55E" },
               { label: "False Positive Rate", value: "1.8%", color: "#22C55E" },
-              { label: "Patch Compliance", value: "91.4%", color: "#2563EB" },
-              { label: "MFA Coverage", value: "87.2%", color: "#2563EB" },
+              { label: "Patch Compliance", value: "91.4%", color: "#00FF41" },
+              { label: "MFA Coverage", value: "87.2%", color: "#00FF41" },
               { label: "Endpoint Coverage", value: "94.8%", color: "#06B6D4" },
               { label: "Threat Containment", value: "99.1%", color: "#22C55E" },
               { label: "Policy Compliance", value: "96.3%", color: "#8B5CF6" },

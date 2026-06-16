@@ -7,64 +7,73 @@ import {
   EyeOff,
   Brain,
   Link2,
-  Laptop,
-  Activity,
-  ArrowRight,
-  Globe,
-  Mail,
+  User,
   Lock,
-  ChevronDown,
   ShieldCheck,
-  Cloud,
+  Globe,
   Server,
-  Cpu,
   Network,
   Radio,
+  Cpu,
+  Activity,
+  Fingerprint,
+  Terminal,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
+import { HackerShell, TerminalTyping, GlitchText } from "../components/hacker";
 
-type NetworkNode = {
-  label: string;
-  icon: LucideIcon;
-  top: string;
-  left: string;
-};
-
-const networkNodes: NetworkNode[] = [
-  { label: "SDN Controller", icon: Network, top: "10%", left: "50%" },
-  { label: "Cloud", icon: Cloud, top: "22%", left: "80%" },
-  { label: "Servers", icon: Server, top: "50%", left: "90%" },
-  { label: "Blockchain", icon: Link2, top: "78%", left: "74%" },
-  { label: "IoT Devices", icon: Radio, top: "78%", left: "26%" },
-  { label: "Edge Switch", icon: Cpu, top: "50%", left: "10%" },
+const BOOT_LINES = [
+  ">> SECURENET AI INITIALIZING...",
+  ">> LOADING AI ENGINE...",
+  ">> BLOCKCHAIN NODE SYNCED",
+  ">> SDN CONTROLLER CONNECTED",
+  ">> THREAT DATABASE UPDATED",
+  ">> SYSTEM READY",
 ];
 
-const statCards = [
-  { label: "Active Devices", value: "1,248", delta: "+12.5% ↑", icon: Laptop },
-  { label: "Threats Blocked", value: "8,734", delta: "+18.2% ↑", icon: Shield },
-  { label: "AI Accuracy", value: "98.7%", delta: "+1.3% ↑", icon: Brain },
-  { label: "Blockchain Integrity", value: "99.99%", delta: "+0.01% ↑", icon: Link2 },
-  { label: "Network Health", value: "96%", delta: "+2.4% ↑", icon: Activity },
+const THREAT_FEED = [
+  { threat: "SQL Injection Attempt", ip: "192.168.1.45", time: "14:32:18", status: "BLOCKED" as const },
+  { threat: "DDoS Attack Detected", ip: "203.0.113.7", time: "14:31:55", status: "BLOCKED" as const },
+  { threat: "Unauthorized Access", ip: "10.0.0.23", time: "14:30:42", status: "QUARANTINED" as const },
+  { threat: "Malware Signature Match", ip: "172.16.0.89", time: "14:29:15", status: "BLOCKED" as const },
+  { threat: "Port Scan Detected", ip: "198.51.100.4", time: "14:28:03", status: "BLOCKED" as const },
+  { threat: "Brute Force Attempt", ip: "192.0.2.17", time: "14:27:41", status: "QUARANTINED" as const },
+];
+
+const SYSTEM_METRICS = [
+  { label: "AI Accuracy", value: 98.7 },
+  { label: "Blockchain Integrity", value: 99.99 },
+  { label: "Network Health", value: 96 },
+  { label: "Active Devices", value: 87.4, display: "1,248" },
 ];
 
 const trustBadges = [
-  { icon: ShieldCheck, label: "Blockchain Secured" },
-  { icon: Brain, label: "AI Protected" },
-  { icon: Shield, label: "SOC 2 Certified" },
-  { icon: Globe, label: "Enterprise Ready" },
+  { icon: Brain, label: "AI PROTECTED" },
+  { icon: Link2, label: "BLOCKCHAIN SECURED" },
+  { icon: ShieldCheck, label: "SOC 2 CERTIFIED" },
+  { icon: Globe, label: "ENTERPRISE READY" },
 ];
 
 const DEMO_ACCOUNTS = [
   { email: "k.singh@secnet.ai", password: "admin123", role: "Admin" },
-  { email: "a.rahman@secnet.ai", password: "analyst123", role: "Security Analyst" },
-  { email: "s.ivanova@secnet.ai", password: "engineer123", role: "Network Engineer" },
+  { email: "a.rahman@secnet.ai", password: "analyst123", role: "Analyst" },
+  { email: "s.ivanova@secnet.ai", password: "engineer123", role: "Engineer" },
   { email: "p.nair@secnet.ai", password: "auditor123", role: "Auditor" },
+];
+
+const MAP_NODES = [
+  { cx: 180, cy: 90, delay: "0s" },
+  { cx: 320, cy: 120, delay: "0.5s" },
+  { cx: 420, cy: 180, delay: "1s" },
+  { cx: 380, cy: 260, delay: "1.5s" },
+  { cx: 250, cy: 280, delay: "2s" },
+  { cx: 120, cy: 220, delay: "2.5s" },
+  { cx: 80, cy: 140, delay: "3s" },
 ];
 
 function GoogleIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
       <path fill="#EA4335" d="M12 10.2v3.6h5.1c-.2 1.2-1.6 3.5-5.1 3.5-3.1 0-5.6-2.5-5.6-5.6s2.5-5.6 5.6-5.6c1.8 0 3 .8 3.7 1.5l2.5-2.4C17.4 3.6 14.9 2.4 12 2.4 6.9 2.4 2.7 6.6 2.7 11.7S6.9 21 12 21c6.9 0 8.5-4.8 8.5-7.3 0-.5-.1-1-.2-1.5H12z" />
     </svg>
   );
@@ -72,7 +81,7 @@ function GoogleIcon() {
 
 function MicrosoftIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
       <rect x="3" y="3" width="8" height="8" fill="#F25022" />
       <rect x="13" y="3" width="8" height="8" fill="#7FBA00" />
       <rect x="3" y="13" width="8" height="8" fill="#00A4EF" />
@@ -83,7 +92,7 @@ function MicrosoftIcon() {
 
 function GitHubIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="#F8FAFC" aria-hidden="true">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="#00FF41" aria-hidden="true">
       <path d="M12 2C6.48 2 2 6.58 2 12.26c0 4.52 2.87 8.35 6.84 9.7.5.1.68-.22.68-.48 0-.24-.01-.87-.01-1.7-2.78.62-3.37-1.36-3.37-1.36-.45-1.18-1.1-1.5-1.1-1.5-.9-.63.07-.62.07-.62 1 .07 1.53 1.05 1.53 1.05.89 1.56 2.34 1.11 2.91.85.09-.67.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.7 0 0 .84-.27 2.75 1.05A9.2 9.2 0 0 1 12 6.84c.85 0 1.71.12 2.51.34 1.91-1.32 2.75-1.05 2.75-1.05.55 1.4.2 2.44.1 2.7.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.81-4.57 5.07.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.8 0 .27.18.59.69.49A10.03 10.03 0 0 0 22 12.26C22 6.58 17.52 2 12 2z" />
     </svg>
   );
@@ -99,6 +108,7 @@ export function LoginPage() {
   const [showDemo, setShowDemo] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [activeBottomTab, setActiveBottomTab] = useState<"threats" | "status" | "blockchain" | "topology">("threats");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,140 +130,58 @@ export function LoginPage() {
     setShowDemo(false);
   };
 
+  const feedItems = [...THREAT_FEED, ...THREAT_FEED];
+
   return (
-    <div className="login-page cyber-shell">
-      <div className="login-page__map" aria-hidden="true" />
-      <div className="login-page__glow login-page__glow--left" aria-hidden="true" />
-      <div className="login-page__glow login-page__glow--right" aria-hidden="true" />
+    <HackerShell rainOpacity={0.16}>
+      <div className="hacker-login">
+        <header className="hacker-login__topbar">
+          <div className="hacker-login__topbar-left">
+            <TerminalTyping lines={BOOT_LINES} speed={22} lineDelay={350} />
+          </div>
+          <div className="hacker-login__topbar-center">SECURENET AI v2.6.0</div>
+          <div className="hacker-login__topbar-right">
+            <div className="hacker-login__ip">IP: 203.0.113.7</div>
+            <div className="hacker-login__location">LOCATION: UNKNOWN</div>
+          </div>
+        </header>
 
-      <div className="login-page__container">
-        <div className="login-page__grid">
-          <section className="login-page__hero" aria-label="Platform overview">
-            <div className="login-page__brand">
-              <div className="login-page__logo">
-                <Shield size={18} strokeWidth={2} />
-              </div>
-              <span className="login-page__logo-text">SecureNet AI</span>
+        <div className="hacker-login__main" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "32px", maxWidth: "600px", margin: "0 auto", width: "100%" }}>
+          <div className="hacker-login__brand" style={{ textAlign: "center", flexDirection: "column", gap: "10px" }}>
+            <div className="hacker-login__logo" style={{ margin: "0 auto" }}>
+              <Shield size={32} strokeWidth={1.5} />
             </div>
-
-            <div className="login-page__hero-copy">
-              <p className="login-page__eyebrow">AI + BLOCKCHAIN POWERED</p>
-              <h1 className="login-page__title">
-                SDN <span className="login-page__title-accent">Security</span> Platform
-              </h1>
-              <p className="login-page__tagline">Intelligent. Decentralized. Secure.</p>
-              <p className="login-page__description">
-                Real-time threat detection, blockchain verification, and SDN visibility — all in one unified platform.
-              </p>
+            <div className="hacker-login__brand-text">
+              <h1>SECURENET AI</h1>
+              <p>AI + BLOCKCHAIN POWERED SDN SECURITY PLATFORM</p>
             </div>
+          </div>
 
-            <div className="login-page__network">
-              <svg className="login-page__network-lines" viewBox="0 0 400 280" preserveAspectRatio="xMidYMid meet">
-                {networkNodes.map((node) => {
-                  const x = (parseFloat(node.left) / 100) * 400;
-                  const y = (parseFloat(node.top) / 100) * 280;
-                  return (
-                    <line
-                      key={node.label}
-                      x1="200"
-                      y1="140"
-                      x2={x}
-                      y2={y}
-                      stroke="rgba(168,85,247,0.4)"
-                      strokeWidth="1"
-                      strokeDasharray="5 5"
-                    />
-                  );
-                })}
-              </svg>
+          <aside className="hacker-login__auth" style={{ width: "100%", position: "static" }}>
+            <div className="hacker-login__auth-panel hacker-panel">
+              <p className="hacker-login__auth-eyebrow">AUTHENTICATION REQUIRED</p>
+              <GlitchText as="h2" className="hacker-login__auth-title">LOGIN</GlitchText>
+              <p className="hacker-login__auth-sub">ACCESS TO SECURENET AI</p>
 
-              <div className="login-page__network-ring login-page__network-ring--outer" />
-              <div className="login-page__network-ring login-page__network-ring--mid" />
-              <div className="login-page__network-ring login-page__network-ring--inner" />
-
-              <div className="login-page__network-core">
-                <Shield size={34} strokeWidth={1.5} />
-              </div>
-
-              {networkNodes.map((node) => {
-                const Icon = node.icon;
-                return (
-                  <div
-                    key={node.label}
-                    className="login-page__network-node"
-                    style={{ top: node.top, left: node.left }}
-                  >
-                    <div className="login-page__network-node-icon">
-                      <Icon size={14} strokeWidth={1.75} />
-                    </div>
-                    <span>{node.label}</span>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="login-page__stats" role="list" aria-label="Platform metrics">
-              {statCards.map((stat) => {
-                const Icon = stat.icon;
-                return (
-                  <div key={stat.label} className="login-page__stat" role="listitem">
-                    <div className="login-page__stat-head">
-                      <Icon size={14} />
-                      <span>{stat.label}</span>
-                    </div>
-                    <div className="login-page__stat-value">{stat.value}</div>
-                    <div className="login-page__stat-delta">{stat.delta}</div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="login-page__status">
-              <span className="login-page__status-dot" />
-              <span>
-                <strong>System Operational</strong>
-                <span className="login-page__status-sep">|</span>
-                All systems are secure and running smoothly
-              </span>
-            </div>
-          </section>
-
-          <section className="login-page__form-section" aria-label="Sign in">
-            <div className="login-page__card cyber-card">
-              <button type="button" className="login-page__lang" aria-label="Select language">
-                <Globe size={14} />
-                <span>English</span>
-                <ChevronDown size={14} />
-              </button>
-
-              <div className="login-page__card-header">
-                <div className="login-page__card-icon">
-                  <Shield size={28} strokeWidth={1.5} />
-                </div>
-                <h2 className="login-page__card-title">Welcome Back!</h2>
-                <p className="login-page__card-subtitle">Sign in to continue to SecureNet AI</p>
-              </div>
-
-              <form className="login-page__form" onSubmit={handleSubmit}>
-                <div className="login-page__field">
-                  <div className="login-page__input-wrap">
-                    <Mail size={16} className="login-page__input-icon" />
+              <form onSubmit={handleSubmit}>
+                <div className="hacker-login__field">
+                  <div className="hacker-login__input-wrap">
+                    <User size={16} className="hacker-login__input-icon" />
                     <input
                       id="email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Email Address"
+                      placeholder="Username or Email"
                       required
-                      aria-label="Email Address"
-                      className="login-page__input cyber-input"
+                      className="hacker-login__input"
                     />
                   </div>
                 </div>
 
-                <div className="login-page__field">
-                  <div className="login-page__input-wrap">
-                    <Lock size={16} className="login-page__input-icon" />
+                <div className="hacker-login__field">
+                  <div className="hacker-login__input-wrap">
+                    <Lock size={16} className="hacker-login__input-icon" />
                     <input
                       id="password"
                       type={showPassword ? "text" : "password"}
@@ -261,12 +189,11 @@ export function LoginPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Password"
                       required
-                      aria-label="Password"
-                      className="login-page__input cyber-input"
+                      className="hacker-login__input"
                     />
                     <button
                       type="button"
-                      className="login-page__toggle-pw"
+                      className="hacker-login__toggle-pw"
                       onClick={() => setShowPassword(!showPassword)}
                       aria-label={showPassword ? "Hide password" : "Show password"}
                     >
@@ -275,83 +202,62 @@ export function LoginPage() {
                   </div>
                 </div>
 
-                {error && <div className="login-page__error" role="alert">{error}</div>}
+                {error && <div className="hacker-login__error" role="alert">{error}</div>}
 
-                <div className="login-page__options">
-                  <label className="login-page__remember">
+                <div className="hacker-login__options">
+                  <label className="hacker-login__remember">
                     <input
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
                     />
-                    <span>Remember me</span>
+                    Remember me
                   </label>
-                  <button type="button" className="login-page__forgot">
-                    Forgot Password?
-                  </button>
+                  <button type="button" className="hacker-login__forgot">Forgot Password?</button>
                 </div>
 
-                <button type="submit" disabled={loading} className="login-page__submit cyber-button">
+                <button type="submit" disabled={loading} className="hacker-login__access-btn">
                   {loading ? (
                     <>
-                      <Loader size={16} className="login-page__spinner" />
-                      Signing In...
+                      <Loader size={16} className="hacker-login__spinner" />
+                      AUTHENTICATING...
                     </>
                   ) : (
                     <>
-                      Sign In
-                      <ArrowRight size={16} />
+                      <Terminal size={16} />
+                      ACCESS SYSTEM
                     </>
                   )}
                 </button>
               </form>
 
-              <div className="login-page__divider">
-                <span>or continue with</span>
-              </div>
-
-              <div className="login-page__social">
-                <button type="button" className="login-page__social-btn">
-                  <GoogleIcon />
-                  Google
-                </button>
-                <button type="button" className="login-page__social-btn">
-                  <MicrosoftIcon />
-                  Microsoft
-                </button>
-                <button type="button" className="login-page__social-btn">
-                  <GitHubIcon />
-                  GitHub
-                </button>
-              </div>
-
-              <div className="login-page__trust">
+              <div className="hacker-login__trust">
                 {trustBadges.map((badge) => {
                   const Icon = badge.icon;
                   return (
-                    <div key={badge.label} className="login-page__trust-item">
-                      <Icon size={13} />
+                    <div key={badge.label} className="hacker-login__trust-item">
+                      <Icon size={14} />
                       <span>{badge.label}</span>
                     </div>
                   );
                 })}
               </div>
 
-              <div className="login-page__demo">
+              <div className="hacker-login__demo">
                 <button
                   type="button"
-                  className="login-page__demo-toggle"
+                  className="hacker-login__demo-toggle"
                   onClick={() => setShowDemo(!showDemo)}
                 >
-                  {showDemo ? "Hide demo accounts" : "Use demo account"}
+                  {showDemo ? "[ HIDE DEMO ACCOUNTS ]" : "[ USE DEMO ACCOUNT ]"}
                 </button>
                 {showDemo && (
-                  <div className="login-page__demo-list">
+                  <div className="hacker-login__demo-list">
                     {DEMO_ACCOUNTS.map((acc) => (
                       <button
                         key={acc.email}
                         type="button"
-                        className="login-page__demo-item"
+                        className="hacker-login__demo-item"
                         onClick={() => fillDemo(acc)}
                       >
                         <span>{acc.email}</span>
@@ -361,18 +267,156 @@ export function LoginPage() {
                   </div>
                 )}
               </div>
+            </div>
+          </aside>
 
-              <div className="login-page__footer">
-                <span>© 2026 SecureNet AI. All rights reserved.</span>
-                <div className="login-page__footer-links">
-                  <a href="#" onClick={(e) => e.preventDefault()}>Privacy Policy</a>
-                  <a href="#" onClick={(e) => e.preventDefault()}>Terms of Service</a>
-                </div>
+          {/* System features listed below the card */}
+          <div style={{ width: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginTop: "12px" }} className="app-page__grid-2">
+            <div className="hacker-panel" style={{ display: "flex", flexDirection: "column", gap: "8px", transition: "all 0.3s ease" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#00FF41", fontWeight: 700, fontSize: "12px" }}>
+                <Brain size={16} /> AI Threat Detection
+              </div>
+              <p style={{ fontSize: "11px", color: "#86EFAC", margin: 0 }}>Real-time machine learning engine analyzes flow statistics to flag anomalously behaving SDN nodes instantly.</p>
+            </div>
+            <div className="hacker-panel" style={{ display: "flex", flexDirection: "column", gap: "8px", transition: "all 0.3s ease" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#00FF41", fontWeight: 700, fontSize: "12px" }}>
+                <Link2 size={16} /> Blockchain Audit Ledger
+              </div>
+              <p style={{ fontSize: "11px", color: "#86EFAC", margin: 0 }}>Secures immutable on-chain logs of block decisions, alerts history, and controller actions for auditable verification.</p>
+            </div>
+            <div className="hacker-panel" style={{ display: "flex", flexDirection: "column", gap: "8px", transition: "all 0.3s ease" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#00FF41", fontWeight: 700, fontSize: "12px" }}>
+                <Network size={16} /> SDN Topology Controller
+              </div>
+              <p style={{ fontSize: "11px", color: "#86EFAC", margin: 0 }}>Interactive network visualizer tracks data flows, routing rules, device statuses, and active mitigation quarantines.</p>
+            </div>
+            <div className="hacker-panel" style={{ display: "flex", flexDirection: "column", gap: "8px", transition: "all 0.3s ease" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#00FF41", fontWeight: 700, fontSize: "12px" }}>
+                <Fingerprint size={16} /> Advanced Access Control
+              </div>
+              <p style={{ fontSize: "11px", color: "#86EFAC", margin: 0 }}>Enforces strict role-based permission matrix, security-key authentication policy, and department isolation controls.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="hacker-login__bottom-tabs">
+          <button
+            type="button"
+            className={`hacker-login__bottom-tab-btn ${activeBottomTab === "threats" ? "is-active" : ""}`}
+            onClick={() => setActiveBottomTab("threats")}
+          >
+            Threat Feed
+          </button>
+          <button
+            type="button"
+            className={`hacker-login__bottom-tab-btn ${activeBottomTab === "status" ? "is-active" : ""}`}
+            onClick={() => setActiveBottomTab("status")}
+          >
+            System Status
+          </button>
+          <button
+            type="button"
+            className={`hacker-login__bottom-tab-btn ${activeBottomTab === "blockchain" ? "is-active" : ""}`}
+            onClick={() => setActiveBottomTab("blockchain")}
+          >
+            Blockchain
+          </button>
+          <button
+            type="button"
+            className={`hacker-login__bottom-tab-btn ${activeBottomTab === "topology" ? "is-active" : ""}`}
+            onClick={() => setActiveBottomTab("topology")}
+          >
+            SDN Topology
+          </button>
+        </div>
+
+        <div className="hacker-login__bottom use-tabs">
+          <div className={`hacker-panel ${activeBottomTab === "threats" ? "is-active" : ""}`}>
+            <div className="hacker-panel__title">
+              <Fingerprint size={12} /> Live Threat Feed
+            </div>
+            <div className="hacker-login__feed-list">
+              <div className="hacker-login__feed-scroll">
+                {feedItems.map((item, i) => (
+                  <div key={i} className="hacker-login__feed-item">
+                    <span className="hacker-login__feed-threat">{item.threat} — {item.ip}</span>
+                    <span className="hacker-login__feed-time">{item.time}</span>
+                    <span className={`hacker-login__feed-status hacker-login__feed-status--${item.status.toLowerCase()}`}>
+                      [ {item.status} ]
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
-          </section>
+          </div>
+
+          <div className={`hacker-panel ${activeBottomTab === "status" ? "is-active" : ""}`}>
+            <div className="hacker-panel__title">
+              <Activity size={12} /> System Status
+            </div>
+            {SYSTEM_METRICS.map((m) => (
+              <div key={m.label} className="hacker-login__metric">
+                <div className="hacker-login__metric-head">
+                  <span>{m.label}</span>
+                  <span className="hacker-login__metric-val">
+                    {"display" in m ? m.display : `${m.value}%`}
+                  </span>
+                </div>
+                <div className="hacker-bar">
+                  <div className="hacker-bar__fill" style={{ width: `${m.value > 100 ? 87 : m.value}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className={`hacker-panel ${activeBottomTab === "blockchain" ? "is-active" : ""}`}>
+            <div className="hacker-panel__title">
+              <Link2 size={12} /> Blockchain Verification
+            </div>
+            <div className="hacker-login__chain">
+              {[1, 2, 3, 4].map((n) => (
+                <div key={n} className="hacker-login__cube" />
+              ))}
+            </div>
+            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, color: "#86EFAC" }}>
+              Last Block: <span style={{ color: "#00FF41" }}>0x7f3a...9c2e</span>
+            </div>
+            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, color: "#00FF41", marginTop: 4 }}>
+              STATUS: VERIFIED ✓
+            </div>
+          </div>
+
+          <div className={`hacker-panel ${activeBottomTab === "topology" ? "is-active" : ""}`}>
+            <div className="hacker-panel__title">
+              <Network size={12} /> SDN Topology
+            </div>
+            <div className="hacker-login__topology">
+              <div className="hacker-login__topo-node">Controller</div>
+              <div className="hacker-login__topo-line" />
+              <div className="hacker-login__topo-row">
+                <div className="hacker-login__topo-node">SW-01</div>
+                <div className="hacker-login__topo-node">SW-02</div>
+                <div className="hacker-login__topo-node">SW-03</div>
+              </div>
+              <div className="hacker-login__topo-line" />
+              <div className="hacker-login__topo-row">
+                <div className="hacker-login__topo-node"><Server size={10} /> SRV-01</div>
+                <div className="hacker-login__topo-node"><Radio size={10} /> IOT-01</div>
+                <div className="hacker-login__topo-node"><Cpu size={10} /> Edge</div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <footer className="hacker-login__footer">
+          <span>© 2026 SecureNet AI. All rights reserved.</span>
+          <span className="hacker-login__footer-status">TERMINAL SECURE // ENCRYPTION ACTIVE</span>
+          <div className="hacker-login__footer-links">
+            <a href="#" onClick={(e) => e.preventDefault()}>Privacy Policy</a>
+            <a href="#" onClick={(e) => e.preventDefault()}>Terms of Service</a>
+          </div>
+        </footer>
       </div>
-    </div>
+    </HackerShell>
   );
 }

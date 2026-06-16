@@ -7,10 +7,10 @@ import { useDebouncedValue } from "../../lib/useDebouncedValue";
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
   backdropFilter: "blur(18px)",
-  border: "1px solid rgba(168,85,247,0.2)",
+  border: "1px solid rgba(0,255,65,0.2)",
   borderRadius: "22px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(168,85,247,0.12), 0 0 36px rgba(168,85,247,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const sevConfig = {
@@ -99,7 +99,7 @@ export function AlertsCenter() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px" }}>
+      <div className="app-page__grid-4">
         {(["critical", "high", "medium", "low"] as const).map((sev) => {
           const count = alerts.filter((a) => a.severity === sev).length;
           const cfg = sevConfig[sev];
@@ -125,7 +125,7 @@ export function AlertsCenter() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search alerts..."
-            style={{ paddingLeft: "30px", paddingRight: "12px", paddingTop: "7px", paddingBottom: "7px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: "8px", color: "#E2E8F0", fontSize: "12px", outline: "none", width: "220px" }}
+            style={{ paddingLeft: "30px", paddingRight: "12px", paddingTop: "7px", paddingBottom: "7px", background: "rgba(255,255,255,0.05)", border: "1px solid var(--border)", borderRadius: "8px", color: "#E2E8F0", fontSize: "12px", outline: "none", width: "220px" }}
           />
         </div>
 
@@ -137,7 +137,7 @@ export function AlertsCenter() {
             { key: "yesterday", label: "Yesterday" },
           ].map((d) => (
             <button key={d.key} onClick={() => setDateFilter(d.key)}
-              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", border: "none", background: dateFilter === d.key ? "#2563EB" : "transparent", color: dateFilter === d.key ? "#fff" : "#64748B" }}>
+              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", border: "none", background: dateFilter === d.key ? "var(--primary)" : "transparent", color: dateFilter === d.key ? "var(--primary-foreground)" : "#6EE7A0" }}>
               {d.label}
             </button>
           ))}
@@ -147,7 +147,7 @@ export function AlertsCenter() {
         <div style={{ display: "flex", gap: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "8px", padding: "3px" }}>
           {["all", "critical", "high", "medium", "low"].map((s) => (
             <button key={s} onClick={() => setSevFilter(s)}
-              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", border: "none", background: sevFilter === s ? "#2563EB" : "transparent", color: sevFilter === s ? "#fff" : "#64748B" }}>
+              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", border: "none", background: sevFilter === s ? "var(--primary)" : "transparent", color: sevFilter === s ? "var(--primary-foreground)" : "#6EE7A0" }}>
               {s}
             </button>
           ))}
@@ -157,7 +157,7 @@ export function AlertsCenter() {
         <div style={{ display: "flex", gap: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "8px", padding: "3px" }}>
           {["all", "new", "acknowledged", "investigating", "resolved"].map((s) => (
             <button key={s} onClick={() => setStatusFilter(s)}
-              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", border: "none", background: statusFilter === s ? "#2563EB" : "transparent", color: statusFilter === s ? "#fff" : "#64748B" }}>
+              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", border: "none", background: statusFilter === s ? "var(--primary)" : "transparent", color: statusFilter === s ? "var(--primary-foreground)" : "#6EE7A0" }}>
               {s}
             </button>
           ))}

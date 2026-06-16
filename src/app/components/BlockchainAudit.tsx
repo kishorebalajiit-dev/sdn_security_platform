@@ -7,10 +7,10 @@ import { useDebouncedValue } from "../../lib/useDebouncedValue";
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
   backdropFilter: "blur(18px)",
-  border: "1px solid rgba(168,85,247,0.2)",
+  border: "1px solid rgba(0,255,65,0.2)",
   borderRadius: "22px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(168,85,247,0.12), 0 0 36px rgba(168,85,247,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 interface Transaction {
@@ -118,11 +118,11 @@ export function BlockchainAudit() {
         width={500}
         footer={
           <>
-            <button onClick={() => setExportOpen(false)} disabled={exporting} style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: "rgba(255,255,255,0.05)", color: "#94A3B8", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", cursor: "pointer" }}>Cancel</button>
+            <button onClick={() => setExportOpen(false)} disabled={exporting} className="app-btn app-btn--ghost">Cancel</button>
             <button
               onClick={handleExport}
               disabled={exporting}
-              style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: exporting ? "rgba(255,255,255,0.08)" : "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "8px", cursor: exporting ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: "6px", opacity: exporting ? 0.7 : 1, boxShadow: exporting ? "none" : "0 0 16px rgba(37,99,235,0.4)", transition: "all 0.15s" }}
+              className="app-btn app-btn--primary"
             >
               {exporting ? <><Loader size={13} style={{ animation: "spin 1s linear infinite" }} /> Exporting...</> : <><Download size={13} /> Export</>}
             </button>
@@ -130,7 +130,7 @@ export function BlockchainAudit() {
         }
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div className="app-page__grid-2">
             <Field label="Date From">
               <input type="date" value={exportForm.dateFrom} onChange={(e) => setExportField("dateFrom", e.target.value)} style={{ ...inputStyle, colorScheme: "dark" }} />
             </Field>
@@ -154,7 +154,7 @@ export function BlockchainAudit() {
                 <button
                   key={fmt}
                   onClick={() => setExportField("format", fmt)}
-                  style={{ flex: 1, padding: "9px", fontSize: "12px", fontWeight: 600, borderRadius: "8px", cursor: "pointer", border: "1px solid", borderColor: exportForm.format === fmt ? "#2563EB" : "rgba(37,99,235,0.2)", background: exportForm.format === fmt ? "rgba(37,99,235,0.15)" : "rgba(255,255,255,0.03)", color: exportForm.format === fmt ? "#60A5FA" : "#64748B", transition: "all 0.15s" }}
+                  style={{ flex: 1, padding: "9px", fontSize: "12px", fontWeight: 600, borderRadius: "8px", cursor: "pointer", border: "1px solid", borderColor: exportForm.format === fmt ? "var(--primary)" : "rgba(0, 255, 65, 0.2)", background: exportForm.format === fmt ? "rgba(0, 255, 65, 0.15)" : "rgba(255,255,255,0.03)", color: exportForm.format === fmt ? "var(--primary)" : "#6EE7A0", transition: "all 0.15s" }}
                 >
                   {fmt}
                 </button>
@@ -173,11 +173,11 @@ export function BlockchainAudit() {
         width={480}
         footer={
           <>
-            <button onClick={() => setReportOpen(false)} disabled={downloading} style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: "rgba(255,255,255,0.05)", color: "#94A3B8", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", cursor: "pointer" }}>Cancel</button>
+            <button onClick={() => setReportOpen(false)} disabled={downloading} className="app-btn app-btn--ghost">Cancel</button>
             <button
               onClick={handleDownloadReport}
               disabled={downloading}
-              style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: downloading ? "rgba(255,255,255,0.08)" : "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "8px", cursor: downloading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: "6px", opacity: downloading ? 0.7 : 1, boxShadow: downloading ? "none" : "0 0 16px rgba(37,99,235,0.4)", transition: "all 0.15s" }}
+              className="app-btn app-btn--primary"
             >
               {downloading ? <><Loader size={13} style={{ animation: "spin 1s linear infinite" }} /> Downloading...</> : <><Download size={13} /> Download PDF</>}
             </button>
@@ -227,17 +227,13 @@ export function BlockchainAudit() {
           </button>
           <button
             onClick={() => setExportOpen(true)}
-            style={{ padding: "8px 16px", fontSize: "12px", fontWeight: 600, background: "rgba(37,99,235,0.12)", color: "#60A5FA", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", transition: "all 0.15s" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 16px rgba(37,99,235,0.3)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = ""; (e.currentTarget as HTMLButtonElement).style.boxShadow = ""; }}
+            className="app-btn app-btn--secondary"
           >
             <Download size={13} /> Export Logs
           </button>
           <button
             onClick={() => setReportOpen(true)}
-            style={{ padding: "8px 16px", fontSize: "12px", fontWeight: 600, background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: "0 0 18px rgba(37,99,235,0.35)", transition: "all 0.15s" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 28px rgba(37,99,235,0.55)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = ""; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 18px rgba(37,99,235,0.35)"; }}
+            className="app-btn app-btn--primary"
           >
             <Download size={13} /> Download Audit Report
           </button>
@@ -245,7 +241,7 @@ export function BlockchainAudit() {
       </div>
 
       {/* Stats Row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "14px" }}>
+      <div className="app-page__grid-5">
         {[
           { label: "Block Height", value: "47,291", color: "#8B5CF6", icon: Link2 },
           { label: "Total Transactions", value: "47,291", color: "#2563EB", icon: CheckCircle },
@@ -263,7 +259,7 @@ export function BlockchainAudit() {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: "16px" }}>
+      <div className="app-page__grid-sidebar-right-320">
         {/* Transaction Table */}
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {/* Filters */}
@@ -274,14 +270,14 @@ export function BlockchainAudit() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search hash, device, or ID..."
-                style={{ paddingLeft: "30px", paddingRight: "12px", paddingTop: "8px", paddingBottom: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: "8px", color: "#E2E8F0", fontSize: "12px", outline: "none", width: "260px" }}
+                style={{ paddingLeft: "30px", paddingRight: "12px", paddingTop: "8px", paddingBottom: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid var(--border)", borderRadius: "8px", color: "#E2E8F0", fontSize: "12px", outline: "none", width: "260px" }}
               />
             </div>
             {(["all", "device_reg", "audit_event", "contract_call", "integrity_check", "policy_update"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setTypeFilter(t)}
-                style={{ padding: "5px 10px", fontSize: "10px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", background: typeFilter === t ? "#2563EB" : "rgba(255,255,255,0.04)", border: "1px solid rgba(37,99,235,0.2)", color: typeFilter === t ? "#fff" : "#64748B" }}
+                style={{ padding: "5px 10px", fontSize: "10px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", background: typeFilter === t ? "var(--primary)" : "rgba(255,255,255,0.04)", border: "1px solid var(--border)", color: typeFilter === t ? "var(--primary-foreground)" : "#6EE7A0" }}
               >
                 {t === "all" ? "All" : typeLabels[t as Transaction["type"]].label}
               </button>
@@ -291,7 +287,7 @@ export function BlockchainAudit() {
           <div style={{ ...glassCard, padding: "0", overflow: "hidden" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ borderBottom: "1px solid rgba(37,99,235,0.12)", background: "rgba(13,27,42,0.9)" }}>
+                <tr style={{ borderBottom: "1px solid var(--border)", background: "rgba(13,27,42,0.9)" }}>
                   {["TX ID", "Transaction Hash", "Type", "Device", "Block", "Status", "Timestamp"].map((h) => (
                     <th key={h} style={{ padding: "11px 14px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                       {h}

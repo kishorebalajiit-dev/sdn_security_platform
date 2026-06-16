@@ -36,7 +36,7 @@ const navItems: NavItem[] = [
 
 export type { PageId };
 
-export function Sidebar() {
+export function Sidebar({ mobileOpen = false, onMobileClose }: { mobileOpen?: boolean; onMobileClose?: () => void }) {
   const [collapsed, setCollapsed] = useState(false);
   const { user, logout } = useAuth();
   const { threats, incidents, alerts } = useAppData();
@@ -59,23 +59,23 @@ export function Sidebar() {
 
   return (
     <aside
+      className={`cyber-card hacker-app-sidebar ${mobileOpen ? "is-mobile-open" : ""}`}
       style={{
         width: collapsed ? "72px" : "240px",
         transition: "width 0.3s cubic-bezier(0.4,0,0.2,1)",
-        background: "linear-gradient(180deg, rgba(8,11,26,0.96) 0%, rgba(5,8,22,0.98) 100%)",
-        borderRight: "1px solid rgba(168, 85, 247, 0.16)",
+        background: "linear-gradient(180deg, rgba(0,8,0,0.98) 0%, rgba(0,4,0,0.99) 100%)",
+        borderRight: "1px solid rgba(0, 255, 65, 0.18)",
         display: "flex",
         flexDirection: "column",
         flexShrink: 0,
         position: "relative",
         zIndex: 30,
       }}
-      className="cyber-card"
     >
       <div
         style={{
           padding: collapsed ? "20px 0" : "20px 20px",
-          borderBottom: "1px solid rgba(168, 85, 247, 0.12)",
+          borderBottom: "1px solid rgba(0, 255, 65, 0.12)",
           display: "flex",
           alignItems: "center",
           gap: "12px",
@@ -88,22 +88,22 @@ export function Sidebar() {
             width: "36px",
             height: "36px",
             borderRadius: "10px",
-            background: "linear-gradient(135deg, #A855F7 0%, #EC4899 100%)",
+            background: "linear-gradient(135deg, #00FF41 0%, #00CC33 100%)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
-            boxShadow: "0 0 20px rgba(168, 85, 247, 0.45)",
+            boxShadow: "0 0 20px rgba(0, 255, 65, 0.45)",
           }}
         >
-          <Zap size={20} style={{ color: "#fff" }} />
+          <Zap size={20} style={{ color: "#000" }} />
         </div>
         {!collapsed && (
           <div>
-            <div style={{ fontFamily: "Poppins, sans-serif", fontWeight: 700, fontSize: "15px", color: "#F8FAFC", lineHeight: 1.2 }} className="cyber-glow-text">
+            <div style={{ fontFamily: "Poppins, sans-serif", fontWeight: 700, fontSize: "15px", color: "#E8FFE8", lineHeight: 1.2 }} className="cyber-glow-text">
               SecureNet AI
             </div>
-            <div style={{ fontSize: "10px", color: "#C084FC", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            <div style={{ fontSize: "10px", color: "#00FF41", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>
               SDN Security Platform
             </div>
           </div>
@@ -118,6 +118,7 @@ export function Sidebar() {
               key={item.id}
               to={PAGE_TO_ROUTE[item.id]}
               title={collapsed ? item.label : undefined}
+              onClick={onMobileClose}
               style={({ isActive }) => ({
                 width: "100%",
                 display: "flex",
@@ -126,10 +127,10 @@ export function Sidebar() {
                 padding: collapsed ? "11px 0" : "11px 16px",
                 justifyContent: collapsed ? "center" : "flex-start",
                 background: isActive
-                  ? "linear-gradient(90deg, rgba(168,85,247,0.22) 0%, rgba(236,72,153,0.08) 100%)"
+                  ? "linear-gradient(90deg, rgba(0,255,65,0.18) 0%, rgba(0,255,65,0.04) 100%)"
                   : "transparent",
-                borderLeft: isActive ? "2px solid #A855F7" : "2px solid transparent",
-                color: isActive ? "#F8FAFC" : "#94A3B8",
+                borderLeft: isActive ? "2px solid #00FF41" : "2px solid transparent",
+                color: isActive ? "#E8FFE8" : "#86EFAC",
                 cursor: "pointer",
                 border: "none",
                 borderRight: "none",
@@ -151,14 +152,14 @@ export function Sidebar() {
                         top: 0,
                         bottom: 0,
                         width: "2px",
-                        background: "linear-gradient(180deg, #A855F7, #EC4899)",
+                        background: "linear-gradient(180deg, #00FF41, #00CC33)",
                         borderRadius: "0 2px 2px 0",
                       }}
                     />
                   )}
                   <item.icon
                     size={18}
-                    style={{ color: isActive ? "#C084FC" : "inherit", flexShrink: 0, filter: isActive ? "drop-shadow(0 0 10px rgba(168,85,247,0.55))" : "none" }}
+                    style={{ color: isActive ? "#00FF41" : "inherit", flexShrink: 0, filter: isActive ? "drop-shadow(0 0 10px rgba(0,255,65,0.55))" : "none" }}
                   />
                   {!collapsed && (
                     <>
@@ -168,7 +169,7 @@ export function Sidebar() {
                       {badge > 0 && (
                         <span
                           style={{
-                            background: item.id === "alerts" ? "#EF4444" : "linear-gradient(135deg, #A855F7, #C084FC)",
+                            background: item.id === "alerts" ? "#FF3333" : "linear-gradient(135deg, #00FF41, #39FF14)",
                             color: "#fff",
                             fontSize: "10px",
                             fontWeight: 700,
@@ -189,7 +190,7 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div style={{ borderTop: "1px solid rgba(37, 99, 235, 0.12)", padding: "12px 0" }}>
+      <div style={{ borderTop: "1px solid rgba(0, 255, 65, 0.12)", padding: "12px 0" }}>
         <button
           onClick={handleLogout}
           style={{
@@ -200,7 +201,7 @@ export function Sidebar() {
             padding: collapsed ? "11px 0" : "11px 16px",
             justifyContent: collapsed ? "center" : "flex-start",
             background: "transparent",
-            color: "#94A3B8",
+            color: "#86EFAC",
             cursor: "pointer",
             border: "none",
             transition: "all 0.18s ease",
@@ -227,9 +228,9 @@ export function Sidebar() {
           width: "24px",
           height: "24px",
           borderRadius: "50%",
-          background: "#0A1020",
-          border: "1px solid rgba(168,85,247,0.3)",
-          color: "#C084FC",
+          background: "#000",
+          border: "1px solid rgba(0,255,65,0.3)",
+          color: "#00FF41",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
@@ -238,12 +239,12 @@ export function Sidebar() {
           transition: "all 0.18s ease",
         }}
         onMouseEnter={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.background = "#A855F7";
-          (e.currentTarget as HTMLButtonElement).style.color = "#fff";
+          (e.currentTarget as HTMLButtonElement).style.background = "#00FF41";
+          (e.currentTarget as HTMLButtonElement).style.color = "#000";
         }}
         onMouseLeave={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.background = "#0A1020";
-          (e.currentTarget as HTMLButtonElement).style.color = "#C084FC";
+          (e.currentTarget as HTMLButtonElement).style.background = "#000";
+          (e.currentTarget as HTMLButtonElement).style.color = "#00FF41";
         }}
       >
         {collapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}

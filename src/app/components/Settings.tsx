@@ -9,10 +9,10 @@ import { Modal, Field, inputStyle, selectStyle } from "./Modal";
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
   backdropFilter: "blur(18px)",
-  border: "1px solid rgba(168,85,247,0.2)",
+  border: "1px solid rgba(0,255,65,0.2)",
   borderRadius: "22px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(168,85,247,0.12), 0 0 36px rgba(168,85,247,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const tabs = [
@@ -483,13 +483,15 @@ export function Settings() {
   };
 
   return (
-    <div style={{ padding: "28px", display: "flex", flexDirection: "column", gap: "20px" }}>
-      <div>
-        <h1 style={{ color: "#E2E8F0", marginBottom: "4px" }}>Settings</h1>
-        <p style={{ color: "#64748B", fontSize: "13px" }}>Platform configuration and system preferences</p>
+    <div className="app-page">
+      <div className="app-page__header">
+        <div>
+          <h1 style={{ color: "#E2E8F0", marginBottom: "4px" }}>Settings</h1>
+          <p style={{ color: "#64748B", fontSize: "13px" }}>Platform configuration and system preferences</p>
+        </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: "20px" }}>
+      <div className="app-page__grid-sidebar-left-200">
         {/* Tab Nav */}
         <div style={{ ...glassCard, padding: "8px" }}>
           {tabs.map((tab) => (
@@ -506,16 +508,15 @@ export function Settings() {
         {/* Content */}
         <div style={glassCard}>
           {renderContent()}
-          <div style={{ marginTop: "24px", display: "flex", gap: "10px", justifyContent: "flex-end", paddingTop: "16px", borderTop: "1px solid rgba(37,99,235,0.08)" }}>
-            <button onClick={handleDiscard} style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: "rgba(255,255,255,0.05)", color: "#64748B", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", cursor: "pointer" }}>
+          <div style={{ marginTop: "24px", display: "flex", gap: "10px", justifyContent: "flex-end", paddingTop: "16px", borderTop: "1px solid rgba(37,99,235,0.08)", flexWrap: "wrap" }}>
+            <button onClick={handleDiscard} className="app-btn app-btn--secondary">
               Discard Changes
             </button>
             <button
               onClick={handleSave}
               disabled={saving}
-              style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: saved ? "linear-gradient(135deg, #22C55E, #16A34A)" : "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "8px", cursor: saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: saved ? "0 0 16px rgba(34,197,94,0.4)" : "0 0 16px rgba(37,99,235,0.35)", opacity: saving ? 0.8 : 1, transition: "all 0.2s" }}
-              onMouseEnter={(e) => { if (!saving) { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; } }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "none"; }}
+              className={`app-btn ${saved ? "app-btn--success" : "app-btn--primary"}`}
+              style={{ display: "flex", alignItems: "center", gap: "6px" }}
             >
               {saving ? (
                 <><Loader size={13} style={{ animation: "spin 1s linear infinite" }} /> Saving...</>
@@ -534,8 +535,8 @@ export function Settings() {
       <Modal open={addRoleOpen} onClose={() => setAddRoleOpen(false)} title="Add New Role" width={400}
         footer={
           <>
-            <button onClick={() => setAddRoleOpen(false)} style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: "rgba(255,255,255,0.05)", color: "#94A3B8", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", cursor: "pointer" }}>Cancel</button>
-            <button onClick={handleAddRole} style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", boxShadow: "0 0 14px rgba(37,99,235,0.35)" }}>Create Role</button>
+            <button onClick={() => setAddRoleOpen(false)} className="app-btn app-btn--secondary">Cancel</button>
+            <button onClick={handleAddRole} className="app-btn app-btn--primary">Create Role</button>
           </>
         }
       >

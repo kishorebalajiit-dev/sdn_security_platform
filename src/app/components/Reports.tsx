@@ -10,10 +10,10 @@ import { downloadCSV, downloadPDFReport } from "../../lib/exportUtils";
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
   backdropFilter: "blur(18px)",
-  border: "1px solid rgba(168,85,247,0.2)",
+  border: "1px solid rgba(0,255,65,0.2)",
   borderRadius: "22px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(168,85,247,0.12), 0 0 36px rgba(168,85,247,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const monthlyData = [
@@ -33,7 +33,7 @@ const deviceReportData = [
 ];
 
 const reportTemplates = [
-  { title: "Monthly Security Report — June 2026", icon: Shield, color: "#2563EB", description: "Comprehensive threat analysis, incidents, and response metrics" },
+  { title: "Monthly Security Report — June 2026", icon: Shield, color: "#00FF41", description: "Comprehensive threat analysis, incidents, and response metrics" },
   { title: "Device Health Report", icon: Monitor, color: "#22C55E", description: "Status of all network devices with vulnerability assessment" },
   { title: "Threat Intelligence Summary", icon: TrendingUp, color: "#8B5CF6", description: "IOC database, global threat feed digest, and risk trends" },
   { title: "Blockchain Audit Report", icon: BarChart2, color: "#06B6D4", description: "Complete on-chain audit trail for compliance verification" },
@@ -96,12 +96,12 @@ export function Reports() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px" }}>
+      <div className="app-page__grid-4">
         {[
           { label: "Total Threats YTD", value: String(threats.length), change: "-12%", color: "#EF4444" },
           { label: "Blocked Attacks YTD", value: String(threats.filter((t) => t.status === "blocked").length), change: "96.8%", color: "#22C55E" },
           { label: "Incidents YTD", value: String(incidents.length), change: "+8%", color: "#F59E0B" },
-          { label: "Avg Response Time", value: "4.2 min", change: "-18%", color: "#2563EB" },
+          { label: "Avg Response Time", value: "4.2 min", change: "-18%", color: "var(--primary)" },
         ].map((s) => (
           <div key={s.label} style={{ ...glassCard, padding: "16px" }}>
             <p style={{ fontSize: "22px", fontFamily: "JetBrains Mono, monospace", fontWeight: 800, color: s.color, lineHeight: 1, marginBottom: "4px" }}>{s.value}</p>
@@ -111,7 +111,7 @@ export function Reports() {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "16px" }}>
+      <div className="app-page__grid-2fr-1fr">
         <div style={glassCard}>
           <h3 style={{ color: "#E2E8F0", marginBottom: "4px" }}>Monthly Threat Trends</h3>
           <p style={{ fontSize: "11px", color: "#64748B", marginBottom: "16px" }}>Threats detected vs blocked — 2026</p>
@@ -159,9 +159,9 @@ export function Reports() {
 
       <div style={glassCard}>
         <h3 style={{ color: "#E2E8F0", marginBottom: "16px" }}>Generate Reports</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+        <div className="app-page__grid-3">
           {reportTemplates.map((rpt) => (
-            <div key={rpt.title} style={{ padding: "16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(37,99,235,0.12)", borderRadius: "10px" }}>
+            <div key={rpt.title} style={{ padding: "16px", background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)", borderRadius: "10px" }}>
               <div style={{ display: "flex", alignItems: "flex-start", gap: "10px", marginBottom: "10px" }}>
                 <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: `${rpt.color}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <rpt.icon size={16} style={{ color: rpt.color }} />
@@ -173,14 +173,16 @@ export function Reports() {
                 <button
                   onClick={() => handleExport(rpt.title, "pdf")}
                   disabled={exporting === `${rpt.title}-pdf`}
-                  style={{ flex: 1, padding: "6px", fontSize: "10px", fontWeight: 600, background: "rgba(37,99,235,0.12)", color: "#60A5FA", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "6px", cursor: exporting ? "wait" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}
+                  className="app-btn app-btn--secondary"
+                  style={{ flex: 1, padding: "6px", fontSize: "10px", minHeight: "30px" }}
                 >
                   {exporting === `${rpt.title}-pdf` ? <Loader size={11} style={{ animation: "spin 1s linear infinite" }} /> : <Download size={11} />} PDF
                 </button>
                 <button
                   onClick={() => handleExport(rpt.title, "csv")}
                   disabled={exporting === `${rpt.title}-csv`}
-                  style={{ flex: 1, padding: "6px", fontSize: "10px", fontWeight: 600, background: "rgba(34,197,94,0.1)", color: "#22C55E", border: "1px solid rgba(34,197,94,0.25)", borderRadius: "6px", cursor: exporting ? "wait" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}
+                  className="app-btn app-btn--primary"
+                  style={{ flex: 1, padding: "6px", fontSize: "10px", minHeight: "30px", color: "var(--primary-foreground)" }}
                 >
                   {exporting === `${rpt.title}-csv` ? <Loader size={11} style={{ animation: "spin 1s linear infinite" }} /> : <Download size={11} />} CSV
                 </button>
