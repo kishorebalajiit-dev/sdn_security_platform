@@ -21,6 +21,11 @@ class BaseConfig:
         _db_url = "sqlite:///securenet_ai.db"
         
     SQLALCHEMY_DATABASE_URI = _db_url
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "connect_args": {
+            "timeout": 30
+        }
+    }
     JSON_SORT_KEYS = False
     RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
     AUTO_CREATE_TABLES = os.getenv("AUTO_CREATE_TABLES", "1") == "1"

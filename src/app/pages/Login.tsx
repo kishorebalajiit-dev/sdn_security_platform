@@ -61,13 +61,7 @@ const BLOCKCHAIN_ACCOUNTS = [
   { name: "Priya Nair (Auditor)", address: "0x3dF2dCA8d92f5A16b754BE60097E05440f30f794", privateKey: "0x0b3128c68910ee7ac2822566c9e24c2ce982f786a37359ca297df81080b7f52c", role: "Auditor" }
 ];
 
-const BINARY_STREAM =
-  "01001100 01001111 01000111 01001001 01001110\n" +
-  "11001010 00110101 11100001 01010011 01000101\n" +
-  "01000011 01010101 01010010 01000101 01001110\n" +
-  "10101010 01000001 01001001 00110000 11001100\n" +
-  "01001100 01001111 01000111 01001001 01001110\n" +
-  "11001010 00110101 11100001 01010011 01000101\n";
+
 
 function GoogleIcon() {
   return (
@@ -158,7 +152,6 @@ export function LoginPage() {
 
             <aside className="hacker-login__auth">
               <div className="hacker-login__auth-panel hacker-panel">
-                <div className="hacker-login__auth-binary" aria-hidden="true">{BINARY_STREAM}{BINARY_STREAM}</div>
                 <div className="hacker-login__auth-crt" aria-hidden="true" />
                 <span className="hacker-login__corner hacker-login__corner--tr" aria-hidden="true" />
                 <span className="hacker-login__corner hacker-login__corner--bl" aria-hidden="true" />

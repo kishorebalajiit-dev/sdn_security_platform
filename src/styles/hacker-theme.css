@@ -267,11 +267,21 @@
 
 .hacker-login__main {
   flex: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 400px);
-  gap: clamp(16px, 2.5vw, 28px);
-  align-items: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
+  padding: 10px 0;
+}
+
+.hacker-login__center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(16px, 2.5vw, 24px);
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
 }
 
 .hacker-login__left {
@@ -283,7 +293,9 @@
 .hacker-login__brand {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 16px;
+  width: 100%;
 }
 
 .hacker-login__logo {
@@ -497,8 +509,7 @@
 
 /* ── Auth panel ── */
 .hacker-login__auth {
-  position: sticky;
-  top: 20px;
+  width: 100%;
 }
 
 @keyframes hacker-panel-pulse {

@@ -50,6 +50,8 @@ def create_app(config_object: type[DevelopmentConfig] = DevelopmentConfig) -> Fl
 
     @app.errorhandler(SQLAlchemyError)
     def handle_db_error(error):
+        import traceback
+        traceback.print_exc()
         db.session.rollback()
         return fail("Database error", 500, str(error))
 
