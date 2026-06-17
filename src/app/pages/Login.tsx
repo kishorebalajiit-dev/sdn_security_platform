@@ -99,11 +99,11 @@ function GitHubIcon() {
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [address, setAddress] = useState("");
-  const [privateKey, setPrivateKey] = useState("");
+  const [address, setAddress] = useState("0x807b242b3494a8b68cA0dE01C323fFB0511eDF73");
+  const [privateKey, setPrivateKey] = useState("0x6168447c0400218f5d5f7a8a128141fc7364d8ea2314253b66ea227cd7715e6d");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [showDemo, setShowDemo] = useState(false);
+  const [showDemo, setShowDemo] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [activeBottomTab, setActiveBottomTab] = useState<"threats" | "status" | "blockchain" | "topology">("threats");

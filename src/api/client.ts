@@ -13,7 +13,7 @@ export const client = axios.create({
 // Request interceptor to attach JWT token
 client.interceptors.request.use(
   (config) => {
-    const sessionStr = localStorage.getItem("securenet_auth_session");
+    const sessionStr = localStorage.getItem("securenet_auth");
     if (sessionStr) {
       try {
         const session = JSON.parse(sessionStr);

@@ -10,10 +10,17 @@ class BaseConfig:
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=int(os.getenv("JWT_ACCESS_MINUTES", "30")))
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=int(os.getenv("JWT_REFRESH_DAYS", "14")))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URL",
-        "postgresql://user:password@localhost/securenet_ai",
-    )
+    _db_url = os.getenv("DATABASE_URL")
+    if _db_url and "postgresql" in _db_url:
+        try:
+            import psycopg2
+        except ImportError:
+            print("[Config] WARNING: postgresql requested but psycopg2 is not installed. Falling back to SQLite.")
+            _db_url = "sqlite:///securenet_ai.db"
+    if not _db_url:
+        _db_url = "sqlite:///securenet_ai.db"
+        
+    SQLALCHEMY_DATABASE_URI = _db_url
     JSON_SORT_KEYS = False
     RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
     AUTO_CREATE_TABLES = os.getenv("AUTO_CREATE_TABLES", "1") == "1"

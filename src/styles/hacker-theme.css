@@ -560,6 +560,15 @@
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
+.hacker-login__input:-webkit-autofill,
+.hacker-login__input:-webkit-autofill:hover, 
+.hacker-login__input:-webkit-autofill:focus, 
+.hacker-login__input:-webkit-autofill:active {
+  -webkit-text-fill-color: #E8FFE8 !important;
+  -webkit-box-shadow: 0 0 0px 1000px rgba(8, 11, 26, 0.95) inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 .hacker-login__input::placeholder {
   color: rgba(110,231,160,0.5);
 }
