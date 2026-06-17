@@ -100,13 +100,13 @@ export function Dashboard({ onNavigate }: { onNavigate?: (page: string) => void 
           and real-time protection across cloud, edge, IoT, and core infrastructure.
         </p>
         <div className="dashboard-hero__actions">
-          <button className="cyber-button cyber-pill" onClick={() => navigate("/alerts")}>
+          <button className="cyber-button" onClick={() => navigate("/alerts")}>
             View Alerts Center <ChevronRight size={14} />
           </button>
-          <button className="cyber-button cyber-button-secondary cyber-pill" onClick={() => navigate("/reports")}>
+          <button className="cyber-button cyber-button-secondary" onClick={() => navigate("/reports")}>
             Generate Report <Database size={14} />
           </button>
-          <button className="cyber-button cyber-button-secondary cyber-pill" onClick={() => navigate("/network-topology") }>
+          <button className="cyber-button cyber-button-secondary" onClick={() => navigate("/network-topology") }>
             Explore Topology <Globe size={14} />
           </button>
         </div>
