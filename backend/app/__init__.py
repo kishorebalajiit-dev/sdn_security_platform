@@ -61,9 +61,13 @@ def create_app(config_object: type[DevelopmentConfig] = DevelopmentConfig) -> Fl
 
     if app.config.get("AUTO_CREATE_TABLES"):
         with app.app_context():
-            _compile_contract()
-            db.create_all()
-            _seed_defaults()
+            try:
+                _compile_contract()
+                db.create_all()
+                _seed_defaults()
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
 
     return app
 
