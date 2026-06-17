@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import { AuthProvider } from "../contexts/AuthContext";
 import { AppDataProvider } from "../contexts/AppDataContext";
+import { ToastProvider } from "./components/Toast";
 import { AppLayout } from "./layouts/AppLayout";
 import { LoginPage } from "./pages/Login";
 import { ProtectedRoute, PublicRoute } from "./routes";
@@ -23,32 +24,34 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <AppDataProvider>
-          <Routes>
-            <Route element={<PublicRoute />}>
-              <Route path="/login" element={<LoginPage />} />
-            </Route>
-
-            <Route element={<ProtectedRoute />}>
-              <Route element={<AppLayout />}>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/network-topology" element={<NetworkTopology />} />
-                <Route path="/ai-threat" element={<AIThreatDetection />} />
-                <Route path="/devices" element={<DeviceManagement />} />
-                <Route path="/blockchain-audit" element={<BlockchainAudit />} />
-                <Route path="/traffic" element={<TrafficMonitoring />} />
-                <Route path="/threat-intelligence" element={<ThreatIntelligence />} />
-                <Route path="/analytics" element={<SecurityAnalytics />} />
-                <Route path="/incidents" element={<IncidentResponse />} />
-                <Route path="/alerts" element={<AlertsCenter />} />
-                <Route path="/reports" element={<Reports />} />
-                <Route path="/users" element={<UserManagement />} />
-                <Route path="/settings" element={<Settings />} />
+          <ToastProvider>
+            <Routes>
+              <Route element={<PublicRoute />}>
+                <Route path="/login" element={<LoginPage />} />
               </Route>
-            </Route>
 
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
+              <Route element={<ProtectedRoute />}>
+                <Route element={<AppLayout />}>
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/network-topology" element={<NetworkTopology />} />
+                  <Route path="/ai-threat" element={<AIThreatDetection />} />
+                  <Route path="/devices" element={<DeviceManagement />} />
+                  <Route path="/blockchain-audit" element={<BlockchainAudit />} />
+                  <Route path="/traffic" element={<TrafficMonitoring />} />
+                  <Route path="/threat-intelligence" element={<ThreatIntelligence />} />
+                  <Route path="/analytics" element={<SecurityAnalytics />} />
+                  <Route path="/incidents" element={<IncidentResponse />} />
+                  <Route path="/alerts" element={<AlertsCenter />} />
+                  <Route path="/reports" element={<Reports />} />
+                  <Route path="/users" element={<UserManagement />} />
+                  <Route path="/settings" element={<Settings />} />
+                </Route>
+              </Route>
+
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </ToastProvider>
         </AppDataProvider>
       </AuthProvider>
     </BrowserRouter>

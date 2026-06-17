@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { HackerShell, TerminalTyping, GlitchText } from "../components/hacker";
+import { useToast } from "../components/Toast";
 
 const BOOT_LINES = [
   ">> SECURENET AI INITIALIZING...",
@@ -55,11 +56,21 @@ const trustBadges = [
 ];
 
 const PASSWORD_ACCOUNTS = [
+  { name: "Admin User", email: "admin@securenet.ai", password: "Admin@123", role: "Admin" },
   { name: "Kamran Singh (Admin)", email: "k.singh@secnet.ai", password: "admin123", role: "Admin" },
   { name: "Ahmad Rahman (Analyst)", email: "a.rahman@secnet.ai", password: "analyst123", role: "Analyst" },
   { name: "Sasha Ivanova (Engineer)", email: "s.ivanova@secnet.ai", password: "engineer123", role: "Engineer" },
   { name: "Priya Nair (Auditor)", email: "p.nair@secnet.ai", password: "auditor123", role: "Auditor" }
 ];
+
+const BLOCKCHAIN_ACCOUNTS = [
+  { name: "Kamran Singh (Admin)", address: "0x807b242b3494a8b68cA0dE01C323fFB0511eDF73", privateKey: "0x6168447c0400218f5d5f7a8a128141fc7364d8ea2314253b66ea227cd7715e6d", role: "Admin" },
+  { name: "Web3 Admin User", address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e", privateKey: "Web3@123", role: "Admin" },
+  { name: "Ahmad Rahman (Analyst)", address: "0xF04F38311C4115D4BF9b06D294A39047aCe7760c", privateKey: "0x9df02959bfa8a72556e2e188135ebb28eee672bfcaacdff74e3cf3a3ae4e3c36", role: "Analyst" },
+  { name: "Sasha Ivanova (Engineer)", address: "0x61E22c36CDca807Dfa1d9E5561949049AfA329CF", privateKey: "0x2599d4d6db5b8ad07ef1933d6322ed18ce6362a0e9254b4de04ce6090b1ced65", role: "Engineer" },
+  { name: "Priya Nair (Auditor)", address: "0x3dF2dCA8d92f5A16b754BE60097E05440f30f794", privateKey: "0x0b3128c68910ee7ac2822566c9e24c2ce982f786a37359ca297df81080b7f52c", role: "Auditor" }
+];
+
 
 
 
@@ -91,11 +102,12 @@ function GitHubIcon() {
 }
 
 export function LoginPage() {
+  const toast = useToast();
   const { login, loginWithPassword } = useAuth();
   const navigate = useNavigate();
   const [loginMode, setLoginMode] = useState<"password" | "wallet">("password");
-  const [email, setEmail] = useState("k.singh@secnet.ai");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("admin@securenet.ai");
+  const [password, setPassword] = useState("Admin@123");
   const [address, setAddress] = useState("0x807b242b3494a8b68cA0dE01C323fFB0511eDF73");
   const [privateKey, setPrivateKey] = useState("0x6168447c0400218f5d5f7a8a128141fc7364d8ea2314253b66ea227cd7715e6d");
   const [showPassword, setShowPassword] = useState(false);
@@ -268,7 +280,7 @@ export function LoginPage() {
                             type="text"
                             value={address}
                             onChange={(e) => setAddress(e.target.value)}
-                            placeholder="Ethereum Public Address (0x...)"
+                            placeholder="Wallet ID or Ethereum Public Address (0x...)"
                             required
                             className="hacker-login__input"
                           />
@@ -283,7 +295,7 @@ export function LoginPage() {
                             type={showPassword ? "text" : "password"}
                             value={privateKey}
                             onChange={(e) => setPrivateKey(e.target.value)}
-                            placeholder="Ethereum Private Key (0x...)"
+                            placeholder="Ethereum Private Key or Password (0x...)"
                             required
                             className="hacker-login__input"
                           />
@@ -359,41 +371,153 @@ export function LoginPage() {
                   })}
                 </div>
 
-                <div className="hacker-login__demo">
+                <div className="hacker-login__demo" style={{ marginTop: "16px" }}>
                   <button
                     type="button"
                     className="hacker-login__demo-toggle"
                     onClick={() => setShowDemo(!showDemo)}
+                    style={{
+                      fontFamily: "Share Tech Mono, monospace",
+                      fontSize: "11px",
+                      background: "rgba(0, 255, 65, 0.05)",
+                      border: "1px solid rgba(0, 255, 65, 0.3)",
+                      color: "#00FF41",
+                      padding: "6px 12px",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      width: "100%",
+                      textAlign: "center",
+                      fontWeight: 600,
+                      boxShadow: "0 0 10px rgba(0, 255, 65, 0.05)",
+                      transition: "all 0.2s"
+                    }}
                   >
-                    {showDemo ? "[ HIDE DEMO ACCOUNTS ]" : "[ USE DEMO ACCOUNT ]"}
+                    {showDemo ? "[ HIDE DEMO CREDENTIALS ]" : "[ SHOW DEMO CREDENTIALS ]"}
                   </button>
                   {showDemo && (
-                    <div className="hacker-login__demo-list">
+                    <div style={{ marginTop: "12px", padding: "12px", border: "1px dashed rgba(0, 255, 65, 0.3)", borderRadius: "8px", background: "rgba(0, 255, 65, 0.02)", display: "flex", flexDirection: "column", gap: "8px" }}>
+                      <p style={{ fontSize: "10px", fontWeight: 700, color: "#00FF41", textTransform: "uppercase", letterSpacing: "0.05em", margin: 0 }}>Active Demo Credentials</p>
+                      
                       {loginMode === "password" ? (
-                        PASSWORD_ACCOUNTS.map((acc) => (
+                        <>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
+                            <span style={{ fontSize: "11px", color: "rgba(110, 231, 160, 0.85)", fontFamily: "Share Tech Mono, monospace" }}>
+                              Email: <strong style={{ color: "#E2E8F0" }}>admin@securenet.ai</strong>
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText("admin@securenet.ai");
+                                toast.info("Copied to Clipboard", "admin@securenet.ai");
+                              }}
+                              style={{ fontSize: "9px", background: "rgba(0, 255, 65, 0.1)", border: "1px solid rgba(0, 255, 65, 0.4)", color: "#00FF41", padding: "2px 6px", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace" }}
+                            >
+                              Copy
+                            </button>
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
+                            <span style={{ fontSize: "11px", color: "rgba(110, 231, 160, 0.85)", fontFamily: "Share Tech Mono, monospace" }}>
+                              Password: <strong style={{ color: "#E2E8F0" }}>Admin@123</strong>
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText("Admin@123");
+                                toast.info("Copied to Clipboard", "Admin@123");
+                              }}
+                              style={{ fontSize: "9px", background: "rgba(0, 255, 65, 0.1)", border: "1px solid rgba(0, 255, 65, 0.4)", color: "#00FF41", padding: "2px 6px", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace" }}
+                            >
+                              Copy
+                            </button>
+                          </div>
                           <button
-                            key={acc.email}
                             type="button"
-                            className="hacker-login__demo-item"
-                            onClick={() => fillDemo(acc)}
+                            onClick={() => {
+                              setEmail("admin@securenet.ai");
+                              setPassword("Admin@123");
+                            }}
+                            style={{ width: "100%", padding: "6px", fontSize: "10px", fontWeight: 700, background: "#00FF41", color: "#000", border: "none", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace", marginTop: "4px" }}
                           >
-                            <span>{acc.name}</span>
-                            <span style={{ fontSize: "9px", opacity: 0.6 }}>{acc.email}</span>
+                            AUTO FILL DEMO
                           </button>
-                        ))
+                        </>
                       ) : (
-                        BLOCKCHAIN_ACCOUNTS.map((acc) => (
+                        <>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
+                            <span style={{ fontSize: "11px", color: "rgba(110, 231, 160, 0.85)", fontFamily: "Share Tech Mono, monospace" }}>
+                              Wallet ID: <strong style={{ color: "#E2E8F0" }}>0x807b242b3494a8b68cA0dE01C323fFB0511eDF73</strong>
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText("0x807b242b3494a8b68cA0dE01C323fFB0511eDF73");
+                                toast.info("Copied to Clipboard", "0x807b242b3494a8b68cA0dE01C323fFB0511eDF73");
+                              }}
+                              style={{ fontSize: "9px", background: "rgba(0, 255, 65, 0.1)", border: "1px solid rgba(0, 255, 65, 0.4)", color: "#00FF41", padding: "2px 6px", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace" }}
+                            >
+                              Copy
+                            </button>
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
+                            <span style={{ fontSize: "11px", color: "rgba(110, 231, 160, 0.85)", fontFamily: "Share Tech Mono, monospace" }}>
+                              Private Key: <strong style={{ color: "#E2E8F0" }}>0x616844...15e6d</strong>
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText("0x6168447c0400218f5d5f7a8a128141fc7364d8ea2314253b66ea227cd7715e6d");
+                                toast.info("Copied to Clipboard", "0x6168447c0400218f5d5f7a8a128141fc7364d8ea2314253b66ea227cd7715e6d");
+                              }}
+                              style={{ fontSize: "9px", background: "rgba(0, 255, 65, 0.1)", border: "1px solid rgba(0, 255, 65, 0.4)", color: "#00FF41", padding: "2px 6px", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace" }}
+                            >
+                              Copy
+                            </button>
+                          </div>
                           <button
-                            key={acc.address}
                             type="button"
-                            className="hacker-login__demo-item"
-                            onClick={() => fillDemo(acc)}
+                            onClick={() => {
+                              setAddress("0x807b242b3494a8b68cA0dE01C323fFB0511eDF73");
+                              setPrivateKey("0x6168447c0400218f5d5f7a8a128141fc7364d8ea2314253b66ea227cd7715e6d");
+                            }}
+                            style={{ width: "100%", padding: "6px", fontSize: "10px", fontWeight: 700, background: "#00FF41", color: "#000", border: "none", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace", marginTop: "4px" }}
                           >
-                            <span>{acc.name}</span>
-                            <span style={{ fontSize: "9px", opacity: 0.6 }}>{acc.address.slice(0, 10)}...</span>
+                            AUTO FILL DEMO
                           </button>
-                        ))
+                        </>
                       )}
+                      
+                      <div style={{ borderTop: "1px solid rgba(0, 255, 65, 0.15)", paddingTop: "8px", marginTop: "4px" }}>
+                        <p style={{ fontSize: "9px", color: "rgba(110, 231, 160, 0.6)", textTransform: "uppercase", marginBottom: "6px", margin: 0 }}>Or Select Other Demo Accounts</p>
+                        <div className="hacker-login__demo-list" style={{ maxHeight: "110px", overflowY: "auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", marginTop: "4px" }}>
+                          {loginMode === "password" ? (
+                            PASSWORD_ACCOUNTS.slice(1).map((acc) => (
+                              <button
+                                key={acc.email}
+                                type="button"
+                                className="hacker-login__demo-item"
+                                onClick={() => fillDemo(acc)}
+                                style={{ padding: "4px 8px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(0,255,65,0.1)", borderRadius: "4px", color: "#6EE7A0", cursor: "pointer", textAlign: "left", fontSize: "10px" }}
+                              >
+                                <div style={{ fontWeight: 600 }}>{acc.name.split(" ")[0]}</div>
+                                <div style={{ fontSize: "8px", opacity: 0.6 }}>{acc.role}</div>
+                              </button>
+                            ))
+                          ) : (
+                            BLOCKCHAIN_ACCOUNTS.slice(1).map((acc) => (
+                              <button
+                                key={acc.address}
+                                type="button"
+                                className="hacker-login__demo-item"
+                                onClick={() => fillDemo(acc)}
+                                style={{ padding: "4px 8px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(0,255,65,0.1)", borderRadius: "4px", color: "#6EE7A0", cursor: "pointer", textAlign: "left", fontSize: "10px" }}
+                              >
+                                <div style={{ fontWeight: 600 }}>{acc.name.split(" ")[0]}</div>
+                                <div style={{ fontSize: "8px", opacity: 0.6 }}>{acc.address.slice(0, 10)}...</div>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>

@@ -74,33 +74,31 @@ export function AppLayout() {
   }, [mobileSidebarOpen]);
 
   return (
-    <ToastProvider>
-      <HackerShell rainOpacity={0.06} showScanline>
-        <div className="app-layout cyber-shell" style={{ fontFamily: "'Inter', sans-serif" }}>
-          <div
-            className={`app-layout__sidebar-backdrop ${mobileSidebarOpen ? "is-visible" : ""}`}
-            onClick={() => setMobileSidebarOpen(false)}
-            aria-hidden="true"
-          />
+    <HackerShell rainOpacity={0.06} showScanline>
+      <div className="app-layout cyber-shell" style={{ fontFamily: "'Inter', sans-serif" }}>
+        <div
+          className={`app-layout__sidebar-backdrop ${mobileSidebarOpen ? "is-visible" : ""}`}
+          onClick={() => setMobileSidebarOpen(false)}
+          aria-hidden="true"
+        />
 
-          <Sidebar
-            mobileOpen={mobileSidebarOpen}
-            onMobileClose={() => setMobileSidebarOpen(false)}
-          />
+        <Sidebar
+          mobileOpen={mobileSidebarOpen}
+          onMobileClose={() => setMobileSidebarOpen(false)}
+        />
 
-          <div className="app-layout__main">
-            <TopHeader onMenuClick={() => setMobileSidebarOpen(true)} />
+        <div className="app-layout__main">
+          <TopHeader onMenuClick={() => setMobileSidebarOpen(true)} />
 
-            <div style={{ position: "relative", zIndex: 1, flexShrink: 0 }}>
-              <Breadcrumb />
-            </div>
+          <div style={{ position: "relative", zIndex: 1, flexShrink: 0 }}>
+            <Breadcrumb />
+          </div>
 
-            <div className="app-layout__content">
-              <Outlet />
-            </div>
+          <div className="app-layout__content">
+            <Outlet />
           </div>
         </div>
-      </HackerShell>
-    </ToastProvider>
+      </div>
+    </HackerShell>
   );
 }
