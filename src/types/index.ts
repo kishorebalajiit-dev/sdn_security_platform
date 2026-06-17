@@ -23,10 +23,12 @@ export interface AuthUser {
   role: UserRole;
   department: Department;
   initials: string;
+  ethAddress?: string;
 }
 
 export interface Alert {
   id: string;
+  dbId?: number;
   severity: "critical" | "high" | "medium" | "low";
   title: string;
   message: string;
@@ -42,6 +44,7 @@ export type DeviceStatus = "healthy" | "warning" | "compromised" | "blocked";
 
 export interface Device {
   id: string;
+  dbId?: number;
   name: string;
   type: DeviceType;
   ip: string;
@@ -57,6 +60,7 @@ export interface Device {
 
 export interface PlatformUser {
   id: string;
+  dbId?: number;
   name: string;
   email: string;
   role: UserRole;
@@ -65,12 +69,14 @@ export interface PlatformUser {
   lastLogin: string;
   department?: Department;
   permissions: string[];
+  ethAddress?: string;
 }
 
 export type ThreatStatus = "active" | "blocked" | "quarantined" | "safe" | "investigating";
 
 export interface Threat {
   id: string;
+  dbId?: number;
   device: string;
   ip: string;
   type: string;
@@ -96,6 +102,7 @@ export interface AnalystNote {
 
 export interface Incident {
   id: string;
+  dbId?: number;
   title: string;
   severity: "P1" | "P2" | "P3" | "P4";
   status: "open" | "assigned" | "resolved";

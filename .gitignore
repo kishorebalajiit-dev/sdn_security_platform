@@ -5,3 +5,13 @@ dist/
 *.log
 build.out
 .DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+instance/
+*.db
+*.pkl
+compile_contract.py
+

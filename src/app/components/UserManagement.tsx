@@ -27,7 +27,7 @@ const roleConfig: Record<Role, { color: string; bg: string; description: string 
 
 const modules = [...PERMISSION_MODULES];
 
-const emptyForm = { name: "", email: "", role: "Security Analyst" as Role, department: "SOC" as Department, mfa: true };
+const emptyForm = { name: "", email: "", role: "Security Analyst" as Role, department: "SOC" as Department, mfa: true, ethAddress: "" };
 
 interface UserFormBodyProps {
   form: typeof emptyForm;
@@ -48,6 +48,10 @@ const UserFormBody = memo(function UserFormBody({ form, formErrors, setField }: 
           {formErrors.email && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{formErrors.email}</p>}
         </Field>
       </div>
+      <Field label="Ethereum Address" required>
+        <input value={form.ethAddress} onChange={(e) => setField("ethAddress", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.ethAddress ? "#EF4444" : "rgba(37,99,235,0.2)" }} placeholder="0x..." />
+        {formErrors.ethAddress && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{formErrors.ethAddress}</p>}
+      </Field>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
         <Field label="Role" required>
           <select value={form.role} onChange={(e) => setField("role", e.target.value)} style={selectStyle}>
@@ -103,7 +107,7 @@ export function UserManagement() {
 
   const filtered = useMemo(() => users.filter((u) => {
     const query = debouncedSearch.trim().toLowerCase();
-    const matchSearch = u.id.toLowerCase().includes(query) || u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query) || u.role.toLowerCase().includes(query) || u.department?.toLowerCase().includes(query);
+    const matchSearch = u.id.toLowerCase().includes(query) || u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query) || u.role.toLowerCase().includes(query) || u.department?.toLowerCase().includes(query) || (u.ethAddress && u.ethAddress.toLowerCase().includes(query));
     const matchRole = roleFilter === "all" || u.role === roleFilter;
     return matchSearch && matchRole;
   }), [debouncedSearch, roleFilter, users]);
@@ -112,6 +116,11 @@ export function UserManagement() {
     const errors: Record<string, string> = {};
     if (!form.name.trim()) errors.name = "Required";
     if (!form.email.trim()) errors.email = "Required";
+    if (!form.ethAddress.trim()) {
+      errors.ethAddress = "Required";
+    } else if (!/^0x[a-fA-F0-9]{40}$/.test(form.ethAddress.trim())) {
+      errors.ethAddress = "Invalid Ethereum address format";
+    }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -123,7 +132,7 @@ export function UserManagement() {
   }, []);
 
   const openEdit = useCallback((user: PlatformUser) => {
-    setForm({ name: user.name, email: user.email, role: user.role, department: user.department ?? "SOC", mfa: user.mfa });
+    setForm({ name: user.name, email: user.email, role: user.role, department: user.department ?? "SOC", mfa: user.mfa, ethAddress: user.ethAddress || "" });
     setFormErrors({});
     setEditUser(user);
   }, []);
@@ -132,8 +141,8 @@ export function UserManagement() {
     if (!validateForm()) return;
     setSaving(true);
     try {
-      await addUser({ name: form.name, email: form.email, role: form.role, department: form.department, mfa: form.mfa });
-      toast.success("User Added", form.name);
+      await addUser({ name: form.name, email: form.email, role: form.role, department: form.department, mfa: form.mfa, ethAddress: form.ethAddress });
+      toast.success("User Added & Registered On-Chain", form.name);
       setAddOpen(false);
     } finally {
       setSaving(false);
@@ -144,7 +153,7 @@ export function UserManagement() {
     if (!validateForm() || !editUser) return;
     setSaving(true);
     try {
-      await updateUser({ ...editUser, name: form.name, email: form.email, role: form.role, department: form.department, mfa: form.mfa });
+      await updateUser({ ...editUser, name: form.name, email: form.email, role: form.role, department: form.department, mfa: form.mfa, ethAddress: form.ethAddress });
       toast.success("User Updated", form.name);
       setEditUser(null);
     } finally {

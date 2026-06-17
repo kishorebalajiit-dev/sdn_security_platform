@@ -1,73 +1,73 @@
 version: '3.8'
 
 services:
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-    ports:
-      - "5173:5173"
-    networks:
-      - securenet
-    depends_on:
-      - backend
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "5000:5000"
-    environment:
-      - DATABASE_URL=postgresql://user:password@postgres/securenet_ai
-      - GANACHE_URL=http://ganache:8545
-      - RYU_CONTROLLER_URL=http://ryu:8080
-      - FLASK_APP=wsgi.py
-      - FLASK_RUN_HOST=0.0.0.0
-    networks:
-      - securenet
-    depends_on:
-      - postgres
-      - ganache
-      - ryu
-
   postgres:
-    image: postgres:13
+    image: postgres:16-alpine
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=securenet_ai
+      POSTGRES_DB: securenet_ai
+      POSTGRES_USER: securenet
+      POSTGRES_PASSWORD: securenet
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - securenet
 
   ganache:
-    image: trufflesuite/ganache-cli:latest
+    image: trufflesuite/ganache:v7.9.0
+    command: --host 0.0.0.0 --port 8545 --mnemonic "securenet development key mnemonic" --accounts 10 --defaultBalanceEther 100
     ports:
       - "8545:8545"
-    command: --db /ganache-data -h 0.0.0.0
-    volumes:
-      - ganache_data:/ganache-data
-    networks:
-      - securenet
 
   ryu:
     build:
-      context: ./backend
-      dockerfile: Dockerfile.ryu
+      context: ./ryu_controller
+      dockerfile: Dockerfile
     ports:
+      - "6633:6633"
       - "8080:8080"
-      - "6653:6653"
-    networks:
-      - securenet
+    volumes:
+      - ./ryu_controller:/app
 
-networks:
-  securenet:
-    driver: bridge
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      SECRET_KEY: change-me
+      JWT_SECRET_KEY: change-me-too
+      DATABASE_URL: postgresql+psycopg2://securenet:securenet@postgres:5432/securenet_ai
+      GANACHE_URL: http://ganache:8545
+      RYU_API_URL: http://ryu:8080
+      AUTO_CREATE_TABLES: "1"
+    depends_on:
+      - postgres
+      - ganache
+      - ryu
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - VITE_API_BASE_URL=http://localhost:5000/api/v1
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+
+  mininet:
+    build:
+      context: ./mininet
+      dockerfile: Dockerfile
+    privileged: true
+    network_mode: host
+    volumes:
+      - /lib/modules:/lib/modules
+    depends_on:
+      - ryu
+      - backend
 
 volumes:
   postgres_data:
-  ganache_data:

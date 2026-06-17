@@ -1,94 +1,99 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { login as apiLogin, getMe } from "../api/api";
 import { AUTH_KEY, loadFromStorage, removeFromStorage, saveToStorage } from "../lib/storage";
 import type { AuthUser, UserRole } from "../types";
+import { client } from "../api/client";
+import { Wallet } from "ethers";
 
 interface AuthSession {
   user: AuthUser;
   token: string;
+  loginAt: string;
 }
 
 interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<{ ok: true } | { ok: false; error: string }>;
+  login: (address: string, privateKey: string) => Promise<{ ok: true } | { ok: false; error: string }>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function toAuthUser(backendUser: any): AuthUser {
-    const initials = (backendUser.username || "")
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase();
-
-    return {
-        id: backendUser.id.toString(),
-        name: backendUser.username,
-        email: backendUser.username, // Assuming username is email for now
-        role: backendUser.role as UserRole,
-        department: "SOC", // This can be extended in the backend user model
-        initials,
-    };
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchUser = useCallback(async () => {
-    try {
-      const response = await getMe();
-      const user = toAuthUser(response.data.user);
-      const token = localStorage.getItem('access_token');
-      if (user && token) {
-        setSession({ user, token });
-      }
-    } catch (error) {
-      console.error("Failed to fetch user", error);
+  useEffect(() => {
+    const handleAuthExpired = () => {
       setSession(null);
       removeFromStorage(AUTH_KEY);
-      localStorage.removeItem('access_token');
-    } finally {
-      setIsLoading(false);
-    }
+    };
+    window.addEventListener("auth-expired", handleAuthExpired);
+    return () => window.removeEventListener("auth-expired", handleAuthExpired);
   }, []);
 
   useEffect(() => {
-    const token = loadFromStorage<string>('access_token');
-    if (token) {
-      fetchUser();
-    } else {
-      setIsLoading(false);
+    const stored = loadFromStorage<AuthSession>(AUTH_KEY);
+    if (stored?.user && stored.token) {
+      setSession(stored);
     }
-  }, [fetchUser]);
+    setIsLoading(false);
+  }, []);
 
-  const login = useCallback(async (username: string, password: string) => {
+  const login = useCallback(async (address: string, privateKey: string) => {
     try {
-      const response = await apiLogin({ username, password });
-      const { access_token, user: backendUser } = response.data;
-      const user = toAuthUser(backendUser);
+      // 1. Fetch nonce from backend challenge endpoint
+      const nonceRes = await client.get(`/auth/nonce?address=${address}`);
+      const nonce = nonceRes.data.data.nonce;
+
+      // 2. Cryptographically sign the challenge with the private key
+      let signature: string;
+      try {
+        const wallet = new Wallet(privateKey);
+        if (wallet.address.toLowerCase() !== address.toLowerCase()) {
+          return { ok: false as const, error: "Private key does not match the Ethereum address" };
+        }
+        signature = await wallet.signMessage(nonce);
+      } catch (e) {
+        return { ok: false as const, error: "Invalid private key format" };
+      }
+
+      // 3. Post verification payload to authentication gateway
+      const loginRes = await client.post("/auth/login", {
+        address,
+        signature,
+      });
+
+      const { access_token, user } = loginRes.data.data;
       
-      const newSession: AuthSession = { user, token: access_token };
+      const newSession: AuthSession = {
+        user: {
+          id: user.id,
+          name: user.full_name,
+          email: user.email,
+          role: user.role as UserRole,
+          department: "SOC",
+          initials: user.full_name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase(),
+          ethAddress: user.eth_address
+        },
+        token: access_token,
+        loginAt: new Date().toISOString(),
+      };
+
       setSession(newSession);
-      saveToStorage('access_token', access_token);
-      saveToStorage(AUTH_KEY, newSession); // For compatibility with existing logic
-      
+      saveToStorage(AUTH_KEY, newSession);
       return { ok: true as const };
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || "Login failed";
-      return { ok: false as const, error: errorMessage };
+    } catch (e: any) {
+      console.error("Login failed", e);
+      const errorMsg = e.response?.data?.message || "Connection to security gateway failed";
+      return { ok: false as const, error: errorMsg };
     }
   }, []);
 
   const logout = useCallback(() => {
     setSession(null);
     removeFromStorage(AUTH_KEY);
-    localStorage.removeItem('access_token');
   }, []);
 
   const value = useMemo(
@@ -110,3 +115,4 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
+

@@ -8,9 +8,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { mockDelay, mockDelayVoid } from "../api/mockApi";
-import { getInitialAppData } from "../data/initialData";
-import { APP_DATA_KEY, loadFromStorage, saveToStorage } from "../lib/storage";
+import { client } from "../api/client";
+import { useAuth } from "./AuthContext";
 import type {
   Alert,
   AppDataState,
@@ -116,7 +115,7 @@ interface AppDataContextValue extends AppDataState {
   updateDevice: (device: Device) => Promise<void>;
   deleteDevice: (id: string) => Promise<void>;
   blockDevice: (id: string) => Promise<void>;
-  addUser: (user: Omit<PlatformUser, "id" | "status" | "lastLogin" | "permissions">) => Promise<PlatformUser>;
+  addUser: (user: Omit<PlatformUser, "id" | "status" | "lastLogin" | "permissions" | "ethAddress"> & { ethAddress?: string }) => Promise<PlatformUser>;
   updateUser: (user: PlatformUser) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
   updateThreatStatus: (id: string, status: Threat["status"]) => Promise<void>;
@@ -138,123 +137,269 @@ export interface SearchResult {
 const AppDataContext = createContext<AppDataContextValue | null>(null);
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, getInitialAppData());
+  const { isAuthenticated } = useAuth();
+  const [state, dispatch] = useReducer(reducer, {
+    alerts: [],
+    devices: [],
+    users: [],
+    threats: [],
+    incidents: [],
+    notifications: []
+  });
   const [isHydrated, setIsHydrated] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    const stored = loadFromStorage<AppDataState>(APP_DATA_KEY);
-    if (stored?.alerts?.length) {
-      dispatch({ type: "HYDRATE", payload: stored });
+  const loadAllData = useCallback(async () => {
+    if (!isAuthenticated) return;
+    setIsRefreshing(true);
+    try {
+      const [devicesRes, alertsRes, incidentsRes, threatsRes, usersRes] = await Promise.all([
+        client.get("/devices"),
+        client.get("/alerts"),
+        client.get("/incidents"),
+        client.get("/threats"),
+        client.get("/admin/users").catch(() => ({ data: { data: { items: [] } } }))
+      ]);
+
+      const payload: AppDataState = {
+        devices: (devicesRes.data.data.items || []).map((d: any) => ({
+          id: d.device_id,
+          dbId: d.id,
+          name: d.device_name,
+          type: d.device_type,
+          ip: d.ip_address,
+          mac: d.mac_address,
+          location: d.location || "",
+          os: d.firmware_version || "",
+          status: d.threat_status,
+          lastSeen: d.last_seen || "Active",
+          riskScore: d.risk_score,
+          connType: d.metadata?.connType || "Ethernet 1G",
+          owner: d.owner || ""
+        })),
+        alerts: (alertsRes.data.data.items || []).map((a: any) => ({
+          id: a.alert_id,
+          dbId: a.id,
+          severity: a.severity,
+          title: a.title,
+          message: a.message,
+          device: a.device_name || "Unknown",
+          date: new Date(a.created_at || Date.now()).toISOString().split("T")[0],
+          time: new Date(a.created_at || Date.now()).toTimeString().split(" ")[0].slice(0, 5),
+          status: a.status
+        })),
+        incidents: (incidentsRes.data.data.items || []).map((i: any) => ({
+          id: i.incident_id,
+          dbId: i.id,
+          title: i.title,
+          severity: i.severity,
+          status: i.status,
+          assignee: i.assigned_to || "Unassigned",
+          device: i.device || "Unknown",
+          created: i.created_at ? new Date(i.created_at).toISOString().replace("T", " ").slice(0, 16) : "",
+          updated: i.updated_at ? new Date(i.updated_at).toISOString().replace("T", " ").slice(0, 16) : "",
+          timeline: i.timeline || [],
+          notes: i.comments || []
+        })),
+        threats: (threatsRes.data.data.items || []).map((t: any) => ({
+          id: t.threat_id,
+          dbId: t.id,
+          device: t.device_name || "Unknown",
+          ip: t.ip_address || "0.0.0.0",
+          type: t.threat_classification,
+          risk: t.risk_score,
+          confidence: t.ai_confidence,
+          classification: t.threat_classification,
+          action: t.recommendation || "Block Device",
+          timestamp: t.created_at ? new Date(t.created_at).toISOString().replace("T", " ").slice(0, 19) : "",
+          status: t.status
+        })),
+        users: (usersRes.data.data.items || []).map((u: any) => ({
+          id: u.eth_address ? `ETH-${u.eth_address.slice(2, 6).toUpperCase()}` : `USR-${String(u.id).padStart(3, "0")}`,
+          dbId: u.id,
+          name: u.full_name,
+          email: u.email,
+          role: u.role,
+          status: u.is_active ? "active" : "inactive",
+          mfa: u.mfa_enabled,
+          lastLogin: u.last_login_at ? new Date(u.last_login_at).toISOString().replace("T", " ").slice(0, 16) : "—",
+          department: "SOC",
+          permissions: [],
+          ethAddress: u.eth_address
+        })),
+        notifications: [
+          { id: 1, text: "Sync with Ganache blockchain node complete", time: "Just now", color: "#8B5CF6", unread: true }
+        ]
+      };
+
+      dispatch({ type: "HYDRATE", payload });
+    } catch (e) {
+      console.error("Failed to load platform data", e);
+    } finally {
+      setIsHydrated(true);
+      setIsRefreshing(false);
     }
-    setIsHydrated(true);
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    if (isHydrated) {
-      saveToStorage(APP_DATA_KEY, state);
+    if (isAuthenticated) {
+      loadAllData();
+    } else {
+      setIsHydrated(true);
     }
-  }, [state, isHydrated]);
+  }, [isAuthenticated, loadAllData]);
 
   const updateAlertStatus = useCallback(async (id: string, status: Alert["status"]) => {
-    await mockDelayVoid(400);
-    dispatch({ type: "UPDATE_ALERT", payload: { id, status } });
-  }, []);
+    const alert = state.alerts.find((a) => a.id === id);
+    if (!alert) return;
+    const dbId = alert.dbId || alert.id;
+    if (status === "acknowledged") {
+      await client.post(`/alerts/${dbId}/acknowledge`);
+    } else if (status === "resolved") {
+      await client.post(`/alerts/${dbId}/resolve`);
+    }
+    await loadAllData();
+  }, [state.alerts, loadAllData]);
 
   const acknowledgeAllAlerts = useCallback(async () => {
-    await mockDelayVoid(500);
-    dispatch({
-      type: "SET_ALERTS",
-      payload: state.alerts.map((a) =>
-        a.status === "new" ? { ...a, status: "acknowledged" as const } : a
-      ),
-    });
-  }, [state.alerts]);
+    const newAlerts = state.alerts.filter((a) => a.status === "new");
+    await Promise.all(
+      newAlerts.map((a) => client.post(`/alerts/${a.dbId || a.id}/acknowledge`))
+    );
+    await loadAllData();
+  }, [state.alerts, loadAllData]);
 
   const refreshAlerts = useCallback(async () => {
-    setIsRefreshing(true);
-    await mockDelayVoid(900);
-    const fresh = getInitialAppData();
-    dispatch({
-      type: "REFRESH_DATA",
-      payload: { ...state, alerts: fresh.alerts, notifications: fresh.notifications },
-    });
-    setIsRefreshing(false);
-  }, [state]);
+    await loadAllData();
+  }, [loadAllData]);
 
-  const addDevice = useCallback(
-    async (input: Omit<Device, "id" | "status" | "lastSeen" | "riskScore" | "os">) => {
-      await mockDelayVoid();
-      const device: Device = {
-        ...input,
-        id: `DEV-${String(state.devices.length + 1).padStart(3, "0")}`,
-        status: "healthy",
-        lastSeen: "Active",
-        riskScore: 0,
-        os: "Unknown",
-      };
-      dispatch({ type: "ADD_DEVICE", payload: device });
-      return device;
-    },
-    [state.devices.length]
-  );
+  const addDevice = useCallback(async (input: any) => {
+    const payload = {
+      device_name: input.name,
+      device_type: input.type,
+      device_id: `DEV-${String(state.devices.length + 1).padStart(3, "0")}`,
+      mac_address: input.mac,
+      ip_address: input.ip,
+      location: input.location,
+      owner: input.owner,
+      firmware_version: "v1.0.0",
+      risk_score: 0,
+      threat_status: "healthy",
+      last_seen: "Active",
+      metadata: { connType: input.connType }
+    };
+    const res = await client.post("/devices", payload);
+    await loadAllData();
+    const d = res.data.data.device;
+    return {
+      id: d.device_id,
+      name: d.device_name,
+      type: d.device_type,
+      ip: d.ip_address,
+      mac: d.mac_address,
+      location: d.location,
+      os: d.firmware_version,
+      status: d.threat_status,
+      lastSeen: d.last_seen,
+      riskScore: d.risk_score,
+      connType: d.metadata?.connType || "Ethernet 1G",
+      owner: d.owner
+    };
+  }, [state.devices.length, loadAllData]);
 
   const updateDevice = useCallback(async (device: Device) => {
-    await mockDelayVoid();
-    dispatch({ type: "UPDATE_DEVICE", payload: device });
-  }, []);
+    const payload = {
+      device_name: device.name,
+      device_type: device.type,
+      mac_address: device.mac,
+      ip_address: device.ip,
+      location: device.location,
+      owner: device.owner,
+      firmware_version: device.os,
+      risk_score: device.riskScore,
+      threat_status: device.status,
+      last_seen: device.lastSeen,
+      metadata: { connType: device.connType }
+    };
+    await client.put(`/devices/${device.dbId}`, payload);
+    await loadAllData();
+  }, [loadAllData]);
 
   const deleteDevice = useCallback(async (id: string) => {
-    await mockDelayVoid();
-    dispatch({ type: "DELETE_DEVICE", payload: id });
-  }, []);
+    const dev = state.devices.find((d) => d.id === id);
+    if (!dev) return;
+    await client.delete(`/devices/${dev.dbId}`);
+    await loadAllData();
+  }, [state.devices, loadAllData]);
 
   const blockDevice = useCallback(async (id: string) => {
-    await mockDelayVoid(500);
-    const device = state.devices.find((d) => d.id === id);
-    if (device) {
-      dispatch({ type: "UPDATE_DEVICE", payload: { ...device, status: "blocked", riskScore: 100 } });
-    }
-  }, [state.devices]);
+    const dev = state.devices.find((d) => d.id === id);
+    if (!dev) return;
+    await client.post(`/devices/${dev.dbId}/block`);
+    await loadAllData();
+  }, [state.devices, loadAllData]);
 
-  const addUser = useCallback(
-    async (input: Omit<PlatformUser, "id" | "status" | "lastLogin" | "permissions">) => {
-      await mockDelayVoid();
-      const user: PlatformUser = {
-        ...input,
-        id: `USR-${String(state.users.length + 1).padStart(3, "0")}`,
-        status: "active",
-        lastLogin: "—",
-        permissions: [],
-      };
-      dispatch({ type: "ADD_USER", payload: user });
-      return user;
-    },
-    [state.users.length]
-  );
+  const addUser = useCallback(async (input: any) => {
+    const payload = {
+      email: input.email,
+      full_name: input.name,
+      role: input.role,
+      eth_address: input.ethAddress || "0x0000000000000000000000000000000000000000"
+    };
+    const res = await client.post("/admin/users", payload);
+    await loadAllData();
+    const u = res.data.data.user;
+    return {
+      id: u.eth_address ? `ETH-${u.eth_address.slice(2, 6).toUpperCase()}` : `USR-${u.id}`,
+      name: u.full_name,
+      email: u.email,
+      role: u.role,
+      status: u.is_active ? "active" : "inactive",
+      mfa: u.mfa_enabled,
+      lastLogin: "—",
+      department: "SOC",
+      permissions: [],
+      ethAddress: u.eth_address
+    };
+  }, [loadAllData]);
 
   const updateUser = useCallback(async (user: PlatformUser) => {
-    await mockDelayVoid();
-    dispatch({ type: "UPDATE_USER", payload: user });
-  }, []);
+    const payload = {
+      full_name: user.name,
+      role: user.role,
+      is_active: user.status === "active"
+    };
+    await client.put(`/admin/users/${user.dbId}`, payload);
+    await loadAllData();
+  }, [loadAllData]);
 
   const deleteUser = useCallback(async (id: string) => {
-    await mockDelayVoid();
-    dispatch({ type: "DELETE_USER", payload: id });
-  }, []);
+    const user = state.users.find((u) => u.id === id);
+    if (!user) return;
+    await client.delete(`/admin/users/${user.dbId}`);
+    await loadAllData();
+  }, [state.users, loadAllData]);
 
   const updateThreatStatus = useCallback(async (id: string, status: Threat["status"]) => {
-    await mockDelayVoid(500);
     dispatch({ type: "UPDATE_THREAT", payload: { id, status } });
   }, []);
 
   const addIncident = useCallback(async (incident: Incident) => {
-    await mockDelayVoid();
-    dispatch({ type: "ADD_INCIDENT", payload: incident });
-  }, []);
+    const payload = {
+      incident_id: incident.id,
+      title: incident.title,
+      severity: incident.severity,
+      status: incident.status,
+      assigned_to: incident.assignee,
+      timeline: incident.timeline,
+      comments: incident.notes,
+      summary: incident.title
+    };
+    await client.post("/incidents", payload);
+    await loadAllData();
+  }, [loadAllData]);
 
   const updateIncident = useCallback(async (incident: Incident) => {
-    await mockDelayVoid(400);
     dispatch({ type: "UPDATE_INCIDENT", payload: incident });
   }, []);
 
@@ -305,7 +450,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   );
 
   const resetToDefaults = useCallback(() => {
-    dispatch({ type: "HYDRATE", payload: getInitialAppData() });
+    dispatch({ type: "HYDRATE", payload: { alerts: [], devices: [], users: [], threats: [], incidents: [], notifications: [] } });
   }, []);
 
   const value = useMemo(
@@ -361,3 +506,4 @@ export function useAppData(): AppDataContextValue {
   if (!ctx) throw new Error("useAppData must be used within AppDataProvider");
   return ctx;
 }
+

@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link2, Search, Download, CheckCircle, XCircle, Clock, Shield, Copy, Loader } from "lucide-react";
 import { Modal, Field, inputStyle, selectStyle } from "./Modal";
 import { useToast } from "./Toast";
 import { useDebouncedValue } from "../../lib/useDebouncedValue";
+import { client } from "../../api/client";
 
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
@@ -24,17 +25,6 @@ interface Transaction {
   gasUsed: number;
   data: string;
 }
-
-const transactions: Transaction[] = [
-  { id: "TX-0001", hash: "0x3a8f2c1d4e7b9f0a2c3d5e6f8a9b0c1d2e3f4a5b", type: "integrity_check", device: "IoT-Sensor-48", status: "verified", timestamp: "2026-06-15 14:23:11", block: 47291, gasUsed: 21000, data: "Integrity check passed — hash matched" },
-  { id: "TX-0002", hash: "0x9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d", type: "audit_event", device: "Edge-SW-03", status: "verified", timestamp: "2026-06-15 14:20:05", block: 47290, gasUsed: 45000, data: "Security alert logged — ARP spoofing detected" },
-  { id: "TX-0003", hash: "0x1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c", type: "contract_call", device: "SDN-Controller", status: "verified", timestamp: "2026-06-15 14:18:47", block: 47289, gasUsed: 62000, data: "Smart contract: FirewallPolicy.updateRule()" },
-  { id: "TX-0004", hash: "0x5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e", type: "device_reg", device: "PC-Finance-New", status: "pending", timestamp: "2026-06-15 14:15:22", block: 47288, gasUsed: 0, data: "Awaiting consensus — 8/12 validators" },
-  { id: "TX-0005", hash: "0xc3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2", type: "policy_update", device: "Firewall-01", status: "verified", timestamp: "2026-06-15 14:10:08", block: 47287, gasUsed: 38000, data: "Policy updated — new ACL rules applied" },
-  { id: "TX-0006", hash: "0x7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a", type: "audit_event", device: "SVR-Web-01", status: "failed", timestamp: "2026-06-15 13:58:42", block: 47286, gasUsed: 21000, data: "Validation failed — signature mismatch detected" },
-  { id: "TX-0007", hash: "0xb0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9", type: "integrity_check", device: "Core-SW-01", status: "verified", timestamp: "2026-06-15 13:45:15", block: 47285, gasUsed: 21000, data: "Configuration integrity verified" },
-  { id: "TX-0008", hash: "0x2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f", type: "contract_call", device: "SDN-Controller", status: "verified", timestamp: "2026-06-15 13:30:29", block: 47284, gasUsed: 54000, data: "Smart contract: DeviceRegistry.register()" },
-];
 
 const typeLabels: Record<Transaction["type"], { label: string; color: string }> = {
   device_reg: { label: "Device Registration", color: "#2563EB" },
@@ -64,12 +54,77 @@ export function BlockchainAudit() {
   const [exportForm, setExportForm] = useState({ dateFrom: "", dateTo: "", txType: "all", format: "CSV" });
   const debouncedSearch = useDebouncedValue(search, 140);
 
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchTransactions = async () => {
+    setLoading(true);
+    try {
+      const res = await client.get("/blockchain/transactions?per_page=100");
+      const items = res.data.data.items || [];
+      const mapped: Transaction[] = items.map((item: any) => {
+        let type: Transaction["type"] = "contract_call";
+        if (item.event_type === "DeviceRegistration") type = "device_reg";
+        else if (item.event_type === "AuditRecord" || item.event_type === "UserRegistration") type = "audit_event";
+        else if (item.event_type === "ThreatResolution") type = "integrity_check";
+        else if (["DeviceBlocking", "DeviceAllowance", "DeviceQuarantine", "DeviceMonitoring"].includes(item.event_type)) type = "policy_update";
+
+        let deviceName = "System";
+        if (item.payload) {
+          deviceName = item.payload.device_name || item.payload.device_id || item.payload.full_name || item.payload.email || "System";
+        }
+
+        let dataStr = "";
+        if (item.event_type === "DeviceRegistration") {
+          dataStr = `Device registered: ${item.payload?.device_name || ""} (${item.payload?.ip_address || ""})`;
+        } else if (item.event_type === "DeviceBlocking") {
+          dataStr = `SDN blocked device: ${item.payload?.device_name || ""} (${item.payload?.mac_address || ""})`;
+        } else if (item.event_type === "DeviceAllowance") {
+          dataStr = `SDN allowed device: ${item.payload?.device_name || ""} (${item.payload?.mac_address || ""})`;
+        } else if (item.event_type === "DeviceQuarantine") {
+          dataStr = `SDN quarantined device: ${item.payload?.device_name || ""} (${item.payload?.mac_address || ""})`;
+        } else if (item.event_type === "DeviceMonitoring") {
+          dataStr = `SDN monitoring device: ${item.payload?.device_name || ""} (${item.payload?.mac_address || ""})`;
+        } else if (item.event_type === "ThreatResolution") {
+          dataStr = `Threat resolved: ${item.payload?.title || ""}`;
+        } else if (item.event_type === "UserRegistration") {
+          dataStr = `User registered: ${item.payload?.full_name || ""} as ${item.payload?.role || ""}`;
+        } else {
+          dataStr = `Transaction payload signature check passed`;
+        }
+
+        return {
+          id: `TX-${String(item.id).padStart(4, "0")}`,
+          hash: item.tx_hash,
+          type,
+          device: deviceName,
+          status: item.verified ? "verified" : "failed",
+          timestamp: item.created_at ? new Date(item.created_at).toISOString().replace("T", " ").slice(0, 19) : new Date().toISOString().replace("T", " ").slice(0, 19),
+          block: item.block_number || 0,
+          gasUsed: item.gas_used || 0,
+          data: dataStr,
+          rawPayload: item.payload
+        };
+      });
+      setTransactions(mapped);
+    } catch (err) {
+      console.error(err);
+      toast.error("Error", "Failed to fetch blockchain transactions");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
   const filtered = useMemo(() => transactions.filter((t) => {
     const query = debouncedSearch.toLowerCase();
     const matchSearch = t.id.toLowerCase().includes(query) || t.device.toLowerCase().includes(query) || t.hash.includes(debouncedSearch) || t.data.toLowerCase().includes(query);
     const matchType = typeFilter === "all" || t.type === typeFilter;
     return matchSearch && matchType;
-  }), [debouncedSearch, typeFilter]);
+  }), [transactions, debouncedSearch, typeFilter]);
 
   const copyHash = (hash: string) => {
     navigator.clipboard.writeText(hash);
@@ -77,31 +132,115 @@ export function BlockchainAudit() {
     setTimeout(() => setCopied(false), 1500);
   };
 
-  const handleVerifyIntegrity = () => {
+  const handleVerifyIntegrity = async () => {
     setVerifying(true);
-    setTimeout(() => {
+    try {
+      if (selected) {
+        const res = await client.post("/blockchain/verify", {
+          tx_hash: selected.hash,
+          payload: (selected as any).rawPayload || {}
+        });
+        if (res.data.data.verified) {
+          toast.success("Integrity Verified", `Transaction ${selected.id} has been verified on-chain!`);
+        } else {
+          toast.error("Integrity Failure", `Transaction ${selected.id} has invalid signature or block hash!`);
+        }
+      } else {
+        if (transactions.length === 0) {
+          toast.error("Verification", "No transactions to verify");
+          setVerifying(false);
+          return;
+        }
+        let allOk = true;
+        for (const tx of transactions) {
+          const res = await client.post("/blockchain/verify", {
+            tx_hash: tx.hash,
+            payload: (tx as any).rawPayload || {}
+          });
+          if (!res.data.data.verified) {
+            allOk = false;
+            break;
+          }
+        }
+        if (allOk) {
+          toast.success("Chain Integrity Verified", `All ${transactions.length} blocks validated — no tampering detected`);
+        } else {
+          toast.error("Integrity Mismatch", "Some block hashes do not match the on-chain registry!");
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Verification Error", "Failed to communicate with validator nodes");
+    } finally {
       setVerifying(false);
-      toast.success("Integrity Verified", "All 47,291 blocks validated — no tampering detected");
-    }, 1500);
+    }
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     setExporting(true);
-    setTimeout(() => {
-      setExporting(false);
-      setExportOpen(false);
+    try {
+      const res = await client.post(
+        "/reports/generate",
+        { type: exportForm.txType, format: exportForm.format.toLowerCase() },
+        { responseType: "blob" }
+      );
+      const blob = new Blob([res.data], { type: exportForm.format === "CSV" ? "text/csv" : "application/json" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `securenet-blockchain-export.${exportForm.format.toLowerCase()}`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
       toast.success("Logs Exported", "File saved to downloads");
-    }, 1200);
+      setExportOpen(false);
+    } catch (err) {
+      console.error(err);
+      toast.error("Export Failed", "Failed to export audit logs");
+    } finally {
+      setExporting(false);
+    }
   };
 
-  const handleDownloadReport = () => {
+  const handleDownloadReport = async () => {
     setDownloading(true);
-    setTimeout(() => {
-      setDownloading(false);
-      setReportOpen(false);
+    try {
+      const res = await client.post(
+        "/reports/generate",
+        { type: "blockchain_audit", format: "pdf" },
+        { responseType: "blob" }
+      );
+      const blob = new Blob([res.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "securenet-blockchain-report.pdf");
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
       toast.success("Audit Report Downloaded", "PDF saved to downloads");
-    }, 800);
+      setReportOpen(false);
+    } catch (err) {
+      console.error(err);
+      toast.error("Download Failed", "Failed to download audit report");
+    } finally {
+      setDownloading(false);
+    }
   };
+
+  const stats = useMemo(() => {
+    const total = transactions.length;
+    const verified = transactions.filter((t) => t.status === "verified").length;
+    const failed = transactions.filter((t) => t.status === "failed").length;
+    const blockHeight = transactions.length > 0 ? Math.max(...transactions.map(t => t.block)) : 47291;
+    return {
+      blockHeight,
+      total,
+      verified,
+      pending: 0,
+      failed
+    };
+  }, [transactions]);
 
   const setExportField = (k: keyof typeof exportForm, v: string) => setExportForm((p) => ({ ...p, [k]: v }));
 
@@ -188,12 +327,12 @@ export function BlockchainAudit() {
           <div style={{ padding: "14px", background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)", borderRadius: "10px" }}>
             <p style={{ fontSize: "11px", color: "#64748B", marginBottom: "10px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Report Preview</p>
             {[
-              { label: "Block Height", value: "47,291" },
-              { label: "Total Transactions", value: "47,291" },
-              { label: "Verified Blocks", value: "47,284" },
-              { label: "Failed / Pending", value: "3 / 4" },
-              { label: "Report Period", value: "2026-01-01 — 2026-06-15" },
-              { label: "Chain Integrity", value: "100% Verified" },
+              { label: "Block Height", value: stats.blockHeight.toString() },
+              { label: "Total Transactions", value: stats.total.toString() },
+              { label: "Verified Blocks", value: stats.verified.toString() },
+              { label: "Failed / Pending", value: `${stats.failed} / 0` },
+              { label: "Report Period", value: "Real-time Blockchain State" },
+              { label: "Chain Integrity", value: stats.failed === 0 ? "100% Verified" : "Tampering Detected" },
             ].map((row) => (
               <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(37,99,235,0.08)" }}>
                 <span style={{ fontSize: "11px", color: "#64748B" }}>{row.label}</span>
@@ -223,7 +362,7 @@ export function BlockchainAudit() {
             onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = ""; (e.currentTarget as HTMLButtonElement).style.boxShadow = ""; }}
           >
             {verifying ? <Loader size={13} style={{ animation: "spin 1s linear infinite" }} /> : <Shield size={13} />}
-            {verifying ? "Verifying..." : "Verify Integrity"}
+            {verifying ? "Verify Integrity" : "Verify Integrity"}
           </button>
           <button
             onClick={() => setExportOpen(true)}
@@ -243,11 +382,11 @@ export function BlockchainAudit() {
       {/* Stats Row */}
       <div className="app-page__grid-5">
         {[
-          { label: "Block Height", value: "47,291", color: "#8B5CF6", icon: Link2 },
-          { label: "Total Transactions", value: "47,291", color: "#2563EB", icon: CheckCircle },
-          { label: "Verified", value: "47,284", color: "#22C55E", icon: CheckCircle },
-          { label: "Pending", value: "4", color: "#F59E0B", icon: Clock },
-          { label: "Failed", value: "3", color: "#EF4444", icon: XCircle },
+          { label: "Block Height", value: stats.blockHeight.toLocaleString(), color: "#8B5CF6", icon: Link2 },
+          { label: "Total Transactions", value: stats.total.toLocaleString(), color: "#2563EB", icon: CheckCircle },
+          { label: "Verified", value: stats.verified.toLocaleString(), color: "#22C55E", icon: CheckCircle },
+          { label: "Pending", value: stats.pending.toLocaleString(), color: "#F59E0B", icon: Clock },
+          { label: "Failed", value: stats.failed.toLocaleString(), color: "#EF4444", icon: XCircle },
         ].map((stat) => (
           <div key={stat.label} style={{ ...glassCard, padding: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
             <stat.icon size={18} style={{ color: stat.color, flexShrink: 0 }} />
@@ -296,43 +435,60 @@ export function BlockchainAudit() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((tx, i) => {
-                  const typeInfo = typeLabels[tx.type];
-                  return (
-                    <tr
-                      key={tx.id}
-                      onClick={() => setSelected(selected?.id === tx.id ? null : tx)}
-                      style={{ borderBottom: "1px solid rgba(37,99,235,0.06)", cursor: "pointer", background: selected?.id === tx.id ? "rgba(139,92,246,0.08)" : i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)", transition: "background 0.15s" }}
-                    >
-                      <td style={{ padding: "11px 14px", fontSize: "11px", color: "#475569", fontFamily: "JetBrains Mono, monospace" }}>{tx.id}</td>
-                      <td style={{ padding: "11px 14px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <span style={{ fontSize: "11px", color: "#8B5CF6", fontFamily: "JetBrains Mono, monospace" }}>{truncateHash(tx.hash)}</span>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); copyHash(tx.hash); }}
-                            style={{ background: "none", border: "none", cursor: "pointer", color: copied ? "#22C55E" : "#475569", padding: "2px" }}
-                          >
-                            <Copy size={11} />
-                          </button>
-                        </div>
-                      </td>
-                      <td style={{ padding: "11px 14px" }}>
-                        <span style={{ fontSize: "10px", fontWeight: 600, color: typeInfo.color, background: `${typeInfo.color}15`, padding: "2px 8px", borderRadius: "4px" }}>
-                          {typeInfo.label}
-                        </span>
-                      </td>
-                      <td style={{ padding: "11px 14px", fontSize: "12px", color: "#94A3B8" }}>{tx.device}</td>
-                      <td style={{ padding: "11px 14px", fontSize: "11px", color: "#475569", fontFamily: "JetBrains Mono, monospace" }}>#{tx.block.toLocaleString()}</td>
-                      <td style={{ padding: "11px 14px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                          {tx.status === "verified" ? <CheckCircle size={12} style={{ color: "#22C55E" }} /> : tx.status === "pending" ? <Clock size={12} style={{ color: "#F59E0B" }} /> : <XCircle size={12} style={{ color: "#EF4444" }} />}
-                          <span style={{ fontSize: "11px", color: tx.status === "verified" ? "#22C55E" : tx.status === "pending" ? "#F59E0B" : "#EF4444", textTransform: "capitalize" }}>{tx.status}</span>
-                        </div>
-                      </td>
-                      <td style={{ padding: "11px 14px", fontSize: "11px", color: "#475569", fontFamily: "JetBrains Mono, monospace" }}>{tx.timestamp}</td>
-                    </tr>
-                  );
-                })}
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} style={{ padding: "30px", textAlign: "center", color: "#475569" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
+                        <Loader size={16} style={{ animation: "spin 1s linear infinite" }} />
+                        <span>Fetching audit trail from blockchain...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} style={{ padding: "30px", textAlign: "center", color: "#475569" }}>
+                      No blockchain transactions found.
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map((tx, i) => {
+                    const typeInfo = typeLabels[tx.type];
+                    return (
+                      <tr
+                        key={tx.id}
+                        onClick={() => setSelected(selected?.id === tx.id ? null : tx)}
+                        style={{ borderBottom: "1px solid rgba(37,99,235,0.06)", cursor: "pointer", background: selected?.id === tx.id ? "rgba(139,92,246,0.08)" : i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)", transition: "background 0.15s" }}
+                      >
+                        <td style={{ padding: "11px 14px", fontSize: "11px", color: "#475569", fontFamily: "JetBrains Mono, monospace" }}>{tx.id}</td>
+                        <td style={{ padding: "11px 14px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <span style={{ fontSize: "11px", color: "#8B5CF6", fontFamily: "JetBrains Mono, monospace" }}>{truncateHash(tx.hash)}</span>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); copyHash(tx.hash); }}
+                              style={{ background: "none", border: "none", cursor: "pointer", color: copied ? "#22C55E" : "#475569", padding: "2px" }}
+                            >
+                              <Copy size={11} />
+                            </button>
+                          </div>
+                        </td>
+                        <td style={{ padding: "11px 14px" }}>
+                          <span style={{ fontSize: "10px", fontWeight: 600, color: typeInfo.color, background: `${typeInfo.color}15`, padding: "2px 8px", borderRadius: "4px" }}>
+                            {typeInfo.label}
+                          </span>
+                        </td>
+                        <td style={{ padding: "11px 14px", fontSize: "12px", color: "#94A3B8" }}>{tx.device}</td>
+                        <td style={{ padding: "11px 14px", fontSize: "11px", color: "#475569", fontFamily: "JetBrains Mono, monospace" }}>#{tx.block.toLocaleString()}</td>
+                        <td style={{ padding: "11px 14px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            {tx.status === "verified" ? <CheckCircle size={12} style={{ color: "#22C55E" }} /> : tx.status === "pending" ? <Clock size={12} style={{ color: "#F59E0B" }} /> : <XCircle size={12} style={{ color: "#EF4444" }} />}
+                            <span style={{ fontSize: "11px", color: tx.status === "verified" ? "#22C55E" : tx.status === "pending" ? "#F59E0B" : "#EF4444", textTransform: "capitalize" }}>{tx.status}</span>
+                          </div>
+                        </td>
+                        <td style={{ padding: "11px 14px", fontSize: "11px", color: "#475569", fontFamily: "JetBrains Mono, monospace" }}>{tx.timestamp}</td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
