@@ -34,15 +34,18 @@ function getRiskColor(risk: number): string {
   return "#22C55E";
 }
 
-function getStatusBadge(status: ThreatStatus) {
-  const map: Record<ThreatStatus, { color: string; label: string }> = {
+function getStatusBadge(status: ThreatStatus | string) {
+  const map: Record<string, { color: string; label: string }> = {
     active: { color: "#EF4444", label: "Active" },
+    open: { color: "#EF4444", label: "Active" },
     blocked: { color: "#06B6D4", label: "Blocked" },
     quarantined: { color: "#F59E0B", label: "Quarantined" },
     safe: { color: "#22C55E", label: "Safe" },
+    resolved: { color: "#22C55E", label: "Safe" },
     investigating: { color: "#2563EB", label: "Investigating" },
   };
-  const { color, label } = map[status];
+  const badge = map[status] || { color: "#94A3B8", label: status || "Unknown" };
+  const { color, label } = badge;
   return (
     <span style={{ fontSize: "10px", fontWeight: 700, color, background: `${color}18`, padding: "2px 8px", borderRadius: "4px" }}>
       {label}
