@@ -367,6 +367,23 @@ def create_incident():
     return ok({"incident": incident.to_dict()}, "Incident created", 201)
 
 
+@bp.put("/incidents/<int:incident_pk>")
+@requires_roles("Admin", "Security Analyst")
+def update_incident(incident_pk: int):
+    incident = Incident.query.get_or_404(incident_pk)
+    payload = request.get_json(silent=True) or {}
+    for field in ("title", "severity", "status", "assigned_to", "summary"):
+        if field in payload:
+            setattr(incident, field, payload[field])
+    if "timeline" in payload:
+        incident.timeline = payload["timeline"]
+    if "comments" in payload:
+        incident.comments = payload["comments"]
+    db.session.add(AuditLog(entity_type="incident", entity_id=incident.incident_id, action="update_incident", actor=payload.get("actor"), details=payload))
+    db.session.commit()
+    return ok({"incident": incident.to_dict()})
+
+
 @bp.get("/threats")
 @jwt_required()
 def list_threats():
@@ -392,6 +409,22 @@ def analyze_threat():
     db.session.add(AuditLog(entity_type="threat", entity_id=threat.threat_id, action="detect_threat", actor=payload.get("actor"), details=result))
     db.session.commit()
     return ok({"analysis": result, "threat": threat.to_dict()}, "Threat analyzed", 201)
+
+
+@bp.put("/threats/<int:threat_pk>")
+@requires_roles("Admin", "Security Analyst")
+def update_threat(threat_pk: int):
+    threat = Threat.query.get_or_404(threat_pk)
+    payload = request.get_json(silent=True) or {}
+    if "status" in payload:
+        threat.status = payload["status"]
+    if "recommendation" in payload:
+        threat.recommendation = payload["recommendation"]
+    if "risk_score" in payload:
+        threat.risk_score = payload["risk_score"]
+    db.session.add(AuditLog(entity_type="threat", entity_id=threat.threat_id, action="update_threat", actor=payload.get("actor"), details=payload))
+    db.session.commit()
+    return ok({"threat": threat.to_dict()})
 
 
 @bp.post("/threats/retrain")
@@ -455,6 +488,21 @@ def list_settings():
     return ok(_pagination(Setting))
 
 
+@bp.get("/settings/bundle")
+@jwt_required()
+def settings_bundle():
+    """Return all settings as a flat key → value map for the React settings UI."""
+    items = Setting.query.all()
+    bundle: dict = {"fields": {}, "toggles": {}}
+    for item in items:
+        val = item.value.get("value") if isinstance(item.value, dict) and "value" in item.value else item.value
+        if isinstance(val, bool):
+            bundle["toggles"][item.key] = val
+        else:
+            bundle["fields"][item.key] = val
+    return ok(bundle)
+
+
 @bp.put("/settings")
 @requires_roles("Admin")
 def save_settings():
@@ -464,6 +512,18 @@ def save_settings():
     for item in settings:
         saved.append(_upsert_setting(item.get("category", "general"), item.get("key", "unknown"), item.get("value", {}), item.get("description")))
     return ok({"settings": [setting.to_dict() for setting in saved]})
+
+
+@bp.put("/settings/bundle")
+@requires_roles("Admin")
+def save_settings_bundle():
+    payload = request.get_json(silent=True) or {}
+    saved = []
+    for key, val in (payload.get("fields") or {}).items():
+        saved.append(_upsert_setting("general", key, {"value": val}, f"Setting: {key}"))
+    for key, val in (payload.get("toggles") or {}).items():
+        saved.append(_upsert_setting("security", key, {"value": val}, f"Toggle: {key}"))
+    return ok({"settings": [s.to_dict() for s in saved]}, "Settings saved")
 
 
 @bp.get("/reports/history")

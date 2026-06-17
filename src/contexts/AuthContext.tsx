@@ -1,53 +1,94 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { AUTH_KEY, loadFromStorage, removeFromStorage, saveToStorage } from "../lib/storage";
 import type { AuthUser, UserRole } from "../types";
-import { client } from "../api/client";
+import { api } from "../api/services";
+import { getApiErrorMessage } from "../api/client";
+import {
+  clearAuthSession,
+  getAuthSession,
+  setAuthSession,
+  type AuthSessionData,
+} from "../lib/authSession";
 import { Wallet } from "ethers";
-
-interface AuthSession {
-  user: AuthUser;
-  token: string;
-  loginAt: string;
-}
 
 interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (address: string, privateKey: string) => Promise<{ ok: true } | { ok: false; error: string }>;
+  loginWithPassword: (email: string, password: string) => Promise<{ ok: true } | { ok: false; error: string }>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function mapUser(user: Record<string, unknown>): AuthUser {
+  const fullName = String(user.full_name ?? user.name ?? "User");
+  return {
+    id: user.id as string | number,
+    name: fullName,
+    email: String(user.email ?? ""),
+    role: (user.role as UserRole) ?? "Security Analyst",
+    department: "SOC",
+    initials: fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase(),
+    ethAddress: user.eth_address as string | undefined,
+  };
+}
+
+function buildSession(accessToken: string, user: AuthUser, refreshToken?: string): AuthSessionData {
+  return {
+    user,
+    token: accessToken,
+    refreshToken,
+    loginAt: new Date().toISOString(),
+  };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<AuthSession | null>(null);
+  const [session, setSession] = useState<AuthSessionData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const handleAuthExpired = () => {
       setSession(null);
-      removeFromStorage(AUTH_KEY);
+      clearAuthSession();
     };
     window.addEventListener("auth-expired", handleAuthExpired);
     return () => window.removeEventListener("auth-expired", handleAuthExpired);
   }, []);
 
   useEffect(() => {
-    const stored = loadFromStorage<AuthSession>(AUTH_KEY);
+    const stored = getAuthSession();
     if (stored?.user && stored.token) {
       setSession(stored);
+      api.auth.me().catch(() => {
+        clearAuthSession();
+        setSession(null);
+      });
     }
     setIsLoading(false);
   }, []);
 
+  const persistSession = useCallback((newSession: AuthSessionData) => {
+    setSession(newSession);
+    setAuthSession(newSession);
+  }, []);
+
+  const loginWithPassword = useCallback(async (email: string, password: string) => {
+    try {
+      const res = await api.auth.loginPassword(email.trim(), password);
+      const { access_token, refresh_token, user } = res.data.data;
+      persistSession(buildSession(access_token, mapUser(user), refresh_token));
+      return { ok: true as const };
+    } catch (e) {
+      return { ok: false as const, error: getApiErrorMessage(e, "Invalid email or password") };
+    }
+  }, [persistSession]);
+
   const login = useCallback(async (address: string, privateKey: string) => {
     try {
-      // 1. Fetch nonce from backend challenge endpoint
-      const nonceRes = await client.get(`/auth/nonce?address=${address}`);
+      const nonceRes = await api.auth.getNonce(address);
       const nonce = nonceRes.data.data.nonce;
 
-      // 2. Cryptographically sign the challenge with the private key
       let signature: string;
       try {
         const wallet = new Wallet(privateKey);
@@ -55,45 +96,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return { ok: false as const, error: "Private key does not match the Ethereum address" };
         }
         signature = await wallet.signMessage(nonce);
-      } catch (e) {
+      } catch {
         return { ok: false as const, error: "Invalid private key format" };
       }
 
-      // 3. Post verification payload to authentication gateway
-      const loginRes = await client.post("/auth/login", {
-        address,
-        signature,
-      });
-
-      const { access_token, user } = loginRes.data.data;
-      
-      const newSession: AuthSession = {
-        user: {
-          id: user.id,
-          name: user.full_name,
-          email: user.email,
-          role: user.role as UserRole,
-          department: "SOC",
-          initials: user.full_name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase(),
-          ethAddress: user.eth_address
-        },
-        token: access_token,
-        loginAt: new Date().toISOString(),
-      };
-
-      setSession(newSession);
-      saveToStorage(AUTH_KEY, newSession);
+      const loginRes = await api.auth.loginWallet(address, signature);
+      const { access_token, refresh_token, user } = loginRes.data.data;
+      persistSession(buildSession(access_token, mapUser(user), refresh_token));
       return { ok: true as const };
-    } catch (e: any) {
-      console.error("Login failed", e);
-      const errorMsg = e.response?.data?.message || "Connection to security gateway failed";
-      return { ok: false as const, error: errorMsg };
+    } catch (e) {
+      return { ok: false as const, error: getApiErrorMessage(e, "Connection to security gateway failed") };
     }
-  }, []);
+  }, [persistSession]);
 
   const logout = useCallback(() => {
     setSession(null);
-    removeFromStorage(AUTH_KEY);
+    clearAuthSession();
   }, []);
 
   const value = useMemo(
@@ -102,9 +120,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: !!session,
       isLoading,
       login,
+      loginWithPassword,
       logout,
     }),
-    [session, isLoading, login, logout]
+    [session, isLoading, login, loginWithPassword, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -115,4 +134,3 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
-

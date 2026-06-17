@@ -9,6 +9,8 @@ import {
   type ReactNode,
 } from "react";
 import { client } from "../api/client";
+import { api } from "../api/services";
+import { getApiErrorMessage } from "../api/client";
 import { useAuth } from "./AuthContext";
 import type {
   Alert,
@@ -108,6 +110,8 @@ function reducer(state: AppDataState, action: Action): AppDataState {
 interface AppDataContextValue extends AppDataState {
   isHydrated: boolean;
   isRefreshing: boolean;
+  loadError: string | null;
+  clearLoadError: () => void;
   updateAlertStatus: (id: string, status: Alert["status"]) => Promise<void>;
   acknowledgeAllAlerts: () => Promise<void>;
   refreshAlerts: () => Promise<void>;
@@ -148,17 +152,21 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   });
   const [isHydrated, setIsHydrated] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const clearLoadError = useCallback(() => setLoadError(null), []);
 
   const loadAllData = useCallback(async () => {
     if (!isAuthenticated) return;
     setIsRefreshing(true);
+    setLoadError(null);
     try {
       const [devicesRes, alertsRes, incidentsRes, threatsRes, usersRes] = await Promise.all([
-        client.get("/devices"),
-        client.get("/alerts"),
-        client.get("/incidents"),
-        client.get("/threats"),
-        client.get("/admin/users").catch(() => ({ data: { data: { items: [] } } }))
+        api.devices.list(),
+        api.alerts.list(),
+        api.incidents.list(),
+        api.threats.list(),
+        api.users.list().catch(() => ({ data: { data: { items: [] } } }))
       ]);
 
       const payload: AppDataState = {
@@ -234,6 +242,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
       dispatch({ type: "HYDRATE", payload });
     } catch (e) {
+      setLoadError(getApiErrorMessage(e, "Failed to load platform data from database"));
       console.error("Failed to load platform data", e);
     } finally {
       setIsHydrated(true);
@@ -381,8 +390,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   }, [state.users, loadAllData]);
 
   const updateThreatStatus = useCallback(async (id: string, status: Threat["status"]) => {
-    dispatch({ type: "UPDATE_THREAT", payload: { id, status } });
-  }, []);
+    const threat = state.threats.find((t) => t.id === id);
+    if (!threat?.dbId) {
+      dispatch({ type: "UPDATE_THREAT", payload: { id, status } });
+      return;
+    }
+    try {
+      await api.threats.update(threat.dbId, { status });
+      await loadAllData();
+    } catch (e) {
+      setLoadError(getApiErrorMessage(e, "Failed to update threat"));
+    }
+  }, [state.threats, loadAllData]);
 
   const addIncident = useCallback(async (incident: Incident) => {
     const payload = {
@@ -400,8 +419,25 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   }, [loadAllData]);
 
   const updateIncident = useCallback(async (incident: Incident) => {
-    dispatch({ type: "UPDATE_INCIDENT", payload: incident });
-  }, []);
+    if (!incident.dbId) {
+      dispatch({ type: "UPDATE_INCIDENT", payload: incident });
+      return;
+    }
+    try {
+      await api.incidents.update(incident.dbId, {
+        title: incident.title,
+        severity: incident.severity,
+        status: incident.status,
+        assigned_to: incident.assignee,
+        timeline: incident.timeline,
+        comments: incident.notes,
+        summary: incident.title,
+      });
+      await loadAllData();
+    } catch (e) {
+      setLoadError(getApiErrorMessage(e, "Failed to update incident"));
+    }
+  }, [loadAllData]);
 
   const markNotificationsRead = useCallback(() => {
     dispatch({ type: "MARK_NOTIFICATIONS_READ" });
@@ -458,6 +494,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       ...state,
       isHydrated,
       isRefreshing,
+      loadError,
+      clearLoadError,
       updateAlertStatus,
       acknowledgeAllAlerts,
       refreshAlerts,
@@ -479,6 +517,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       state,
       isHydrated,
       isRefreshing,
+      loadError,
+      clearLoadError,
       updateAlertStatus,
       acknowledgeAllAlerts,
       refreshAlerts,

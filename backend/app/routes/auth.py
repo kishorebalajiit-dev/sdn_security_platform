@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from flask import Blueprint, request
 from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required
 from eth_account.messages import encode_defunct
+from werkzeug.security import check_password_hash
 
 from app.extensions import db, limiter
 from app.models.core import AuditLog, Role, User
@@ -16,6 +17,41 @@ from app.services.blockchain import w3, get_user_from_chain, register_user_on_ch
 bp = Blueprint("auth", __name__, url_prefix="/api/v1/auth")
 
 NONCES = {}
+
+
+def _issue_tokens(user: User, address: str | None = None):
+    claims = {
+        "role": user.role.name if user.role else None,
+        "email": user.email,
+        "full_name": user.full_name,
+        "address": address or user.eth_address,
+    }
+    access_token = create_access_token(identity=str(user.id), additional_claims=claims)
+    refresh_token = create_refresh_token(identity=str(user.id), additional_claims=claims)
+    return access_token, refresh_token
+
+
+@bp.post("/login/password")
+@limiter.limit("20/minute")
+def login_password():
+    """Email + password login for React UI (no localStorage — token returned in response body)."""
+    payload = request.get_json(silent=True) or {}
+    email = (payload.get("email") or "").strip().lower()
+    password = payload.get("password") or ""
+
+    if not email or not password:
+        return fail("email and password are required", 422)
+
+    user = User.query.filter_by(email=email, is_active=True).first()
+    if not user or not user.password_hash or not check_password_hash(user.password_hash, password):
+        return fail("Invalid email or password", 401)
+
+    user.last_login_at = datetime.now(timezone.utc)
+    db.session.add(AuditLog(entity_type="user", entity_id=email, action="login", actor=email, details={"method": "password"}))
+    db.session.commit()
+
+    access_token, refresh_token = _issue_tokens(user)
+    return ok({"access_token": access_token, "refresh_token": refresh_token, "user": user.to_dict()})
 
 
 @bp.get("/nonce")
@@ -110,8 +146,7 @@ def login():
     db.session.commit()
 
     claims = {"role": user.role.name if user.role else None, "email": user.email, "full_name": user.full_name, "address": address}
-    access_token = create_access_token(identity=str(user.id), additional_claims=claims)
-    refresh_token = create_refresh_token(identity=str(user.id), additional_claims=claims)
+    access_token, refresh_token = _issue_tokens(user, address)
     
     # Remove nonce after successful login
     NONCES.pop(address, None)

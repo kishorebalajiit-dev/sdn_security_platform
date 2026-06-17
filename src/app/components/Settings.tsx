@@ -5,6 +5,8 @@ import {
 } from "lucide-react";
 import { useToast } from "./Toast";
 import { Modal, Field, inputStyle, selectStyle } from "./Modal";
+import { api } from "../../api/services";
+import { getApiErrorMessage } from "../../api/client";
 
 const glassCard: React.CSSProperties = {
   background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
@@ -72,7 +74,7 @@ const roleColors: Record<string, string> = {
   Admin: "#EF4444", "Security Analyst": "#2563EB", "Network Engineer": "#22C55E", Auditor: "#8B5CF6",
 };
 
-const SETTINGS_KEY = "secureNetSettingsState";
+const SETTINGS_KEY = "secureNetSettingsState"; // legacy key — no longer used
 
 const defaultFieldValues = {
   platformName: "SecureNet AI — SDN Security Platform",
@@ -103,26 +105,17 @@ const defaultFieldValues = {
 
 type SettingsFieldState = typeof defaultFieldValues;
 
-function readStoredSettings(): SettingsFieldState {
-  if (typeof window === "undefined") return defaultFieldValues;
-  try {
-    const raw = window.localStorage.getItem(SETTINGS_KEY);
-    if (!raw) return defaultFieldValues;
-    return { ...defaultFieldValues, ...JSON.parse(raw) } as SettingsFieldState;
-  } catch {
-    return defaultFieldValues;
-  }
-}
-
 export function Settings() {
   const [activeTab, setActiveTab] = useState("general");
   const [saving, setSaving] = useState(false);
+  const [loadingSettings, setLoadingSettings] = useState(true);
   const [saved, setSaved] = useState(false);
-  const [fields, setFields] = useState<SettingsFieldState>(readStoredSettings);
+  const [fields, setFields] = useState<SettingsFieldState>(defaultFieldValues);
   const [toggles, setToggles] = useState<Record<string, boolean>>({
     autoBlock: true, aiDetection: true, blockchain: true, mfaRequired: true,
     geoBlocking: false, alertEmails: true, slackAlerts: false, weeklyReport: true,
     threatFeed: true, autoQuarantine: false, darkMode: true, testConnection: false,
+    autoRetraining: false, federatedLearning: false,
   });
   const [perms, setPerms] = useState(defaultPerms);
   const [addRoleOpen, setAddRoleOpen] = useState(false);
@@ -130,12 +123,27 @@ export function Settings() {
   const { success, error, warning, info } = useToast();
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(fields));
-    } catch {
-      // ignore storage failures
-    }
-  }, [fields]);
+    let cancelled = false;
+    (async () => {
+      setLoadingSettings(true);
+      try {
+        const res = await api.settings.getBundle();
+        const { fields: dbFields, toggles: dbToggles } = res.data.data;
+        if (cancelled) return;
+        if (dbFields && Object.keys(dbFields).length) {
+          setFields((current) => ({ ...current, ...dbFields }));
+        }
+        if (dbToggles && Object.keys(dbToggles).length) {
+          setToggles((current) => ({ ...current, ...dbToggles }));
+        }
+      } catch (e) {
+        if (!cancelled) error("Load Failed", getApiErrorMessage(e, "Could not load settings from database"));
+      } finally {
+        if (!cancelled) setLoadingSettings(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [error]);
 
   const setToggle = (key: string, val: boolean) => setToggles((t) => ({ ...t, [key]: val }));
   const setField = (key: keyof SettingsFieldState, value: string) => setFields((current) => ({ ...current, [key]: value }));
@@ -144,15 +152,15 @@ export function Settings() {
     setSaving(true);
     setSaved(false);
     try {
-      window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(fields));
-    } catch {
-      // ignore storage failures
+      await api.settings.saveBundle({ fields, toggles });
+      setSaved(true);
+      success("Settings Saved", `Changes persisted to PostgreSQL for ${fields.platformName}`);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (e) {
+      error("Save Failed", getApiErrorMessage(e, "Could not save settings to database"));
+    } finally {
+      setSaving(false);
     }
-    await new Promise((r) => setTimeout(r, 1000));
-    setSaving(false);
-    setSaved(true);
-    success("Settings Saved", `Changes saved for ${fields.platformName}`);
-    setTimeout(() => setSaved(false), 2500);
   };
 
   const handleTestConnection = async () => {
