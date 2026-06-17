@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 
-const CHARS = "01アイウエオカキクケコ0123456789ABCDEF<>{}[]/\\|@#$%&";
+const CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZアイウエオカキクケコサシスセソタチツテトハヒフヘホマミムメモヤユヨラリルレロワヲン<>[]{}*#@$%&";
 
-export function MatrixRain({ opacity = 0.12 }: { opacity?: number }) {
+export function MatrixRain({ opacity = 0.15 }: { opacity?: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -13,48 +13,88 @@ export function MatrixRain({ opacity = 0.12 }: { opacity?: number }) {
     if (!ctx) return;
 
     let animationId = 0;
-    let columns: number[] = [];
-    const fontSize = 14;
+    const fontSize = 16;
+    let columns = 0;
+    let drops: { y: number; speed: number; chars: string[] }[] = [];
 
-    const resize = () => {
+    const init = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      columns = Array.from({ length: Math.floor(canvas.width / fontSize) }, () =>
-        Math.random() * -100
-      );
+      columns = Math.floor(canvas.width / fontSize) + 1;
+      drops = [];
+      for (let i = 0; i < columns; i++) {
+        drops.push({
+          y: Math.random() * -100, // random start y (offscreen)
+          speed: 0.8 + Math.random() * 1.5, // random speed
+          chars: Array.from({ length: 22 }, () => CHARS[Math.floor(Math.random() * CHARS.length)])
+        });
+      }
     };
 
     const draw = () => {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.shadowBlur = 0; // reset shadow
+      ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = "#00ff41";
-      ctx.font = `${fontSize}px "JetBrains Mono", monospace`;
+      ctx.font = `bold ${fontSize}px "JetBrains Mono", monospace`;
 
-      for (let i = 0; i < columns.length; i++) {
-        const char = CHARS[Math.floor(Math.random() * CHARS.length)];
+      for (let i = 0; i < drops.length; i++) {
+        const drop = drops[i];
         const x = i * fontSize;
-        const y = columns[i] * fontSize;
+        const yIndex = Math.floor(drop.y);
 
-        ctx.fillStyle = `rgba(0, 255, 65, ${0.3 + Math.random() * 0.7})`;
-        ctx.fillText(char, x, y);
-
-        if (y > canvas.height && Math.random() > 0.975) {
-          columns[i] = 0;
+        // Update characters occasionally for dynamic look
+        if (Math.random() > 0.94) {
+          drop.chars.unshift(CHARS[Math.floor(Math.random() * CHARS.length)]);
+          drop.chars.pop();
         }
-        columns[i]++;
+
+        // Draw trail
+        for (let j = 0; j < drop.chars.length; j++) {
+          const charY = (yIndex - j) * fontSize;
+          if (charY < 0 || charY > canvas.height + fontSize) continue;
+
+          // The head is bright white, tail fades out
+          if (j === 0) {
+            ctx.fillStyle = "#ffffff";
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = "#00ff41";
+          } else {
+            ctx.shadowBlur = 0;
+            const alpha = 1 - j / drop.chars.length;
+            ctx.fillStyle = `rgba(0, 255, 65, ${alpha * 0.7})`;
+          }
+
+          ctx.fillText(drop.chars[j], x, charY);
+        }
+
+        // Move drop down
+        drop.y += drop.speed;
+
+        // Reset drop to top of screen when it goes offscreen
+        if ((yIndex - drop.chars.length) * fontSize > canvas.height) {
+          if (Math.random() > 0.98) {
+            drop.y = -20;
+            drop.speed = 0.8 + Math.random() * 1.5;
+          }
+        }
       }
 
       animationId = requestAnimationFrame(draw);
     };
 
-    resize();
+    init();
     draw();
-    window.addEventListener("resize", resize);
+
+    const handleResize = () => {
+      init();
+    };
+
+    window.addEventListener("resize", handleResize);
 
     return () => {
       cancelAnimationFrame(animationId);
-      window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
@@ -63,7 +103,7 @@ export function MatrixRain({ opacity = 0.12 }: { opacity?: number }) {
       ref={canvasRef}
       className="hacker-matrix-rain"
       aria-hidden="true"
-      style={{ opacity }}
+      style={{ opacity, mixBlendMode: "screen" }}
     />
   );
 }

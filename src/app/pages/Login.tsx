@@ -131,7 +131,7 @@ export function LoginPage() {
   const feedItems = [...THREAT_FEED, ...THREAT_FEED];
 
   return (
-    <HackerShell rainOpacity={0.16}>
+    <HackerShell rainOpacity={0.24}>
       <div className="hacker-login">
         <header className="hacker-login__topbar">
           <div className="hacker-login__topbar-left">
