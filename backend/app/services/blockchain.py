@@ -6,8 +6,13 @@ import os
 from datetime import datetime, timezone
 from web3 import Web3
 
-GANACHE_URL = os.getenv("GANACHE_URL", "http://localhost:8545")
-w3 = Web3(Web3.HTTPProvider(GANACHE_URL))
+PROVIDER_URL = os.getenv("BLOCKCHAIN_PROVIDER_URL")
+if PROVIDER_URL:
+    w3 = Web3(Web3.HTTPProvider(PROVIDER_URL))
+    print(f"[Blockchain] Connected to public provider: {PROVIDER_URL}")
+else:
+    GANACHE_URL = os.getenv("GANACHE_URL", "http://localhost:8545")
+    w3 = Web3(Web3.HTTPProvider(GANACHE_URL))
 
 contract_instance = None
 contract_address = None
@@ -18,7 +23,8 @@ def get_contract():
         return contract_instance
 
     if not w3.is_connected():
-        print(f"[Blockchain] Warning: Cannot connect to Ganache at {GANACHE_URL}. Falling back to simulation.")
+        provider_name = PROVIDER_URL or "local node"
+        print(f"[Blockchain] Warning: Cannot connect to blockchain at {provider_name}. Falling back to simulation.")
         return None
 
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -39,6 +45,14 @@ def get_contract():
         if bytecode and not bytecode.startswith("0x"):
             bytecode = "0x" + bytecode
 
+        # If contract address is specified in environment, prioritize it
+        env_contract_address = os.getenv("CONTRACT_ADDRESS")
+        if env_contract_address:
+            contract_address = env_contract_address
+            contract_instance = w3.eth.contract(address=w3.to_checksum_address(contract_address), abi=abi)
+            print(f"[Blockchain] Loaded contract from env address: {contract_address}")
+            return contract_instance
+
         # If already deployed address exists, load it
         if os.path.exists(addr_path):
             with open(addr_path, "r") as f:
@@ -48,10 +62,25 @@ def get_contract():
                 print(f"[Blockchain] Loaded contract at {contract_address}")
                 return contract_instance
 
-        # Deploy it using the first account from Ganache
-        w3.eth.default_account = w3.eth.accounts[0]
+        # Deploy the contract
         SecurityAudit = w3.eth.contract(abi=abi, bytecode=bytecode)
-        tx_hash = SecurityAudit.constructor().transact()
+        private_key = os.getenv("CONTRACT_PRIVATE_KEY")
+        if private_key:
+            # Public provider raw transaction signing
+            account = w3.eth.account.from_key(private_key)
+            tx = SecurityAudit.constructor().build_transaction({
+                'from': account.address,
+                'nonce': w3.eth.get_transaction_count(account.address),
+                'gas': 3000000,
+                'gasPrice': w3.eth.gas_price
+            })
+            signed_tx = w3.eth.account.sign_transaction(tx, private_key=private_key)
+            tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        else:
+            # Ganache default unlocked accounts
+            w3.eth.default_account = w3.eth.accounts[0]
+            tx_hash = SecurityAudit.constructor().transact()
+
         tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
         contract_address = tx_receipt.contractAddress
         with open(addr_path, "w") as f:
@@ -82,12 +111,27 @@ def register_user_on_chain(user_address: str, email: str, full_name: str, role: 
     if not contract:
         return build_mock_receipt("UserRegistration", {"email": email, "role": role})
     try:
-        w3.eth.default_account = w3.eth.accounts[0]
         checksum_address = w3.to_checksum_address(user_address)
-        tx_hash = contract.functions.registerUser(checksum_address, email, full_name, role).transact()
+        private_key = os.getenv("CONTRACT_PRIVATE_KEY")
+        if private_key:
+            # Public provider raw transaction signing
+            account = w3.eth.account.from_key(private_key)
+            tx = contract.functions.registerUser(checksum_address, email, full_name, role).build_transaction({
+                'from': account.address,
+                'nonce': w3.eth.get_transaction_count(account.address),
+                'gas': 300000,
+                'gasPrice': w3.eth.gas_price
+            })
+            signed_tx = w3.eth.account.sign_transaction(tx, private_key=private_key)
+            tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        else:
+            # Ganache default unlocked accounts
+            w3.eth.default_account = w3.eth.accounts[0]
+            tx_hash = contract.functions.registerUser(checksum_address, email, full_name, role).transact()
+            
         tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
         return {
-            "tx_hash": tx_receipt.transactionHash.hex(),
+            "tx_hash": tx_receipt.transactionHash.hex() if isinstance(tx_receipt.transactionHash, bytes) else tx_receipt.transactionHash,
             "block_number": tx_receipt.blockNumber,
             "gas_used": tx_receipt.gasUsed,
             "verified": True
@@ -123,11 +167,24 @@ def register_device_on_chain(device_id: str, device_name: str, ip_address: str, 
     if not contract:
         return build_mock_receipt("DeviceRegistration", {"device_id": device_id})
     try:
-        w3.eth.default_account = w3.eth.accounts[0]
-        tx_hash = contract.functions.registerDevice(device_id, device_name, ip_address, mac_address).transact()
+        private_key = os.getenv("CONTRACT_PRIVATE_KEY")
+        if private_key:
+            account = w3.eth.account.from_key(private_key)
+            tx = contract.functions.registerDevice(device_id, device_name, ip_address, mac_address).build_transaction({
+                'from': account.address,
+                'nonce': w3.eth.get_transaction_count(account.address),
+                'gas': 300000,
+                'gasPrice': w3.eth.gas_price
+            })
+            signed_tx = w3.eth.account.sign_transaction(tx, private_key=private_key)
+            tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        else:
+            w3.eth.default_account = w3.eth.accounts[0]
+            tx_hash = contract.functions.registerDevice(device_id, device_name, ip_address, mac_address).transact()
+            
         tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
         return {
-            "tx_hash": tx_receipt.transactionHash.hex(),
+            "tx_hash": tx_receipt.transactionHash.hex() if isinstance(tx_receipt.transactionHash, bytes) else tx_receipt.transactionHash,
             "block_number": tx_receipt.blockNumber,
             "gas_used": tx_receipt.gasUsed,
             "verified": True
@@ -154,11 +211,24 @@ def create_audit_record_on_chain(entity_type: str, entity_id: str, action: str, 
     if not contract:
         return build_mock_receipt("AuditRecord", {"entity_type": entity_type, "action": action})
     try:
-        w3.eth.default_account = w3.eth.accounts[0]
-        tx_hash = contract.functions.createAuditRecord(entity_type, entity_id, action, actor, details_hash).transact()
+        private_key = os.getenv("CONTRACT_PRIVATE_KEY")
+        if private_key:
+            account = w3.eth.account.from_key(private_key)
+            tx = contract.functions.createAuditRecord(entity_type, entity_id, action, actor, details_hash).build_transaction({
+                'from': account.address,
+                'nonce': w3.eth.get_transaction_count(account.address),
+                'gas': 300000,
+                'gasPrice': w3.eth.gas_price
+            })
+            signed_tx = w3.eth.account.sign_transaction(tx, private_key=private_key)
+            tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        else:
+            w3.eth.default_account = w3.eth.accounts[0]
+            tx_hash = contract.functions.createAuditRecord(entity_type, entity_id, action, actor, details_hash).transact()
+            
         tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
         return {
-            "tx_hash": tx_receipt.transactionHash.hex(),
+            "tx_hash": tx_receipt.transactionHash.hex() if isinstance(tx_receipt.transactionHash, bytes) else tx_receipt.transactionHash,
             "block_number": tx_receipt.blockNumber,
             "gas_used": tx_receipt.gasUsed,
             "verified": True
