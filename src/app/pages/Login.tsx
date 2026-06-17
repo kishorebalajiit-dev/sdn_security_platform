@@ -54,11 +54,11 @@ const trustBadges = [
   { icon: Globe, label: "ENTERPRISE READY" },
 ];
 
-const BLOCKCHAIN_ACCOUNTS = [
-  { name: "Kamran Singh (Admin)", address: "0x807b242b3494a8b68cA0dE01C323fFB0511eDF73", privateKey: "0x6168447c0400218f5d5f7a8a128141fc7364d8ea2314253b66ea227cd7715e6d", role: "Admin" },
-  { name: "Ahmad Rahman (Analyst)", address: "0xF04F38311C4115D4BF9b06D294A39047aCe7760c", privateKey: "0x9df02959bfa8a72556e2e188135ebb28eee672bfcaacdff74e3cf3a3ae4e3c36", role: "Analyst" },
-  { name: "Sasha Ivanova (Engineer)", address: "0x61E22c36CDca807Dfa1d9E5561949049AfA329CF", privateKey: "0x2599d4d6db5b8ad07ef1933d6322ed18ce6362a0e9254b4de04ce6090b1ced65", role: "Engineer" },
-  { name: "Priya Nair (Auditor)", address: "0x3dF2dCA8d92f5A16b754BE60097E05440f30f794", privateKey: "0x0b3128c68910ee7ac2822566c9e24c2ce982f786a37359ca297df81080b7f52c", role: "Auditor" }
+const PASSWORD_ACCOUNTS = [
+  { name: "Kamran Singh (Admin)", email: "k.singh@secnet.ai", password: "admin123", role: "Admin" },
+  { name: "Ahmad Rahman (Analyst)", email: "a.rahman@secnet.ai", password: "analyst123", role: "Analyst" },
+  { name: "Sasha Ivanova (Engineer)", email: "s.ivanova@secnet.ai", password: "engineer123", role: "Engineer" },
+  { name: "Priya Nair (Auditor)", email: "p.nair@secnet.ai", password: "auditor123", role: "Auditor" }
 ];
 
 
@@ -91,8 +91,11 @@ function GitHubIcon() {
 }
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { login, loginWithPassword } = useAuth();
   const navigate = useNavigate();
+  const [loginMode, setLoginMode] = useState<"password" | "wallet">("password");
+  const [email, setEmail] = useState("k.singh@secnet.ai");
+  const [password, setPassword] = useState("admin123");
   const [address, setAddress] = useState("0x807b242b3494a8b68cA0dE01C323fFB0511eDF73");
   const [privateKey, setPrivateKey] = useState("0x6168447c0400218f5d5f7a8a128141fc7364d8ea2314253b66ea227cd7715e6d");
   const [showPassword, setShowPassword] = useState(false);
@@ -106,7 +109,12 @@ export function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const result = await login(address.trim(), privateKey.trim());
+    let result;
+    if (loginMode === "password") {
+      result = await loginWithPassword(email.trim(), password);
+    } else {
+      result = await login(address.trim(), privateKey.trim());
+    }
     setLoading(false);
     if (result.ok) {
       navigate("/dashboard", { replace: true });
@@ -115,9 +123,14 @@ export function LoginPage() {
     }
   };
 
-  const fillDemo = (account: (typeof BLOCKCHAIN_ACCOUNTS)[0]) => {
-    setAddress(account.address);
-    setPrivateKey(account.privateKey);
+  const fillDemo = (account: any) => {
+    if (loginMode === "password") {
+      setEmail(account.email);
+      setPassword(account.password);
+    } else {
+      setAddress(account.address);
+      setPrivateKey(account.privateKey);
+    }
     setError("");
     setShowDemo(false);
   };
@@ -164,72 +177,156 @@ export function LoginPage() {
                   <p className="hacker-login__auth-sub">ACCESS TO SECURENET AI</p>
                 </div>
 
+                {/* Login Mode Tab Switcher */}
+                <div className="hacker-login__tabs" style={{ display: "flex", gap: "14px", marginBottom: "20px", borderBottom: "1px solid rgba(0, 255, 65, 0.15)", paddingBottom: "8px" }}>
+                  <button
+                    type="button"
+                    onClick={() => { setLoginMode("password"); setError(""); }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: loginMode === "password" ? "#00FF41" : "rgba(110, 231, 160, 0.5)",
+                      fontFamily: "Share Tech Mono, monospace",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      padding: "4px 8px",
+                      borderBottom: loginMode === "password" ? "2px solid #00FF41" : "none",
+                      transition: "all 0.2s"
+                    }}
+                  >
+                    PASSWORD LOGIN
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setLoginMode("wallet"); setError(""); }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: loginMode === "wallet" ? "#00FF41" : "rgba(110, 231, 160, 0.5)",
+                      fontFamily: "Share Tech Mono, monospace",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      padding: "4px 8px",
+                      borderBottom: loginMode === "wallet" ? "2px solid #00FF41" : "none",
+                      transition: "all 0.2s"
+                    }}
+                  >
+                    WEB3 WALLET LOGIN
+                  </button>
+                </div>
+
                 <form className="hacker-login__form" onSubmit={handleSubmit}>
-                <div className="hacker-login__field">
-                  <div className="hacker-login__input-wrap">
-                    <Fingerprint size={16} className="hacker-login__input-icon" />
-                    <input
-                      id="address"
-                      type="text"
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      placeholder="Ethereum Public Address (0x...)"
-                      required
-                      className="hacker-login__input"
-                    />
-                  </div>
-                </div>
-
-                <div className="hacker-login__field">
-                  <div className="hacker-login__input-wrap">
-                    <Lock size={16} className="hacker-login__input-icon" />
-                    <input
-                      id="privateKey"
-                      type={showPassword ? "text" : "password"}
-                      value={privateKey}
-                      onChange={(e) => setPrivateKey(e.target.value)}
-                      placeholder="Ethereum Private Key (0x...)"
-                      required
-                      className="hacker-login__input"
-                    />
-                    <button
-                      type="button"
-                      className="hacker-login__toggle-pw"
-                      onClick={() => setShowPassword(!showPassword)}
-                      aria-label={showPassword ? "Hide private key" : "Show private key"}
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                </div>
-
-                {error && <div className="hacker-login__error" role="alert">{error}</div>}
-
-                <div className="hacker-login__options">
-                  <label className="hacker-login__remember">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                    />
-                    Remember me
-                  </label>
-                  <button type="button" className="hacker-login__forgot">Sign-in help</button>
-                </div>
-
-                <button type="submit" disabled={loading} className="hacker-login__access-btn">
-                  {loading ? (
+                  {loginMode === "password" ? (
                     <>
-                      <Loader size={16} className="hacker-login__spinner" />
-                      SIGNING CHALLENGE...
+                      <div className="hacker-login__field">
+                        <div className="hacker-login__input-wrap">
+                          <User size={16} className="hacker-login__input-icon" />
+                          <input
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Email Address"
+                            required
+                            className="hacker-login__input"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="hacker-login__field">
+                        <div className="hacker-login__input-wrap">
+                          <Lock size={16} className="hacker-login__input-icon" />
+                          <input
+                            id="password"
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Password"
+                            required
+                            className="hacker-login__input"
+                          />
+                          <button
+                            type="button"
+                            className="hacker-login__toggle-pw"
+                            onClick={() => setShowPassword(!showPassword)}
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                          >
+                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
                     </>
                   ) : (
                     <>
-                      <Terminal size={16} />
-                      SIGN NONCE & ACCESS
+                      <div className="hacker-login__field">
+                        <div className="hacker-login__input-wrap">
+                          <Fingerprint size={16} className="hacker-login__input-icon" />
+                          <input
+                            id="address"
+                            type="text"
+                            value={address}
+                            onChange={(e) => setAddress(e.target.value)}
+                            placeholder="Ethereum Public Address (0x...)"
+                            required
+                            className="hacker-login__input"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="hacker-login__field">
+                        <div className="hacker-login__input-wrap">
+                          <Lock size={16} className="hacker-login__input-icon" />
+                          <input
+                            id="privateKey"
+                            type={showPassword ? "text" : "password"}
+                            value={privateKey}
+                            onChange={(e) => setPrivateKey(e.target.value)}
+                            placeholder="Ethereum Private Key (0x...)"
+                            required
+                            className="hacker-login__input"
+                          />
+                          <button
+                            type="button"
+                            className="hacker-login__toggle-pw"
+                            onClick={() => setShowPassword(!showPassword)}
+                            aria-label={showPassword ? "Hide private key" : "Show private key"}
+                          >
+                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
                     </>
                   )}
-                </button>
+
+                  {error && <div className="hacker-login__error" role="alert">{error}</div>}
+
+                  <div className="hacker-login__options">
+                    <label className="hacker-login__remember">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                      />
+                      Remember me
+                    </label>
+                    <button type="button" className="hacker-login__forgot">Sign-in help</button>
+                  </div>
+
+                  <button type="submit" disabled={loading} className="hacker-login__access-btn">
+                    {loading ? (
+                      <>
+                        <Loader size={16} className="hacker-login__spinner" />
+                        {loginMode === "password" ? "AUTHENTICATING..." : "SIGNING CHALLENGE..."}
+                      </>
+                    ) : (
+                      <>
+                        <Terminal size={16} />
+                        {loginMode === "password" ? "ACCESS SYSTEM" : "SIGN NONCE & ACCESS"}
+                      </>
+                    )}
+                  </button>
                 </form>
 
                 <div className="hacker-login__social-section">
@@ -272,17 +369,31 @@ export function LoginPage() {
                   </button>
                   {showDemo && (
                     <div className="hacker-login__demo-list">
-                      {BLOCKCHAIN_ACCOUNTS.map((acc) => (
-                        <button
-                          key={acc.address}
-                          type="button"
-                          className="hacker-login__demo-item"
-                          onClick={() => fillDemo(acc)}
-                        >
-                          <span>{acc.name}</span>
-                          <span style={{ fontSize: "9px", opacity: 0.6 }}>{acc.address.slice(0, 10)}...</span>
-                        </button>
-                      ))}
+                      {loginMode === "password" ? (
+                        PASSWORD_ACCOUNTS.map((acc) => (
+                          <button
+                            key={acc.email}
+                            type="button"
+                            className="hacker-login__demo-item"
+                            onClick={() => fillDemo(acc)}
+                          >
+                            <span>{acc.name}</span>
+                            <span style={{ fontSize: "9px", opacity: 0.6 }}>{acc.email}</span>
+                          </button>
+                        ))
+                      ) : (
+                        BLOCKCHAIN_ACCOUNTS.map((acc) => (
+                          <button
+                            key={acc.address}
+                            type="button"
+                            className="hacker-login__demo-item"
+                            onClick={() => fillDemo(acc)}
+                          >
+                            <span>{acc.name}</span>
+                            <span style={{ fontSize: "9px", opacity: 0.6 }}>{acc.address.slice(0, 10)}...</span>
+                          </button>
+                        ))
+                      )}
                     </div>
                   )}
                 </div>
