@@ -1,39 +1,73 @@
+version: '3.8'
+
 services:
-  postgres:
-    image: postgres:16-alpine
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "5173:5173"
+    networks:
+      - securenet
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
     environment:
-      POSTGRES_DB: securenet_ai
-      POSTGRES_USER: securenet
-      POSTGRES_PASSWORD: securenet
+      - DATABASE_URL=postgresql://user:password@postgres/securenet_ai
+      - GANACHE_URL=http://ganache:8545
+      - RYU_CONTROLLER_URL=http://ryu:8080
+      - FLASK_APP=wsgi.py
+      - FLASK_RUN_HOST=0.0.0.0
+    networks:
+      - securenet
+    depends_on:
+      - postgres
+      - ganache
+      - ryu
+
+  postgres:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=securenet_ai
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - securenet
 
-  backend:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
-    environment:
-      SECRET_KEY: change-me
-      JWT_SECRET_KEY: change-me-too
-      DATABASE_URL: postgresql+psycopg2://securenet:securenet@postgres:5432/securenet_ai
-      AUTO_CREATE_TABLES: "1"
-    depends_on:
-      - postgres
+  ganache:
+    image: trufflesuite/ganache-cli:latest
     ports:
-      - "5000:5000"
-
-  frontend:
-    image: node:20-alpine
-    working_dir: /app
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+      - "8545:8545"
+    command: --db /ganache-data -h 0.0.0.0
     volumes:
-      - ./:/app
-    depends_on:
-      - backend
+      - ganache_data:/ganache-data
+    networks:
+      - securenet
+
+  ryu:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.ryu
     ports:
-      - "5173:5173"
+      - "8080:8080"
+      - "6653:6653"
+    networks:
+      - securenet
+
+networks:
+  securenet:
+    driver: bridge
 
 volumes:
   postgres_data:
+  ganache_data:

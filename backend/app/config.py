@@ -12,11 +12,20 @@ class BaseConfig:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",
-        "sqlite:///securenet_ai.db",
+        "postgresql://user:password@localhost/securenet_ai",
     )
     JSON_SORT_KEYS = False
     RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
     AUTO_CREATE_TABLES = os.getenv("AUTO_CREATE_TABLES", "1") == "1"
+
+    # Blockchain settings
+    GANACHE_URL = os.getenv("GANACHE_URL", "http://127.0.0.1:7545")
+    CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS", "")
+    CONTRACT_ABI_PATH = os.getenv("CONTRACT_ABI_PATH", "contracts/SecurityContract.json")
+
+    # Ryu Controller settings
+    RYU_CONTROLLER_URL = os.getenv("RYU_CONTROLLER_URL", "http://127.0.0.1:8080")
+
 
 
 class DevelopmentConfig(BaseConfig):

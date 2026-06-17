@@ -1,82 +1,94 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { DEMO_CREDENTIALS, initialUsers } from "../data/initialData";
+import { login as apiLogin, getMe } from "../api/api";
 import { AUTH_KEY, loadFromStorage, removeFromStorage, saveToStorage } from "../lib/storage";
 import type { AuthUser, UserRole } from "../types";
 
 interface AuthSession {
   user: AuthUser;
   token: string;
-  loginAt: string;
 }
 
 interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ ok: true } | { ok: false; error: string }>;
+  login: (username: string, password: string) => Promise<{ ok: true } | { ok: false; error: string }>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function toAuthUser(userId: string): AuthUser | null {
-  const u = initialUsers.find((x) => x.id === userId);
-  if (!u) return null;
-  const initials = u.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-  return {
-    id: u.id,
-    name: u.name,
-    email: u.email,
-    role: u.role as UserRole,
-    department: u.department ?? "SOC",
-    initials,
-  };
-}
+function toAuthUser(backendUser: any): AuthUser {
+    const initials = (backendUser.username || "")
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
 
-function generateToken(): string {
-  return `mock_jwt_${Math.random().toString(36).slice(2)}_${Date.now()}`;
+    return {
+        id: backendUser.id.toString(),
+        name: backendUser.username,
+        email: backendUser.username, // Assuming username is email for now
+        role: backendUser.role as UserRole,
+        department: "SOC", // This can be extended in the backend user model
+        initials,
+    };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const stored = loadFromStorage<AuthSession>(AUTH_KEY);
-    if (stored?.user && stored.token) {
-      setSession(stored);
+  const fetchUser = useCallback(async () => {
+    try {
+      const response = await getMe();
+      const user = toAuthUser(response.data.user);
+      const token = localStorage.getItem('access_token');
+      if (user && token) {
+        setSession({ user, token });
+      }
+    } catch (error) {
+      console.error("Failed to fetch user", error);
+      setSession(null);
+      removeFromStorage(AUTH_KEY);
+      localStorage.removeItem('access_token');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
-    await new Promise((r) => setTimeout(r, 800));
-    const cred = DEMO_CREDENTIALS[email.toLowerCase()];
-    if (!cred || cred.password !== password) {
-      return { ok: false as const, error: "Invalid email or password" };
+  useEffect(() => {
+    const token = loadFromStorage<string>('access_token');
+    if (token) {
+      fetchUser();
+    } else {
+      setIsLoading(false);
     }
-    const user = toAuthUser(cred.userId);
-    if (!user) {
-      return { ok: false as const, error: "User account not found" };
+  }, [fetchUser]);
+
+  const login = useCallback(async (username: string, password: string) => {
+    try {
+      const response = await apiLogin({ username, password });
+      const { access_token, user: backendUser } = response.data;
+      const user = toAuthUser(backendUser);
+      
+      const newSession: AuthSession = { user, token: access_token };
+      setSession(newSession);
+      saveToStorage('access_token', access_token);
+      saveToStorage(AUTH_KEY, newSession); // For compatibility with existing logic
+      
+      return { ok: true as const };
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || "Login failed";
+      return { ok: false as const, error: errorMessage };
     }
-    const newSession: AuthSession = {
-      user,
-      token: generateToken(),
-      loginAt: new Date().toISOString(),
-    };
-    setSession(newSession);
-    saveToStorage(AUTH_KEY, newSession);
-    return { ok: true as const };
   }, []);
 
   const logout = useCallback(() => {
     setSession(null);
     removeFromStorage(AUTH_KEY);
+    localStorage.removeItem('access_token');
   }, []);
 
   const value = useMemo(

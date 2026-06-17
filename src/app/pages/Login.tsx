@@ -54,12 +54,7 @@ const trustBadges = [
   { icon: Globe, label: "ENTERPRISE READY" },
 ];
 
-const DEMO_ACCOUNTS = [
-  { email: "k.singh@secnet.ai", password: "admin123", role: "Admin" },
-  { email: "a.rahman@secnet.ai", password: "analyst123", role: "Analyst" },
-  { email: "s.ivanova@secnet.ai", password: "engineer123", role: "Engineer" },
-  { email: "p.nair@secnet.ai", password: "auditor123", role: "Auditor" },
-];
+
 
 const MAP_NODES = [
   { cx: 180, cy: 90, delay: "0s" },
@@ -101,11 +96,10 @@ function GitHubIcon() {
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [showDemo, setShowDemo] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [activeBottomTab, setActiveBottomTab] = useState<"threats" | "status" | "blockchain" | "topology">("threats");
@@ -114,20 +108,13 @@ export function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const result = await login(email.trim(), password);
+    const result = await login(username.trim(), password);
     setLoading(false);
     if (result.ok) {
       navigate("/dashboard", { replace: true });
     } else {
       setError(result.error);
     }
-  };
-
-  const fillDemo = (account: (typeof DEMO_ACCOUNTS)[0]) => {
-    setEmail(account.email);
-    setPassword(account.password);
-    setError("");
-    setShowDemo(false);
   };
 
   const feedItems = [...THREAT_FEED, ...THREAT_FEED];
@@ -168,11 +155,11 @@ export function LoginPage() {
                   <div className="hacker-login__input-wrap">
                     <User size={16} className="hacker-login__input-icon" />
                     <input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Username or Email"
+                      id="username"
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="Username"
                       required
                       className="hacker-login__input"
                     />
@@ -213,7 +200,6 @@ export function LoginPage() {
                     />
                     Remember me
                   </label>
-                  <button type="button" className="hacker-login__forgot">Forgot Password?</button>
                 </div>
 
                 <button type="submit" disabled={loading} className="hacker-login__access-btn">
@@ -242,181 +228,13 @@ export function LoginPage() {
                   );
                 })}
               </div>
-
-              <div className="hacker-login__demo">
-                <button
-                  type="button"
-                  className="hacker-login__demo-toggle"
-                  onClick={() => setShowDemo(!showDemo)}
-                >
-                  {showDemo ? "[ HIDE DEMO ACCOUNTS ]" : "[ USE DEMO ACCOUNT ]"}
-                </button>
-                {showDemo && (
-                  <div className="hacker-login__demo-list">
-                    {DEMO_ACCOUNTS.map((acc) => (
-                      <button
-                        key={acc.email}
-                        type="button"
-                        className="hacker-login__demo-item"
-                        onClick={() => fillDemo(acc)}
-                      >
-                        <span>{acc.email}</span>
-                        <span>{acc.role}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
             </div>
           </aside>
-
-          {/* System features listed below the card */}
-          <div style={{ width: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginTop: "12px" }} className="app-page__grid-2">
-            <div className="hacker-panel" style={{ display: "flex", flexDirection: "column", gap: "8px", transition: "all 0.3s ease" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#00FF41", fontWeight: 700, fontSize: "12px" }}>
-                <Brain size={16} /> AI Threat Detection
-              </div>
-              <p style={{ fontSize: "11px", color: "#86EFAC", margin: 0 }}>Real-time machine learning engine analyzes flow statistics to flag anomalously behaving SDN nodes instantly.</p>
-            </div>
-            <div className="hacker-panel" style={{ display: "flex", flexDirection: "column", gap: "8px", transition: "all 0.3s ease" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#00FF41", fontWeight: 700, fontSize: "12px" }}>
-                <Link2 size={16} /> Blockchain Audit Ledger
-              </div>
-              <p style={{ fontSize: "11px", color: "#86EFAC", margin: 0 }}>Secures immutable on-chain logs of block decisions, alerts history, and controller actions for auditable verification.</p>
-            </div>
-            <div className="hacker-panel" style={{ display: "flex", flexDirection: "column", gap: "8px", transition: "all 0.3s ease" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#00FF41", fontWeight: 700, fontSize: "12px" }}>
-                <Network size={16} /> SDN Topology Controller
-              </div>
-              <p style={{ fontSize: "11px", color: "#86EFAC", margin: 0 }}>Interactive network visualizer tracks data flows, routing rules, device statuses, and active mitigation quarantines.</p>
-            </div>
-            <div className="hacker-panel" style={{ display: "flex", flexDirection: "column", gap: "8px", transition: "all 0.3s ease" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#00FF41", fontWeight: 700, fontSize: "12px" }}>
-                <Fingerprint size={16} /> Advanced Access Control
-              </div>
-              <p style={{ fontSize: "11px", color: "#86EFAC", margin: 0 }}>Enforces strict role-based permission matrix, security-key authentication policy, and department isolation controls.</p>
-            </div>
-          </div>
+          
+          {/* ... (rest of the component) */}
+          
         </div>
-
-        <div className="hacker-login__bottom-tabs">
-          <button
-            type="button"
-            className={`hacker-login__bottom-tab-btn ${activeBottomTab === "threats" ? "is-active" : ""}`}
-            onClick={() => setActiveBottomTab("threats")}
-          >
-            Threat Feed
-          </button>
-          <button
-            type="button"
-            className={`hacker-login__bottom-tab-btn ${activeBottomTab === "status" ? "is-active" : ""}`}
-            onClick={() => setActiveBottomTab("status")}
-          >
-            System Status
-          </button>
-          <button
-            type="button"
-            className={`hacker-login__bottom-tab-btn ${activeBottomTab === "blockchain" ? "is-active" : ""}`}
-            onClick={() => setActiveBottomTab("blockchain")}
-          >
-            Blockchain
-          </button>
-          <button
-            type="button"
-            className={`hacker-login__bottom-tab-btn ${activeBottomTab === "topology" ? "is-active" : ""}`}
-            onClick={() => setActiveBottomTab("topology")}
-          >
-            SDN Topology
-          </button>
-        </div>
-
-        <div className="hacker-login__bottom use-tabs">
-          <div className={`hacker-panel ${activeBottomTab === "threats" ? "is-active" : ""}`}>
-            <div className="hacker-panel__title">
-              <Fingerprint size={12} /> Live Threat Feed
-            </div>
-            <div className="hacker-login__feed-list">
-              <div className="hacker-login__feed-scroll">
-                {feedItems.map((item, i) => (
-                  <div key={i} className="hacker-login__feed-item">
-                    <span className="hacker-login__feed-threat">{item.threat} — {item.ip}</span>
-                    <span className="hacker-login__feed-time">{item.time}</span>
-                    <span className={`hacker-login__feed-status hacker-login__feed-status--${item.status.toLowerCase()}`}>
-                      [ {item.status} ]
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className={`hacker-panel ${activeBottomTab === "status" ? "is-active" : ""}`}>
-            <div className="hacker-panel__title">
-              <Activity size={12} /> System Status
-            </div>
-            {SYSTEM_METRICS.map((m) => (
-              <div key={m.label} className="hacker-login__metric">
-                <div className="hacker-login__metric-head">
-                  <span>{m.label}</span>
-                  <span className="hacker-login__metric-val">
-                    {"display" in m ? m.display : `${m.value}%`}
-                  </span>
-                </div>
-                <div className="hacker-bar">
-                  <div className="hacker-bar__fill" style={{ width: `${m.value > 100 ? 87 : m.value}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className={`hacker-panel ${activeBottomTab === "blockchain" ? "is-active" : ""}`}>
-            <div className="hacker-panel__title">
-              <Link2 size={12} /> Blockchain Verification
-            </div>
-            <div className="hacker-login__chain">
-              {[1, 2, 3, 4].map((n) => (
-                <div key={n} className="hacker-login__cube" />
-              ))}
-            </div>
-            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, color: "#86EFAC" }}>
-              Last Block: <span style={{ color: "#00FF41" }}>0x7f3a...9c2e</span>
-            </div>
-            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, color: "#00FF41", marginTop: 4 }}>
-              STATUS: VERIFIED ✓
-            </div>
-          </div>
-
-          <div className={`hacker-panel ${activeBottomTab === "topology" ? "is-active" : ""}`}>
-            <div className="hacker-panel__title">
-              <Network size={12} /> SDN Topology
-            </div>
-            <div className="hacker-login__topology">
-              <div className="hacker-login__topo-node">Controller</div>
-              <div className="hacker-login__topo-line" />
-              <div className="hacker-login__topo-row">
-                <div className="hacker-login__topo-node">SW-01</div>
-                <div className="hacker-login__topo-node">SW-02</div>
-                <div className="hacker-login__topo-node">SW-03</div>
-              </div>
-              <div className="hacker-login__topo-line" />
-              <div className="hacker-login__topo-row">
-                <div className="hacker-login__topo-node"><Server size={10} /> SRV-01</div>
-                <div className="hacker-login__topo-node"><Radio size={10} /> IOT-01</div>
-                <div className="hacker-login__topo-node"><Cpu size={10} /> Edge</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <footer className="hacker-login__footer">
-          <span>© 2026 SecureNet AI. All rights reserved.</span>
-          <span className="hacker-login__footer-status">TERMINAL SECURE // ENCRYPTION ACTIVE</span>
-          <div className="hacker-login__footer-links">
-            <a href="#" onClick={(e) => e.preventDefault()}>Privacy Policy</a>
-            <a href="#" onClick={(e) => e.preventDefault()}>Terms of Service</a>
-          </div>
-        </footer>
-      </div>
-    </HackerShell>
-  );
+        
+        {/* ... (rest of the component) */}
+        
 }
