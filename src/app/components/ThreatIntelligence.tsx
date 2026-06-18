@@ -137,7 +137,7 @@ export function ThreatIntelligence() {
             </div>
           </div>
 
-          <div style={{ ...glassCard, padding: "0", overflow: "hidden" }}>
+          <div style={{ ...glassCard, padding: "0", overflow: "hidden", width: "100%", maxWidth: "100%" }}>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "800px" }}>
                 <thead>

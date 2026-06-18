@@ -200,7 +200,7 @@ export function AIThreatDetection() {
             ))}
           </div>
 
-          <div style={{ ...glassCard, padding: "0", overflow: "auto", flex: 1 }}>
+          <div style={{ ...glassCard, padding: "0", overflow: "auto", flex: 1, width: "100%", maxWidth: "100%" }}>
             {filtered.length === 0 ? (
               <p style={{ padding: "40px", textAlign: "center", color: "#64748B", fontSize: "13px" }}>No threats match your filters</p>
             ) : (

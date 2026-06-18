@@ -424,7 +424,7 @@ export function BlockchainAudit() {
             ))}
           </div>
 
-          <div style={{ ...glassCard, padding: "0", overflow: "auto" }}>
+          <div style={{ ...glassCard, padding: "0", overflow: "auto", width: "100%", maxWidth: "100%" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "900px" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--border)", background: "rgba(13,27,42,0.9)" }}>
