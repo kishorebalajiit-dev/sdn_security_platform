@@ -9,12 +9,13 @@ import { api } from "../../api/services";
 import { getApiErrorMessage } from "../../api/client";
 
 const glassCard: React.CSSProperties = {
-  background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
-  backdropFilter: "blur(18px)",
-  border: "1px solid rgba(0,255,65,0.2)",
-  borderRadius: "22px",
+  background: "rgba(10, 10, 10, 0.75)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  border: "1px solid rgba(255, 0, 0, 0.15)",
+  borderRadius: "16px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(255,0,0,0.12), 0 0 36px rgba(255,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const tabs = [
@@ -40,7 +41,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
 
 function SettingRow({ label, description, children }: { label: string; description?: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 0", borderBottom: "1px solid rgba(37,99,235,0.08)" }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 0", borderBottom: "1px solid rgba(255,0,0,0.08)" }}>
       <div style={{ flex: 1, marginRight: "20px" }}>
         <p style={{ fontSize: "13px", color: "#E2E8F0", marginBottom: description ? "3px" : 0 }}>{label}</p>
         {description && <p style={{ fontSize: "11px", color: "#475569" }}>{description}</p>}
@@ -57,7 +58,7 @@ function InputField({ defaultValue, placeholder, width = 240 }: { defaultValue?:
       placeholder={placeholder}
       style={{ ...inputStyle, width: `${width}px` }}
       onFocus={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = "rgba(37,99,235,0.5)"; }}
-      onBlur={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = "rgba(37,99,235,0.2)"; }}
+      onBlur={(e) => { (e.currentTarget as HTMLInputElement).style.borderColor = "rgba(255,0,0,0.2)"; }}
     />
   );
 }
@@ -71,7 +72,7 @@ const defaultPerms: Record<string, Record<string, boolean>> = {
   Auditor: { View: true, Create: false, Edit: false, Delete: false, Approve: false, Export: true },
 };
 const roleColors: Record<string, string> = {
-  Admin: "#EF4444", "Security Analyst": "#2563EB", "Network Engineer": "#22C55E", Auditor: "#8B5CF6",
+  Admin: "#EF4444", "Security Analyst": "#2563EB", "Network Engineer": "#22C55E", Auditor: "#FFFF00",
 };
 
 const SETTINGS_KEY = "secureNetSettingsState"; // legacy key — no longer used
@@ -255,27 +256,27 @@ export function Settings() {
           <div>
             <h3 style={{ color: "#E2E8F0", marginBottom: "18px" }}>Network Configuration</h3>
             <SettingRow label="Network Name" description="Internal identifier for this SDN network">
-              <input value={fields.networkName} onChange={(e) => setField("networkName", e.target.value)} style={inputStyle} />
+              <input value={fields.networkName} onChange={(e) => setField("networkName", e.target.value)} style={{ ...inputStyle, width: "240px" }} />
             </SettingRow>
             <SettingRow label="Management Subnet" description="Network management CIDR range">
-              <input value={fields.managementSubnet} onChange={(e) => setField("managementSubnet", e.target.value)} style={inputStyle} />
+              <input value={fields.managementSubnet} onChange={(e) => setField("managementSubnet", e.target.value)} style={{ ...inputStyle, width: "240px" }} />
             </SettingRow>
             <SettingRow label="IoT VLAN Subnet" description="Isolated IoT device subnet">
-              <input value={fields.iotSubnet} onChange={(e) => setField("iotSubnet", e.target.value)} style={inputStyle} />
+              <input value={fields.iotSubnet} onChange={(e) => setField("iotSubnet", e.target.value)} style={{ ...inputStyle, width: "240px" }} />
             </SettingRow>
             <SettingRow label="Primary DNS" description="DNS server for name resolution">
-              <input value={fields.primaryDns} onChange={(e) => setField("primaryDns", e.target.value)} style={inputStyle} />
+              <input value={fields.primaryDns} onChange={(e) => setField("primaryDns", e.target.value)} style={{ ...inputStyle, width: "240px" }} />
             </SettingRow>
             <SettingRow label="Secondary DNS" description="Fallback DNS server">
-              <input value={fields.secondaryDns} onChange={(e) => setField("secondaryDns", e.target.value)} style={inputStyle} />
+              <input value={fields.secondaryDns} onChange={(e) => setField("secondaryDns", e.target.value)} style={{ ...inputStyle, width: "240px" }} />
             </SettingRow>
             <SettingRow label="Default Gateway" description="Network default gateway IP">
-              <input value={fields.defaultGateway} onChange={(e) => setField("defaultGateway", e.target.value)} style={inputStyle} />
+              <input value={fields.defaultGateway} onChange={(e) => setField("defaultGateway", e.target.value)} style={{ ...inputStyle, width: "240px" }} />
             </SettingRow>
-            <div style={{ margin: "18px 0 0", padding: "16px", background: "rgba(37,99,235,0.06)", border: "1px solid rgba(37,99,235,0.15)", borderRadius: "10px" }}>
+            <div style={{ margin: "18px 0 0", padding: "16px", background: "rgba(255,0,0,0.06)", border: "1px solid rgba(255,0,0,0.15)", borderRadius: "10px" }}>
               <p style={{ fontSize: "12px", fontWeight: 600, color: "#E2E8F0", marginBottom: "12px" }}>SDN Controller Settings</p>
               <SettingRow label="Controller IP" description="OpenFlow controller address">
-                <input value={fields.controllerIp} onChange={(e) => setField("controllerIp", e.target.value)} style={inputStyle} />
+                <input value={fields.controllerIp} onChange={(e) => setField("controllerIp", e.target.value)} style={{ ...inputStyle, width: "240px" }} />
               </SettingRow>
               <SettingRow label="OpenFlow Version" description="Protocol version">
                 <select value={fields.openflowVersion} onChange={(e) => setField("openflowVersion", e.target.value)} style={{ ...selectStyle, width: "160px" }}>
@@ -418,9 +419,9 @@ export function Settings() {
               <h3 style={{ color: "#E2E8F0" }}>Role Management</h3>
               <button
                 onClick={() => setAddRoleOpen(true)}
-                style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: "0 0 14px rgba(37,99,235,0.3)", transition: "all 0.15s" }}
+                style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "linear-gradient(135deg, #2563EB, #1D4ED8)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: "0 0 14px rgba(255,0,0,0.3)", transition: "all 0.15s" }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 22px rgba(37,99,235,0.5)"; (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 14px rgba(37,99,235,0.3)"; (e.currentTarget as HTMLButtonElement).style.transform = "none"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 14px rgba(255,0,0,0.3)"; (e.currentTarget as HTMLButtonElement).style.transform = "none"; }}
               >
                 <Plus size={13} /> Add Role
               </button>
@@ -430,7 +431,7 @@ export function Settings() {
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "600px" }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid rgba(37,99,235,0.15)" }}>
+                  <tr style={{ borderBottom: "1px solid rgba(255,0,0,0.15)" }}>
                     <th style={{ padding: "10px 14px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", width: "200px" }}>Role</th>
                     {permissionActions.map((action) => (
                       <th key={action} style={{ padding: "10px 14px", textAlign: "center", fontSize: "10px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>{action}</th>
@@ -440,7 +441,7 @@ export function Settings() {
                 </thead>
                 <tbody>
                   {Object.keys(perms).map((role, i) => (
-                    <tr key={role} style={{ borderBottom: "1px solid rgba(37,99,235,0.06)", background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)" }}>
+                    <tr key={role} style={{ borderBottom: "1px solid rgba(255,0,0,0.06)", background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)" }}>
                       <td style={{ padding: "12px 14px" }}>
                         <span style={{ fontSize: "11px", fontWeight: 700, color: roleColors[role] || "#94A3B8", background: `${roleColors[role] || "#94A3B8"}15`, padding: "3px 10px", borderRadius: "5px" }}>{role}</span>
                       </td>
@@ -504,7 +505,7 @@ export function Settings() {
         <div style={{ ...glassCard, padding: "8px" }}>
           {tabs.map((tab) => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              style={{ width: "100%", display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", borderRadius: "8px", background: activeTab === tab.id ? "rgba(37,99,235,0.15)" : "transparent", border: "none", color: activeTab === tab.id ? "#60A5FA" : "#64748B", cursor: "pointer", fontSize: "12px", fontWeight: activeTab === tab.id ? 600 : 400, transition: "all 0.15s", textAlign: "left" }}
+              style={{ width: "100%", display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", borderRadius: "8px", background: activeTab === tab.id ? "rgba(255,0,0,0.15)" : "transparent", border: "none", color: activeTab === tab.id ? "#60A5FA" : "#64748B", cursor: "pointer", fontSize: "12px", fontWeight: activeTab === tab.id ? 600 : 400, transition: "all 0.15s", textAlign: "left" }}
               onMouseEnter={(e) => { if (activeTab !== tab.id) { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLButtonElement).style.color = "#94A3B8"; } }}
               onMouseLeave={(e) => { if (activeTab !== tab.id) { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = "#64748B"; } }}
             >
@@ -516,7 +517,7 @@ export function Settings() {
         {/* Content */}
         <div style={glassCard}>
           {renderContent()}
-          <div style={{ marginTop: "24px", display: "flex", gap: "10px", justifyContent: "flex-end", paddingTop: "16px", borderTop: "1px solid rgba(37,99,235,0.08)", flexWrap: "wrap" }}>
+          <div style={{ marginTop: "24px", display: "flex", gap: "10px", justifyContent: "flex-end", paddingTop: "16px", borderTop: "1px solid rgba(255,0,0,0.08)", flexWrap: "wrap" }}>
             <button onClick={handleDiscard} className="app-btn app-btn--secondary">
               Discard Changes
             </button>

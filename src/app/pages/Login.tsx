@@ -93,7 +93,7 @@ function MicrosoftIcon() {
 
 function GitHubIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="#00FF41" aria-hidden="true">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="#FF0000" aria-hidden="true">
       <path d="M12 2C6.48 2 2 6.58 2 12.26c0 4.52 2.87 8.35 6.84 9.7.5.1.68-.22.68-.48 0-.24-.01-.87-.01-1.7-2.78.62-3.37-1.36-3.37-1.36-.45-1.18-1.1-1.5-1.1-1.5-.9-.63.07-.62.07-.62 1 .07 1.53 1.05 1.53 1.05.89 1.56 2.34 1.11 2.91.85.09-.67.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.7 0 0 .84-.27 2.75 1.05A9.2 9.2 0 0 1 12 6.84c.85 0 1.71.12 2.51.34 1.91-1.32 2.75-1.05 2.75-1.05.55 1.4.2 2.44.1 2.7.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.81-4.57 5.07.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.8 0 .27.18.59.69.49A10.03 10.03 0 0 0 22 12.26C22 6.58 17.52 2 12 2z" />
     </svg>
   );
@@ -188,20 +188,20 @@ export function LoginPage() {
                 </div>
 
                 {/* Login Mode Tab Switcher */}
-                <div className="hacker-login__tabs" style={{ display: "flex", gap: "14px", marginBottom: "20px", borderBottom: "1px solid rgba(0, 255, 65, 0.15)", paddingBottom: "8px" }}>
+                <div className="hacker-login__tabs" style={{ display: "flex", gap: "14px", marginBottom: "20px", borderBottom: "1px solid rgba(255, 0, 0, 0.15)", paddingBottom: "8px" }}>
                   <button
                     type="button"
                     onClick={() => { setLoginMode("password"); setError(""); }}
                     style={{
                       background: "none",
                       border: "none",
-                      color: loginMode === "password" ? "#00FF41" : "rgba(110, 231, 160, 0.5)",
+                      color: loginMode === "password" ? "#FF0000" : "rgba(110, 231, 160, 0.5)",
                       fontFamily: "Share Tech Mono, monospace",
                       fontSize: "12px",
                       fontWeight: 600,
                       cursor: "pointer",
                       padding: "4px 8px",
-                      borderBottom: loginMode === "password" ? "2px solid #00FF41" : "none",
+                      borderBottom: loginMode === "password" ? "2px solid #FF0000" : "none",
                       transition: "all 0.2s"
                     }}
                   >
@@ -213,13 +213,13 @@ export function LoginPage() {
                     style={{
                       background: "none",
                       border: "none",
-                      color: loginMode === "wallet" ? "#00FF41" : "rgba(110, 231, 160, 0.5)",
+                      color: loginMode === "wallet" ? "#FF0000" : "rgba(110, 231, 160, 0.5)",
                       fontFamily: "Share Tech Mono, monospace",
                       fontSize: "12px",
                       fontWeight: 600,
                       cursor: "pointer",
                       padding: "4px 8px",
-                      borderBottom: loginMode === "wallet" ? "2px solid #00FF41" : "none",
+                      borderBottom: loginMode === "wallet" ? "2px solid #FF0000" : "none",
                       transition: "all 0.2s"
                     }}
                   >
@@ -377,24 +377,24 @@ export function LoginPage() {
                     style={{
                       fontFamily: "Share Tech Mono, monospace",
                       fontSize: "11px",
-                      background: "rgba(0, 255, 65, 0.05)",
-                      border: "1px solid rgba(0, 255, 65, 0.3)",
-                      color: "#00FF41",
+                      background: "rgba(255, 0, 0, 0.05)",
+                      border: "1px solid rgba(255, 0, 0, 0.3)",
+                      color: "#FF0000",
                       padding: "6px 12px",
                       borderRadius: "6px",
                       cursor: "pointer",
                       width: "100%",
                       textAlign: "center",
                       fontWeight: 600,
-                      boxShadow: "0 0 10px rgba(0, 255, 65, 0.05)",
+                      boxShadow: "0 0 10px rgba(255, 0, 0, 0.05)",
                       transition: "all 0.2s"
                     }}
                   >
                     {showDemo ? "[ HIDE DEMO CREDENTIALS ]" : "[ SHOW DEMO CREDENTIALS ]"}
                   </button>
                   {showDemo && (
-                    <div style={{ marginTop: "12px", padding: "12px", border: "1px dashed rgba(0, 255, 65, 0.3)", borderRadius: "8px", background: "rgba(0, 255, 65, 0.02)", display: "flex", flexDirection: "column", gap: "8px" }}>
-                      <p style={{ fontSize: "10px", fontWeight: 700, color: "#00FF41", textTransform: "uppercase", letterSpacing: "0.05em", margin: 0 }}>Active Demo Credentials</p>
+                    <div style={{ marginTop: "12px", padding: "12px", border: "1px dashed rgba(255, 0, 0, 0.3)", borderRadius: "8px", background: "rgba(255, 0, 0, 0.02)", display: "flex", flexDirection: "column", gap: "8px" }}>
+                      <p style={{ fontSize: "10px", fontWeight: 700, color: "#FF0000", textTransform: "uppercase", letterSpacing: "0.05em", margin: 0 }}>Active Demo Credentials</p>
                       
                       {loginMode === "password" ? (
                         <>
@@ -408,7 +408,7 @@ export function LoginPage() {
                                 navigator.clipboard.writeText("k.singh@secnet.ai");
                                 toast.info("Copied to Clipboard", "k.singh@secnet.ai");
                               }}
-                              style={{ fontSize: "9px", background: "rgba(0, 255, 65, 0.1)", border: "1px solid rgba(0, 255, 65, 0.4)", color: "#00FF41", padding: "2px 6px", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace" }}
+                              style={{ fontSize: "9px", background: "rgba(255, 0, 0, 0.1)", border: "1px solid rgba(255, 0, 0, 0.4)", color: "#FF0000", padding: "2px 6px", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace" }}
                             >
                               Copy
                             </button>
@@ -423,7 +423,7 @@ export function LoginPage() {
                                 navigator.clipboard.writeText("admin123");
                                 toast.info("Copied to Clipboard", "admin123");
                               }}
-                              style={{ fontSize: "9px", background: "rgba(0, 255, 65, 0.1)", border: "1px solid rgba(0, 255, 65, 0.4)", color: "#00FF41", padding: "2px 6px", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace" }}
+                              style={{ fontSize: "9px", background: "rgba(255, 0, 0, 0.1)", border: "1px solid rgba(255, 0, 0, 0.4)", color: "#FF0000", padding: "2px 6px", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace" }}
                             >
                               Copy
                             </button>
@@ -434,7 +434,7 @@ export function LoginPage() {
                               setEmail("k.singh@secnet.ai");
                               setPassword("admin123");
                             }}
-                            style={{ width: "100%", padding: "6px", fontSize: "10px", fontWeight: 700, background: "#00FF41", color: "#000", border: "none", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace", marginTop: "4px" }}
+                            style={{ width: "100%", padding: "6px", fontSize: "10px", fontWeight: 700, background: "#FF0000", color: "#000", border: "none", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace", marginTop: "4px" }}
                           >
                             AUTO FILL DEMO
                           </button>
@@ -451,7 +451,7 @@ export function LoginPage() {
                                 navigator.clipboard.writeText("0x807b242b3494a8b68cA0dE01C323fFB0511eDF73");
                                 toast.info("Copied to Clipboard", "0x807b242b3494a8b68cA0dE01C323fFB0511eDF73");
                               }}
-                              style={{ fontSize: "9px", background: "rgba(0, 255, 65, 0.1)", border: "1px solid rgba(0, 255, 65, 0.4)", color: "#00FF41", padding: "2px 6px", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace" }}
+                              style={{ fontSize: "9px", background: "rgba(255, 0, 0, 0.1)", border: "1px solid rgba(255, 0, 0, 0.4)", color: "#FF0000", padding: "2px 6px", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace" }}
                             >
                               Copy
                             </button>
@@ -466,7 +466,7 @@ export function LoginPage() {
                                 navigator.clipboard.writeText("0x6168447c0400218f5d5f7a8a128141fc7364d8ea2314253b66ea227cd7715e6d");
                                 toast.info("Copied to Clipboard", "0x6168447c0400218f5d5f7a8a128141fc7364d8ea2314253b66ea227cd7715e6d");
                               }}
-                              style={{ fontSize: "9px", background: "rgba(0, 255, 65, 0.1)", border: "1px solid rgba(0, 255, 65, 0.4)", color: "#00FF41", padding: "2px 6px", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace" }}
+                              style={{ fontSize: "9px", background: "rgba(255, 0, 0, 0.1)", border: "1px solid rgba(255, 0, 0, 0.4)", color: "#FF0000", padding: "2px 6px", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace" }}
                             >
                               Copy
                             </button>
@@ -477,14 +477,14 @@ export function LoginPage() {
                               setAddress("0x807b242b3494a8b68cA0dE01C323fFB0511eDF73");
                               setPrivateKey("0x6168447c0400218f5d5f7a8a128141fc7364d8ea2314253b66ea227cd7715e6d");
                             }}
-                            style={{ width: "100%", padding: "6px", fontSize: "10px", fontWeight: 700, background: "#00FF41", color: "#000", border: "none", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace", marginTop: "4px" }}
+                            style={{ width: "100%", padding: "6px", fontSize: "10px", fontWeight: 700, background: "#FF0000", color: "#000", border: "none", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace", marginTop: "4px" }}
                           >
                             AUTO FILL DEMO
                           </button>
                         </>
                       )}
                       
-                      <div style={{ borderTop: "1px solid rgba(0, 255, 65, 0.15)", paddingTop: "8px", marginTop: "4px" }}>
+                      <div style={{ borderTop: "1px solid rgba(255, 0, 0, 0.15)", paddingTop: "8px", marginTop: "4px" }}>
                         <p style={{ fontSize: "9px", color: "rgba(110, 231, 160, 0.6)", textTransform: "uppercase", marginBottom: "6px", margin: 0 }}>Or Select Other Demo Accounts</p>
                         <div className="hacker-login__demo-list" style={{ maxHeight: "110px", overflowY: "auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", marginTop: "4px" }}>
                           {loginMode === "password" ? (
@@ -494,7 +494,7 @@ export function LoginPage() {
                                 type="button"
                                 className="hacker-login__demo-item"
                                 onClick={() => fillDemo(acc)}
-                                style={{ padding: "4px 8px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(0,255,65,0.1)", borderRadius: "4px", color: "#6EE7A0", cursor: "pointer", textAlign: "left", fontSize: "10px" }}
+                                style={{ padding: "4px 8px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,0,0,0.1)", borderRadius: "4px", color: "#A1A1AA", cursor: "pointer", textAlign: "left", fontSize: "10px" }}
                               >
                                 <div style={{ fontWeight: 600 }}>{acc.name.split(" ")[0]}</div>
                                 <div style={{ fontSize: "8px", opacity: 0.6 }}>{acc.role}</div>
@@ -507,7 +507,7 @@ export function LoginPage() {
                                 type="button"
                                 className="hacker-login__demo-item"
                                 onClick={() => fillDemo(acc)}
-                                style={{ padding: "4px 8px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(0,255,65,0.1)", borderRadius: "4px", color: "#6EE7A0", cursor: "pointer", textAlign: "left", fontSize: "10px" }}
+                                style={{ padding: "4px 8px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,0,0,0.1)", borderRadius: "4px", color: "#A1A1AA", cursor: "pointer", textAlign: "left", fontSize: "10px" }}
                               >
                                 <div style={{ fontWeight: 600 }}>{acc.name.split(" ")[0]}</div>
                                 <div style={{ fontSize: "8px", opacity: 0.6 }}>{acc.address.slice(0, 10)}...</div>
@@ -630,10 +630,10 @@ export function LoginPage() {
                 <div key={n} className="hacker-login__cube" />
               ))}
             </div>
-            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, color: "#86EFAC" }}>
-              Last Block: <span style={{ color: "#00FF41" }}>0x7f3a...9c2e</span>
+            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, color: "#FF8888" }}>
+              Last Block: <span style={{ color: "#FF0000" }}>0x7f3a...9c2e</span>
             </div>
-            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, color: "#00FF41", marginTop: 4 }}>
+            <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 10, color: "#FF0000", marginTop: 4 }}>
               STATUS: VERIFIED ✓
             </div>
           </div>

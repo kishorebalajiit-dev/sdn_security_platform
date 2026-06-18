@@ -43,13 +43,13 @@
 }
 
 @keyframes hacker-node-pulse {
-  0%, 100% { box-shadow: 0 0 8px rgba(0,255,65,0.4); }
-  50% { box-shadow: 0 0 20px rgba(0,255,65,0.9), 0 0 40px rgba(0,255,65,0.3); }
+  0%, 100% { box-shadow: 0 0 8px rgba(255,0,0,0.4); }
+  50% { box-shadow: 0 0 20px rgba(255,0,0,0.9), 0 0 40px rgba(255,0,0,0.3); }
 }
 
 @keyframes hacker-border-flicker {
-  0%, 100% { border-color: rgba(0,255,65,0.35); }
-  50% { border-color: rgba(0,255,65,0.7); }
+  0%, 100% { border-color: rgba(255,0,0,0.35); }
+  50% { border-color: rgba(255,0,0,0.7); }
 }
 
 /* ── Hacker Shell (global background) ── */
@@ -57,7 +57,7 @@
   position: relative;
   min-height: 100vh;
   min-height: 100dvh;
-  background: #000;
+  background: transparent;
   overflow: hidden;
 }
 
@@ -76,8 +76,8 @@
   pointer-events: none;
   z-index: 1;
   background-image:
-    linear-gradient(rgba(0,255,65,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,255,65,0.04) 1px, transparent 1px);
+    linear-gradient(rgba(255,0,0,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,0,0,0.04) 1px, transparent 1px);
   background-size: 40px 40px;
   -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 80%);
   mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 80%);
@@ -92,8 +92,8 @@
     0deg,
     transparent,
     transparent 2px,
-    rgba(0,255,65,0.015) 2px,
-    rgba(0,255,65,0.015) 4px
+    rgba(255,0,0,0.015) 2px,
+    rgba(255,0,0,0.015) 4px
   );
 }
 
@@ -103,7 +103,7 @@
   left: 0;
   right: 0;
   height: 120px;
-  background: linear-gradient(180deg, transparent, rgba(0,255,65,0.04), transparent);
+  background: linear-gradient(180deg, transparent, rgba(255,0,0,0.04), transparent);
   animation: hacker-scanline 8s linear infinite;
 }
 
@@ -125,7 +125,7 @@
   font-family: 'JetBrains Mono', 'Share Tech Mono', monospace;
   font-size: 11px;
   line-height: 1.65;
-  color: #00FF41;
+  color: #FF0000;
 }
 
 .hacker-terminal__line {
@@ -136,7 +136,7 @@
 
 .hacker-terminal__cursor {
   animation: hacker-blink 1s step-end infinite;
-  color: #00FF41;
+  color: #FF0000;
 }
 
 /* ── Glitch text ── */
@@ -144,8 +144,8 @@
   position: relative;
   display: inline-block;
   font-family: 'Share Tech Mono', 'JetBrains Mono', monospace;
-  color: #00FF41;
-  text-shadow: 0 0 20px rgba(0,255,65,0.6);
+  color: #FF0000;
+  text-shadow: 0 0 20px rgba(255,0,0,0.6);
 }
 
 .hacker-glitch::before,
@@ -159,7 +159,7 @@
 }
 
 .hacker-glitch::before {
-  color: #00FF88;
+  color: #FF3D3D;
   animation: hacker-glitch-1 3s infinite linear alternate-reverse;
   opacity: 0.7;
 }
@@ -172,12 +172,20 @@
 
 /* ── Hacker panel (reusable) ── */
 .hacker-panel {
-  background: rgba(0, 12, 0, 0.85);
-  border: 1px solid rgba(0,255,65,0.25);
-  border-radius: 2px;
+  background: rgba(10, 10, 10, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 0, 0, 0.15);
+  border-radius: 16px;
   padding: 14px 16px;
   animation: hacker-border-flicker 4s ease-in-out infinite;
-  box-shadow: 0 0 20px rgba(0,255,65,0.06), inset 0 0 30px rgba(0,255,65,0.02);
+  box-shadow: 0 0 15px rgba(255,0,0,0.15), inset 0 0 30px rgba(255,0,0,0.02);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+}
+
+.hacker-panel:hover {
+  box-shadow: 0 0 25px rgba(255,0,0,0.35), inset 0 0 30px rgba(255,0,0,0.05);
+  border-color: #FF3D3D;
 }
 
 .hacker-panel__title {
@@ -185,7 +193,7 @@
   font-size: 10px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #00FF41;
+  color: #FF0000;
   margin-bottom: 12px;
   display: flex;
   align-items: center;
@@ -194,13 +202,13 @@
 
 .hacker-panel__title::before {
   content: ">>";
-  color: #00CC33;
+  color: #CC0000;
 }
 
 /* ── Progress bars ── */
 .hacker-bar {
   height: 6px;
-  background: rgba(0,255,65,0.1);
+  background: rgba(255,0,0,0.1);
   border-radius: 1px;
   overflow: hidden;
   margin-top: 6px;
@@ -208,8 +216,8 @@
 
 .hacker-bar__fill {
   height: 100%;
-  background: linear-gradient(90deg, #00CC33, #00FF41);
-  box-shadow: 0 0 10px rgba(0,255,65,0.6);
+  background: linear-gradient(90deg, #CC0000, #FF0000);
+  box-shadow: 0 0 10px rgba(255,0,0,0.6);
   transition: width 1s ease;
 }
 
@@ -220,7 +228,7 @@
   display: flex;
   flex-direction: column;
   padding: clamp(10px, 2vw, 20px);
-  color: #E8FFE8;
+  color: #FFFFFF;
   overflow-x: hidden;
   overflow-y: auto;
   box-sizing: border-box;
@@ -244,7 +252,7 @@
 .hacker-login__topbar-center {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: #00FF41;
+  color: #FF0000;
   letter-spacing: 0.2em;
   text-align: center;
   padding-top: 4px;
@@ -258,7 +266,7 @@
 }
 
 .hacker-login__ip {
-  color: #00FF41;
+  color: #FF0000;
 }
 
 .hacker-login__location {
@@ -301,13 +309,13 @@
 .hacker-login__logo {
   width: 64px;
   height: 64px;
-  border: 2px solid rgba(0,255,65,0.5);
+  border: 2px solid rgba(255,0,0,0.5);
   border-radius: 4px;
   display: grid;
   place-items: center;
-  color: #00FF41;
-  background: rgba(0,255,65,0.06);
-  box-shadow: 0 0 30px rgba(0,255,65,0.25);
+  color: #FF0000;
+  background: rgba(255,0,0,0.06);
+  box-shadow: 0 0 30px rgba(255,0,0,0.25);
   animation: hacker-node-pulse 3s ease-in-out infinite;
 }
 
@@ -324,14 +332,14 @@
   margin-top: 6px;
   font-family: 'JetBrains Mono', monospace;
   font-size: clamp(10px, 1.2vw, 12px);
-  color: #00FF41;
+  color: #FF0000;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .hacker-login__brand-desc {
   font-size: 13px;
-  color: #6EE7A0;
+  color: #A1A1AA;
   line-height: 1.65;
   max-width: 560px;
 }
@@ -339,8 +347,8 @@
 .hacker-login__map-wrap {
   position: relative;
   min-height: clamp(200px, 28vw, 320px);
-  border: 1px solid rgba(0,255,65,0.2);
-  background: rgba(0,8,0,0.6);
+  border: 1px solid rgba(255,0,0,0.2);
+  background: rgba(11,11,11,0.6);
   overflow: hidden;
 }
 
@@ -357,7 +365,7 @@
   left: 50%;
   width: min(280px, 60%);
   height: min(280px, 60%);
-  border: 1px solid rgba(0,255,65,0.2);
+  border: 1px solid rgba(255,0,0,0.2);
   border-radius: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
@@ -367,7 +375,7 @@
   content: "";
   position: absolute;
   inset: 20%;
-  border: 1px dashed rgba(0,255,65,0.15);
+  border: 1px dashed rgba(255,0,0,0.15);
   border-radius: 50%;
 }
 
@@ -377,7 +385,7 @@
   left: 50%;
   width: 50%;
   height: 2px;
-  background: linear-gradient(90deg, rgba(0,255,65,0.8), transparent);
+  background: linear-gradient(90deg, rgba(255,0,0,0.8), transparent);
   transform-origin: left center;
   animation: hacker-radar 4s linear infinite;
 }
@@ -409,14 +417,14 @@
   justify-content: space-between;
   gap: 8px;
   padding: 6px 0;
-  border-bottom: 1px solid rgba(0,255,65,0.08);
+  border-bottom: 1px solid rgba(255,0,0,0.08);
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
   flex-wrap: wrap;
 }
 
 .hacker-login__feed-threat {
-  color: #E8FFE8;
+  color: #FFFFFF;
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -425,7 +433,7 @@
 }
 
 .hacker-login__feed-time {
-  color: #6EE7A0;
+  color: #A1A1AA;
   flex-shrink: 0;
 }
 
@@ -446,11 +454,11 @@
   justify-content: space-between;
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
-  color: #86EFAC;
+  color: #FF8888;
 }
 
 .hacker-login__metric-val {
-  color: #00FF41;
+  color: #FF0000;
   font-weight: 700;
 }
 
@@ -464,16 +472,16 @@
 .hacker-login__cube {
   width: 28px;
   height: 28px;
-  border: 1px solid rgba(0,255,65,0.5);
-  background: rgba(0,255,65,0.08);
+  border: 1px solid rgba(255,0,0,0.5);
+  background: rgba(255,0,0,0.08);
   transform: rotate(45deg);
-  box-shadow: 0 0 12px rgba(0,255,65,0.2);
+  box-shadow: 0 0 12px rgba(255,0,0,0.2);
 }
 
 .hacker-login__chain-line {
   flex: 1;
   height: 1px;
-  background: rgba(0,255,65,0.3);
+  background: rgba(255,0,0,0.3);
 }
 
 .hacker-login__topology {
@@ -488,9 +496,9 @@
 
 .hacker-login__topo-node {
   padding: 4px 12px;
-  border: 1px solid rgba(0,255,65,0.3);
-  color: #00FF41;
-  background: rgba(0,255,65,0.05);
+  border: 1px solid rgba(255,0,0,0.3);
+  color: #FF0000;
+  background: rgba(255,0,0,0.05);
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -499,7 +507,7 @@
 .hacker-login__topo-line {
   width: 1px;
   height: 12px;
-  background: rgba(0,255,65,0.3);
+  background: rgba(255,0,0,0.3);
 }
 
 .hacker-login__topo-row {
@@ -514,19 +522,20 @@
 
 @keyframes hacker-panel-pulse {
   0%, 100% {
-    border-color: rgba(0, 255, 65, 0.35);
-    box-shadow: 0 0 30px rgba(0, 255, 65, 0.15), inset 0 0 20px rgba(0, 255, 65, 0.05);
+    border-color: #FF1A1A;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.15), inset 0 0 20px rgba(255, 0, 0, 0.05);
   }
   50% {
-    border-color: rgba(0, 255, 65, 0.75);
-    box-shadow: 0 0 55px rgba(0, 255, 65, 0.35), inset 0 0 30px rgba(0, 255, 65, 0.1);
+    border-color: #FF3D3D;
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.3), inset 0 0 30px rgba(255, 0, 0, 0.1);
   }
 }
 
 .hacker-login__auth-panel {
   padding: clamp(22px, 3vw, 32px);
-  border: 1px solid rgba(0,255,65,0.35);
-  background: rgba(0, 10, 0, 0.94);
+  border: 1px solid #FF1A1A;
+  border-radius: 16px;
+  background: rgba(11, 11, 11, 0.94);
   animation: hacker-panel-pulse 5s infinite ease-in-out;
   backdrop-filter: blur(8px);
 }
@@ -534,7 +543,7 @@
 .hacker-login__auth-eyebrow {
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
-  color: #00CC33;
+  color: #CC0000;
   letter-spacing: 0.12em;
   margin-bottom: 8px;
 }
@@ -548,7 +557,7 @@
 .hacker-login__auth-sub {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  color: #6EE7A0;
+  color: #A1A1AA;
   margin-bottom: 24px;
   letter-spacing: 0.06em;
 }
@@ -566,7 +575,7 @@
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #00FF41;
+  color: #FF0000;
   pointer-events: none;
 }
 
@@ -575,9 +584,9 @@
   height: 46px;
   padding: 0 40px 0 38px;
   background: rgba(0,0,0,0.6);
-  border: 1px solid rgba(0,255,65,0.3);
+  border: 1px solid rgba(255,0,0,0.3);
   border-radius: 2px;
-  color: #E8FFE8;
+  color: #FFFFFF;
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -587,8 +596,8 @@
 .hacker-login__input:-webkit-autofill:hover, 
 .hacker-login__input:-webkit-autofill:focus, 
 .hacker-login__input:-webkit-autofill:active {
-  -webkit-text-fill-color: #E8FFE8 !important;
-  -webkit-box-shadow: 0 0 0px 1000px rgba(8, 11, 26, 0.95) inset !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  -webkit-box-shadow: 0 0 0px 1000px rgba(11,11,11,0.95) inset !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
@@ -598,8 +607,8 @@
 
 .hacker-login__input:focus {
   outline: none;
-  border-color: rgba(0,255,65,0.7);
-  box-shadow: 0 0 16px rgba(0,255,65,0.2);
+  border-color: rgba(255,0,0,0.7);
+  box-shadow: 0 0 16px rgba(255,0,0,0.2);
 }
 
 .hacker-login__toggle-pw {
@@ -609,7 +618,7 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #6EE7A0;
+  color: #A1A1AA;
   cursor: pointer;
   padding: 0;
   display: flex;
@@ -628,18 +637,18 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #86EFAC;
+  color: #FF8888;
   cursor: pointer;
 }
 
 .hacker-login__remember input {
-  accent-color: #00FF41;
+  accent-color: #FF0000;
 }
 
 .hacker-login__forgot {
   background: none;
   border: none;
-  color: #00FF41;
+  color: #FF0000;
   cursor: pointer;
   font-family: inherit;
   font-size: inherit;
@@ -654,7 +663,7 @@
   position: relative;
   width: 100%;
   height: 50px;
-  background: #00FF41;
+  background: #FF0000;
   color: #000;
   border: none;
   font-family: 'Share Tech Mono', 'JetBrains Mono', monospace;
@@ -668,7 +677,7 @@
   gap: 8px;
   clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
   transition: all 0.3s ease;
-  box-shadow: 0 0 24px rgba(0,255,65,0.4);
+  box-shadow: 0 0 24px rgba(255,0,0,0.4);
   overflow: hidden;
 }
 
@@ -688,8 +697,8 @@
 }
 
 .hacker-login__access-btn:hover:not(:disabled) {
-  background: #05ff4b;
-  box-shadow: 0 0 36px rgba(0,255,65,0.7), inset 0 0 10px rgba(255,255,255,0.2);
+  background: #ff0000;
+  box-shadow: 0 0 36px rgba(255,0,0,0.7), inset 0 0 10px rgba(255,255,255,0.2);
   text-shadow: 0 0 2px rgba(0,0,0,0.5);
 }
 
@@ -715,7 +724,7 @@
   margin: 22px 0 16px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
-  color: #6EE7A0;
+  color: #A1A1AA;
   letter-spacing: 0.1em;
 }
 
@@ -724,7 +733,7 @@
   content: "";
   flex: 1;
   height: 1px;
-  background: rgba(0,255,65,0.2);
+  background: rgba(255,0,0,0.2);
 }
 
 .hacker-login__social {
@@ -736,8 +745,8 @@
 .hacker-login__social-btn {
   height: 40px;
   background: rgba(0,0,0,0.5);
-  border: 1px solid rgba(0,255,65,0.25);
-  color: #E8FFE8;
+  border: 1px solid rgba(255,0,0,0.25);
+  color: #FFFFFF;
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
   cursor: pointer;
@@ -749,8 +758,8 @@
 }
 
 .hacker-login__social-btn:hover {
-  background: rgba(0,255,65,0.08);
-  border-color: rgba(0,255,65,0.5);
+  background: rgba(255,0,0,0.08);
+  border-color: rgba(255,0,0,0.5);
 }
 
 .hacker-login__trust {
@@ -766,26 +775,26 @@
   align-items: center;
   gap: 4px;
   padding: 8px 4px;
-  border: 1px solid rgba(0,255,65,0.12);
+  border: 1px solid rgba(255,0,0,0.12);
   font-size: 8px;
-  color: #86EFAC;
+  color: #FF8888;
   text-align: center;
 }
 
 .hacker-login__trust-item svg {
-  color: #00FF41;
+  color: #FF0000;
 }
 
 .hacker-login__demo {
   margin-top: 14px;
   padding-top: 12px;
-  border-top: 1px solid rgba(0,255,65,0.1);
+  border-top: 1px solid rgba(255,0,0,0.1);
 }
 
 .hacker-login__demo-toggle {
   background: none;
   border: none;
-  color: #6EE7A0;
+  color: #A1A1AA;
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
   cursor: pointer;
@@ -803,23 +812,23 @@
   display: flex;
   justify-content: space-between;
   padding: 8px 10px;
-  background: rgba(0,255,65,0.04);
-  border: 1px solid rgba(0,255,65,0.15);
+  background: rgba(255,0,0,0.04);
+  border: 1px solid rgba(255,0,0,0.15);
   cursor: pointer;
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
-  color: #E8FFE8;
+  color: #FFFFFF;
   text-align: left;
 }
 
 .hacker-login__demo-item span:last-child {
-  color: #00FF41;
+  color: #FF0000;
 }
 
 .hacker-login__footer {
   margin-top: clamp(12px, 2vw, 20px);
   padding-top: 12px;
-  border-top: 1px solid rgba(0,255,65,0.15);
+  border-top: 1px solid rgba(255,0,0,0.15);
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -827,11 +836,11 @@
   gap: 10px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
-  color: #6EE7A0;
+  color: #A1A1AA;
 }
 
 .hacker-login__footer-status {
-  color: #00FF41;
+  color: #FF0000;
   letter-spacing: 0.08em;
 }
 
@@ -841,7 +850,7 @@
 }
 
 .hacker-login__footer-links a {
-  color: #00FF41;
+  color: #FF0000;
 }
 
 .hacker-login__spinner {
@@ -850,41 +859,41 @@
 
 /* ── App layout hacker overrides ── */
 .hacker-app-sidebar {
-  background: linear-gradient(180deg, rgba(0,8,0,0.98) 0%, rgba(0,4,0,0.99) 100%) !important;
-  border-right: 1px solid rgba(0,255,65,0.18) !important;
+  background: linear-gradient(180deg, rgba(11,11,11,0.98) 0%, rgba(5,5,5,0.99) 100%) !important;
+  border-right: 1px solid rgba(255,0,0,0.18) !important;
   border-radius: 0 !important;
 }
 
 .hacker-app-header {
-  background: linear-gradient(180deg, rgba(0,10,0,0.95), rgba(0,6,0,0.9)) !important;
-  border-bottom: 1px solid rgba(0,255,65,0.18) !important;
+  background: linear-gradient(180deg, rgba(11,11,11,0.95), rgba(5,5,5,0.9)) !important;
+  border-bottom: 1px solid rgba(255,0,0,0.18) !important;
 }
 
 .hacker-breadcrumb {
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
-  color: #6EE7A0;
+  color: #A1A1AA;
   letter-spacing: 0.06em;
 }
 
 .hacker-breadcrumb__sep {
-  color: rgba(0,255,65,0.3);
+  color: rgba(255,0,0,0.3);
 }
 
 .hacker-breadcrumb__active {
-  color: #00FF41;
+  color: #FF0000;
 }
 
 /* Icon glow utility */
 .hacker-icon-glow {
-  color: #00FF41;
-  filter: drop-shadow(0 0 6px rgba(0,255,65,0.5));
+  color: #FF0000;
+  filter: drop-shadow(0 0 6px rgba(255,0,0,0.5));
 }
 
 /* Dashboard KPI icon override */
 .kpi-card__icon svg,
 .dashboard-section svg {
-  color: #00FF41 !important;
+  color: #FF0000 !important;
 }
 
 /* ── Shared app buttons (theme-matched) ── */
@@ -906,14 +915,14 @@
 }
 
 .app-btn--primary {
-  background: linear-gradient(135deg, #00FF41, #00CC33);
+  background: linear-gradient(135deg, #FF0000, #CC0000);
   color: #000;
-  box-shadow: 0 0 16px rgba(0,255,65,0.35);
+  box-shadow: 0 0 16px rgba(255,0,0,0.35);
 }
 
 .app-btn--primary:hover:not(:disabled) {
   filter: brightness(1.12);
-  box-shadow: 0 0 24px rgba(0,255,65,0.5);
+  box-shadow: 0 0 24px rgba(255,0,0,0.5);
 }
 
 .app-btn--primary:disabled {
@@ -922,25 +931,25 @@
 }
 
 .app-btn--secondary {
-  background: rgba(0,255,65,0.08);
-  color: #00FF41;
-  border: 1px solid rgba(0,255,65,0.28);
+  background: rgba(255,0,0,0.08);
+  color: #FF0000;
+  border: 1px solid rgba(255,0,0,0.28);
 }
 
 .app-btn--secondary:hover:not(:disabled) {
-  background: rgba(0,255,65,0.14);
-  border-color: rgba(0,255,65,0.45);
+  background: rgba(255,0,0,0.14);
+  border-color: rgba(255,0,0,0.45);
 }
 
 .app-btn--ghost {
   background: rgba(255,255,255,0.04);
-  color: #86EFAC;
-  border: 1px solid rgba(0,255,65,0.15);
+  color: #FF8888;
+  border: 1px solid rgba(255,0,0,0.15);
 }
 
 .app-btn--ghost:hover:not(:disabled) {
-  color: #E8FFE8;
-  border-color: rgba(0,255,65,0.3);
+  color: #FFFFFF;
+  border-color: rgba(255,0,0,0.3);
 }
 
 .app-btn--danger {
@@ -955,7 +964,7 @@
 }
 
 .app-btn--filter-active {
-  background: #00FF41 !important;
+  background: #FF0000 !important;
   color: #000 !important;
 }
 
@@ -1098,7 +1107,7 @@
     display: flex;
     gap: 8px;
     margin-top: 20px;
-    border-bottom: 1px solid rgba(0, 255, 65, 0.2);
+    border-bottom: 1px solid rgba(255, 0, 0, 0.2);
     padding-bottom: 8px;
     overflow-x: auto;
     width: 100%;
@@ -1113,9 +1122,9 @@
     padding: 8px 14px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
-    color: #6EE7A0;
-    background: rgba(0, 255, 65, 0.04);
-    border: 1px solid rgba(0, 255, 65, 0.18);
+    color: #A1A1AA;
+    background: rgba(255, 0, 0, 0.04);
+    border: 1px solid rgba(255, 0, 0, 0.18);
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.2s;
@@ -1123,10 +1132,10 @@
   
   .hacker-login__bottom-tab-btn.is-active {
     color: #000;
-    background: #00FF41;
-    border-color: #00FF41;
+    background: #FF0000;
+    border-color: #FF0000;
     font-weight: 700;
-    box-shadow: 0 0 12px rgba(0, 255, 65, 0.35);
+    box-shadow: 0 0 12px rgba(255, 0, 0, 0.35);
   }
 
   .hacker-login__bottom.use-tabs .hacker-panel {
@@ -1135,6 +1144,45 @@
   
   .hacker-login__bottom.use-tabs .hacker-panel.is-active {
     display: block;
+  }
+}
+
+/* ── Global Animated Background Video & Overlay ── */
+.hacker-bg-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -10;
+  object-fit: cover;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.hacker-bg-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -9;
+  background: radial-gradient(circle at 20% 20%, rgba(255,0,0,0.06), transparent 28%),
+              radial-gradient(circle at 80% 10%, rgba(255,61,61,0.04), transparent 22%),
+              rgba(0, 0, 0, 0.80);
+  pointer-events: none;
+  transition: background 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .hacker-bg-video {
+    opacity: 0.6;
+  }
+  .hacker-bg-overlay {
+    background: radial-gradient(circle at 20% 20%, rgba(255,0,0,0.06), transparent 28%),
+                radial-gradient(circle at 80% 10%, rgba(255,61,61,0.04), transparent 22%),
+                rgba(0, 0, 0, 0.88);
   }
 }
 

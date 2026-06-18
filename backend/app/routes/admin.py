@@ -25,6 +25,7 @@ def create_user():
     full_name = (payload.get("full_name") or "").strip()
     role_name = (payload.get("role") or "Security Analyst").strip()
     eth_address = (payload.get("eth_address") or "").strip().lower()
+    mfa_enabled = bool(payload.get("mfa_enabled", False))
 
     if not email or not full_name or not eth_address:
         return fail("full_name, email, and eth_address are required", 422)
@@ -42,7 +43,7 @@ def create_user():
         db.session.add(role)
         db.session.flush()
 
-    user = User(email=email, full_name=full_name, eth_address=eth_address, role=role)
+    user = User(email=email, full_name=full_name, eth_address=eth_address, role=role, mfa_enabled=mfa_enabled)
     db.session.add(user)
     
     # Audit log
@@ -75,11 +76,28 @@ def update_user(user_pk: int):
     
     if "full_name" in payload:
         user.full_name = payload["full_name"]
+    if "email" in payload:
+        email = payload["email"].strip().lower()
+        if email != user.email:
+            if User.query.filter_by(email=email).first():
+                return fail("Email already registered", 409)
+            user.email = email
     if "role" in payload:
         role_name = payload["role"]
         role = Role.query.filter_by(name=role_name).first()
         if role:
             user.role = role
+    if "eth_address" in payload:
+        eth_address = payload["eth_address"].strip().lower()
+        if eth_address != user.eth_address:
+            import re
+            if eth_address and not re.match(r"^0x[a-fA-F0-9]{40}$", eth_address):
+                return fail("Invalid Ethereum address format", 400)
+            if eth_address and User.query.filter_by(eth_address=eth_address).first():
+                return fail("Ethereum address already registered", 409)
+            user.eth_address = eth_address
+    if "mfa_enabled" in payload:
+        user.mfa_enabled = bool(payload["mfa_enabled"])
     if "is_active" in payload:
         user.is_active = bool(payload["is_active"])
         

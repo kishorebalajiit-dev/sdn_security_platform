@@ -6,12 +6,13 @@ import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { client } from "../../api/client";
 
 const glassCard: React.CSSProperties = {
-  background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
-  backdropFilter: "blur(18px)",
-  border: "1px solid rgba(0,255,65,0.2)",
-  borderRadius: "22px",
+  background: "rgba(10, 10, 10, 0.75)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  border: "1px solid rgba(255, 0, 0, 0.15)",
+  borderRadius: "16px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(255,0,0,0.12), 0 0 36px rgba(255,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 interface Transaction {
@@ -28,7 +29,7 @@ interface Transaction {
 
 const typeLabels: Record<Transaction["type"], { label: string; color: string }> = {
   device_reg: { label: "Device Registration", color: "#2563EB" },
-  audit_event: { label: "Audit Event", color: "#8B5CF6" },
+  audit_event: { label: "Audit Event", color: "#FFFF00" },
   contract_call: { label: "Contract Call", color: "#06B6D4" },
   integrity_check: { label: "Integrity Check", color: "#22C55E" },
   policy_update: { label: "Policy Update", color: "#F59E0B" },
@@ -293,7 +294,7 @@ export function BlockchainAudit() {
                 <button
                   key={fmt}
                   onClick={() => setExportField("format", fmt)}
-                  style={{ flex: 1, padding: "9px", fontSize: "12px", fontWeight: 600, borderRadius: "8px", cursor: "pointer", border: "1px solid", borderColor: exportForm.format === fmt ? "var(--primary)" : "rgba(0, 255, 65, 0.2)", background: exportForm.format === fmt ? "rgba(0, 255, 65, 0.15)" : "rgba(255,255,255,0.03)", color: exportForm.format === fmt ? "var(--primary)" : "#6EE7A0", transition: "all 0.15s" }}
+                  style={{ flex: 1, padding: "9px", fontSize: "12px", fontWeight: 600, borderRadius: "8px", cursor: "pointer", border: "1px solid", borderColor: exportForm.format === fmt ? "var(--primary)" : "rgba(255, 0, 0, 0.2)", background: exportForm.format === fmt ? "rgba(255, 0, 0, 0.15)" : "rgba(255,255,255,0.03)", color: exportForm.format === fmt ? "var(--primary)" : "#A1A1AA", transition: "all 0.15s" }}
                 >
                   {fmt}
                 </button>
@@ -324,7 +325,7 @@ export function BlockchainAudit() {
         }
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          <div style={{ padding: "14px", background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)", borderRadius: "10px" }}>
+          <div style={{ padding: "14px", background: "rgba(255,255,0,0.08)", border: "1px solid rgba(255,255,0,0.2)", borderRadius: "10px" }}>
             <p style={{ fontSize: "11px", color: "#64748B", marginBottom: "10px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Report Preview</p>
             {[
               { label: "Block Height", value: stats.blockHeight.toString() },
@@ -334,7 +335,7 @@ export function BlockchainAudit() {
               { label: "Report Period", value: "Real-time Blockchain State" },
               { label: "Chain Integrity", value: stats.failed === 0 ? "100% Verified" : "Tampering Detected" },
             ].map((row) => (
-              <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(37,99,235,0.08)" }}>
+              <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(255,0,0,0.08)" }}>
                 <span style={{ fontSize: "11px", color: "#64748B" }}>{row.label}</span>
                 <span style={{ fontSize: "11px", fontFamily: "JetBrains Mono, monospace", color: "#94A3B8", fontWeight: 600 }}>{row.value}</span>
               </div>
@@ -348,7 +349,7 @@ export function BlockchainAudit() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
           <h1 style={{ color: "#E2E8F0", marginBottom: "4px", display: "flex", alignItems: "center", gap: "10px" }}>
-            <Link2 size={22} style={{ color: "#8B5CF6" }} />
+            <Link2 size={22} style={{ color: "#FFFF00" }} />
             Blockchain Audit Logs
           </h1>
           <p style={{ color: "#64748B", fontSize: "13px" }}>Immutable audit trail — All security events on-chain</p>
@@ -357,8 +358,8 @@ export function BlockchainAudit() {
           <button
             onClick={handleVerifyIntegrity}
             disabled={verifying}
-            style={{ padding: "8px 16px", fontSize: "12px", fontWeight: 600, background: "rgba(139,92,246,0.12)", color: "#A78BFA", border: "1px solid rgba(139,92,246,0.25)", borderRadius: "8px", cursor: verifying ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: "6px", transition: "all 0.15s", opacity: verifying ? 0.7 : 1 }}
-            onMouseEnter={(e) => { if (!verifying) { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 16px rgba(139,92,246,0.35)"; } }}
+            style={{ padding: "8px 16px", fontSize: "12px", fontWeight: 600, background: "rgba(255,255,0,0.12)", color: "#A78BFA", border: "1px solid rgba(255,255,0,0.25)", borderRadius: "8px", cursor: verifying ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: "6px", transition: "all 0.15s", opacity: verifying ? 0.7 : 1 }}
+            onMouseEnter={(e) => { if (!verifying) { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 16px rgba(255,255,0,0.35)"; } }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = ""; (e.currentTarget as HTMLButtonElement).style.boxShadow = ""; }}
           >
             {verifying ? <Loader size={13} style={{ animation: "spin 1s linear infinite" }} /> : <Shield size={13} />}
@@ -382,7 +383,7 @@ export function BlockchainAudit() {
       {/* Stats Row */}
       <div className="app-page__grid-5">
         {[
-          { label: "Block Height", value: stats.blockHeight.toLocaleString(), color: "#8B5CF6", icon: Link2 },
+          { label: "Block Height", value: stats.blockHeight.toLocaleString(), color: "#FFFF00", icon: Link2 },
           { label: "Total Transactions", value: stats.total.toLocaleString(), color: "#2563EB", icon: CheckCircle },
           { label: "Verified", value: stats.verified.toLocaleString(), color: "#22C55E", icon: CheckCircle },
           { label: "Pending", value: stats.pending.toLocaleString(), color: "#F59E0B", icon: Clock },
@@ -416,7 +417,7 @@ export function BlockchainAudit() {
               <button
                 key={t}
                 onClick={() => setTypeFilter(t)}
-                style={{ padding: "5px 10px", fontSize: "10px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", background: typeFilter === t ? "var(--primary)" : "rgba(255,255,255,0.04)", border: "1px solid var(--border)", color: typeFilter === t ? "var(--primary-foreground)" : "#6EE7A0" }}
+                style={{ padding: "5px 10px", fontSize: "10px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", background: typeFilter === t ? "var(--primary)" : "rgba(255,255,255,0.04)", border: "1px solid var(--border)", color: typeFilter === t ? "var(--primary-foreground)" : "#A1A1AA" }}
               >
                 {t === "all" ? "All" : typeLabels[t as Transaction["type"]].label}
               </button>
@@ -457,12 +458,12 @@ export function BlockchainAudit() {
                       <tr
                         key={tx.id}
                         onClick={() => setSelected(selected?.id === tx.id ? null : tx)}
-                        style={{ borderBottom: "1px solid rgba(37,99,235,0.06)", cursor: "pointer", background: selected?.id === tx.id ? "rgba(139,92,246,0.08)" : i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)", transition: "background 0.15s" }}
+                        style={{ borderBottom: "1px solid rgba(255,0,0,0.06)", cursor: "pointer", background: selected?.id === tx.id ? "rgba(255,255,0,0.08)" : i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)", transition: "background 0.15s" }}
                       >
                         <td style={{ padding: "11px 14px", fontSize: "11px", color: "#475569", fontFamily: "JetBrains Mono, monospace" }}>{tx.id}</td>
                         <td style={{ padding: "11px 14px" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <span style={{ fontSize: "11px", color: "#8B5CF6", fontFamily: "JetBrains Mono, monospace" }}>{truncateHash(tx.hash)}</span>
+                            <span style={{ fontSize: "11px", color: "#FFFF00", fontFamily: "JetBrains Mono, monospace" }}>{truncateHash(tx.hash)}</span>
                             <button
                               onClick={(e) => { e.stopPropagation(); copyHash(tx.hash); }}
                               style={{ background: "none", border: "none", cursor: "pointer", color: copied ? "#22C55E" : "#475569", padding: "2px" }}
@@ -507,7 +508,7 @@ export function BlockchainAudit() {
                 { label: "Finality", value: "~2.1 seconds", color: "#2563EB" },
                 { label: "Storage", value: "2.4 GB / 100 GB", color: "#F59E0B" },
               ].map((row) => (
-                <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid rgba(37,99,235,0.08)" }}>
+                <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid rgba(255,0,0,0.08)" }}>
                   <span style={{ fontSize: "11px", color: "#64748B" }}>{row.label}</span>
                   <span style={{ fontSize: "11px", fontFamily: "JetBrains Mono, monospace", fontWeight: 600, color: row.color }}>{row.value}</span>
                 </div>
@@ -520,16 +521,16 @@ export function BlockchainAudit() {
             <div style={glassCard}>
               <h3 style={{ color: "#E2E8F0", marginBottom: "14px" }}>Transaction Detail</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <div style={{ padding: "10px", background: "rgba(139,92,246,0.08)", borderRadius: "8px", border: "1px solid rgba(139,92,246,0.2)" }}>
+                <div style={{ padding: "10px", background: "rgba(255,255,0,0.08)", borderRadius: "8px", border: "1px solid rgba(255,255,0,0.2)" }}>
                   <p style={{ fontSize: "9px", color: "#475569", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "4px" }}>Full Hash</p>
-                  <p style={{ fontSize: "9px", color: "#8B5CF6", fontFamily: "JetBrains Mono, monospace", wordBreak: "break-all", lineHeight: 1.6 }}>{selected.hash}</p>
+                  <p style={{ fontSize: "9px", color: "#FFFF00", fontFamily: "JetBrains Mono, monospace", wordBreak: "break-all", lineHeight: 1.6 }}>{selected.hash}</p>
                 </div>
                 {[
                   { label: "Block", value: `#${selected.block.toLocaleString()}` },
                   { label: "Gas Used", value: selected.gasUsed.toLocaleString() },
                   { label: "Details", value: selected.data },
                 ].map((row) => (
-                  <div key={row.label} style={{ borderBottom: "1px solid rgba(37,99,235,0.08)", paddingBottom: "8px" }}>
+                  <div key={row.label} style={{ borderBottom: "1px solid rgba(255,0,0,0.08)", paddingBottom: "8px" }}>
                     <p style={{ fontSize: "9px", color: "#475569", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "2px" }}>{row.label}</p>
                     <p style={{ fontSize: "11px", color: "#94A3B8", fontFamily: row.label !== "Details" ? "JetBrains Mono, monospace" : "inherit" }}>{row.value}</p>
                   </div>

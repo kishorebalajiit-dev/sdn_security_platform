@@ -25,7 +25,7 @@ const toastConfig = {
   success: { color: "#22C55E", bg: "rgba(34,197,94,0.12)", border: "rgba(34,197,94,0.3)", icon: CheckCircle },
   error: { color: "#EF4444", bg: "rgba(239,68,68,0.12)", border: "rgba(239,68,68,0.3)", icon: XCircle },
   warning: { color: "#F59E0B", bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.3)", icon: AlertTriangle },
-  info: { color: "#2563EB", bg: "rgba(37,99,235,0.12)", border: "rgba(37,99,235,0.3)", icon: Info },
+  info: { color: "#2563EB", bg: "rgba(255,0,0,0.12)", border: "rgba(255,0,0,0.3)", icon: Info },
 };
 
 function ToastItem({ item, onRemove }: { item: ToastItem; onRemove: (id: string) => void }) {
@@ -48,7 +48,7 @@ function ToastItem({ item, onRemove }: { item: ToastItem; onRemove: (id: string)
         alignItems: "flex-start",
         gap: "12px",
         padding: "14px 16px",
-        background: "#081122",
+        background: "#101010",
         border: `1px solid ${cfg.border}`,
         borderLeft: `3px solid ${cfg.color}`,
         borderRadius: "10px",

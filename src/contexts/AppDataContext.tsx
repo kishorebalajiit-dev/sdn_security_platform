@@ -236,7 +236,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           ethAddress: u.eth_address
         })),
         notifications: [
-          { id: 1, text: "Sync with Ganache blockchain node complete", time: "Just now", color: "#8B5CF6", unread: true }
+          { id: 1, text: "Sync with Ganache blockchain node complete", time: "Just now", color: "#FFFF00", unread: true }
         ]
       };
 
@@ -353,7 +353,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       email: input.email,
       full_name: input.name,
       role: input.role,
-      eth_address: input.ethAddress || "0x0000000000000000000000000000000000000000"
+      eth_address: input.ethAddress || "0x0000000000000000000000000000000000000000",
+      mfa_enabled: input.mfa
     };
     const res = await client.post("/admin/users", payload);
     await loadAllData();
@@ -375,7 +376,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const updateUser = useCallback(async (user: PlatformUser) => {
     const payload = {
       full_name: user.name,
+      email: user.email,
       role: user.role,
+      eth_address: user.ethAddress,
+      mfa_enabled: user.mfa,
       is_active: user.status === "active"
     };
     await client.put(`/admin/users/${user.dbId}`, payload);

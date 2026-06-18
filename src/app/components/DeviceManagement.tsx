@@ -7,12 +7,13 @@ import type { Device, DeviceType, ConnType } from "../../types";
 import { useDebouncedValue } from "../../lib/useDebouncedValue";
 
 const glassCard: React.CSSProperties = {
-  background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
-  backdropFilter: "blur(18px)",
-  border: "1px solid rgba(0,255,65,0.2)",
-  borderRadius: "22px",
+  background: "rgba(10, 10, 10, 0.75)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  border: "1px solid rgba(255, 0, 0, 0.15)",
+  borderRadius: "16px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(255,0,0,0.12), 0 0 36px rgba(255,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const btnBase: React.CSSProperties = {
@@ -287,7 +288,7 @@ export function DeviceManagement() {
               ["Location", viewDevice.location], ["OS", viewDevice.os], ["Status", viewDevice.status],
               ["Risk Score", String(viewDevice.riskScore)], ["Connection", viewDevice.connType],
             ].map(([label, val]) => (
-              <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(37,99,235,0.08)" }}>
+              <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(255,0,0,0.08)" }}>
                 <span style={{ fontSize: "11px", color: "#64748B" }}>{label}</span>
                 <span style={{ fontSize: "12px", color: "#E2E8F0", fontFamily: "JetBrains Mono, monospace" }}>{val}</span>
               </div>
@@ -351,7 +352,7 @@ export function DeviceManagement() {
         <div style={{ display: "flex", gap: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "8px", padding: "3px" }}>
           {["all", "healthy", "warning", "compromised"].map((s) => (
             <button key={s} onClick={() => setStatusFilter(s)}
-              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", border: "none", background: statusFilter === s ? "var(--primary)" : "transparent", color: statusFilter === s ? "var(--primary-foreground)" : "#6EE7A0" }}>
+              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", border: "none", background: statusFilter === s ? "var(--primary)" : "transparent", color: statusFilter === s ? "var(--primary-foreground)" : "#A1A1AA" }}>
               {s}
             </button>
           ))}
@@ -359,7 +360,7 @@ export function DeviceManagement() {
         <div style={{ display: "flex", gap: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "8px", padding: "3px" }}>
           {["all", "controller", "switch", "server", "pc", "iot"].map((t) => (
             <button key={t} onClick={() => setTypeFilter(t)}
-              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", border: "none", background: typeFilter === t ? "var(--primary)" : "transparent", color: typeFilter === t ? "var(--primary-foreground)" : "#6EE7A0" }}>
+              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", border: "none", background: typeFilter === t ? "var(--primary)" : "transparent", color: typeFilter === t ? "var(--primary-foreground)" : "#A1A1AA" }}>
               {t}
             </button>
           ))}
@@ -387,13 +388,13 @@ export function DeviceManagement() {
                 <tr
                   key={dev.id}
                   onClick={() => setSelected(isSelected ? null : dev.id)}
-                  style={{ borderBottom: "1px solid rgba(37,99,235,0.06)", background: isSelected ? "rgba(37,99,235,0.07)" : i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)", cursor: "pointer", transition: "background 0.12s" }}
+                  style={{ borderBottom: "1px solid rgba(255,0,0,0.06)", background: isSelected ? "rgba(37,99,235,0.07)" : i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)", cursor: "pointer", transition: "background 0.12s" }}
                   onMouseEnter={(e) => { if (!isSelected) (e.currentTarget as HTMLTableRowElement).style.background = "rgba(255,255,255,0.03)"; }}
                   onMouseLeave={(e) => { if (!isSelected) (e.currentTarget as HTMLTableRowElement).style.background = i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)"; }}
                 >
                   <td style={{ padding: "11px 14px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "rgba(37,99,235,0.1)", border: "1px solid rgba(255,0,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                         <TypeIcon size={14} style={{ color: "#2563EB" }} />
                       </div>
                       <div>
@@ -402,7 +403,7 @@ export function DeviceManagement() {
                       </div>
                     </div>
                   </td>
-                  <td style={{ padding: "11px 14px", fontSize: "11px", color: "#8B5CF6", fontFamily: "JetBrains Mono, monospace" }}>{dev.ip}</td>
+                  <td style={{ padding: "11px 14px", fontSize: "11px", color: "#FFFF00", fontFamily: "JetBrains Mono, monospace" }}>{dev.ip}</td>
                   <td style={{ padding: "11px 14px", fontSize: "10px", color: "#475569", fontFamily: "JetBrains Mono, monospace" }}>{dev.mac}</td>
                   <td style={{ padding: "11px 14px", fontSize: "11px", color: "#94A3B8" }}>{dev.location}</td>
                   <td style={{ padding: "11px 14px", fontSize: "11px", color: "#94A3B8" }}>{dev.os}</td>
@@ -467,7 +468,7 @@ export function DeviceManagement() {
           <div style={{ display: "flex", gap: "6px" }}>
             <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} style={{ padding: "0 10px", height: "28px", borderRadius: "6px", fontSize: "11px", border: "1px solid var(--border)", background: "transparent", color: page <= 1 ? "#334155" : "#475569", cursor: page <= 1 ? "not-allowed" : "pointer" }}>Prev</button>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <button key={p} onClick={() => setPage(p)} style={{ width: "28px", height: "28px", borderRadius: "6px", fontSize: "11px", border: "1px solid var(--border)", background: p === page ? "var(--primary)" : "transparent", color: p === page ? "var(--primary-foreground)" : "#6EE7A0", cursor: "pointer" }}>{p}</button>
+              <button key={p} onClick={() => setPage(p)} style={{ width: "28px", height: "28px", borderRadius: "6px", fontSize: "11px", border: "1px solid var(--border)", background: p === page ? "var(--primary)" : "transparent", color: p === page ? "var(--primary-foreground)" : "#A1A1AA", cursor: "pointer" }}>{p}</button>
             ))}
             <button disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)} style={{ padding: "0 10px", height: "28px", borderRadius: "6px", fontSize: "11px", border: "1px solid var(--border)", background: "transparent", color: page >= totalPages ? "#334155" : "#475569", cursor: page >= totalPages ? "not-allowed" : "pointer" }}>Next</button>
           </div>

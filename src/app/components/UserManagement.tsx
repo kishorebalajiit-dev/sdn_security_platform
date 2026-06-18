@@ -6,23 +6,25 @@ import { useAppData } from "../../contexts/AppDataContext";
 import { permissionMatrix, PERMISSION_MODULES } from "../../lib/permissions";
 import type { PlatformUser, UserRole, Department } from "../../types";
 import { useDebouncedValue } from "../../lib/useDebouncedValue";
+import { getApiErrorMessage } from "../../api/client";
 
 const glassCard: React.CSSProperties = {
-  background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
-  backdropFilter: "blur(18px)",
-  border: "1px solid rgba(0,255,65,0.2)",
-  borderRadius: "22px",
+  background: "rgba(10, 10, 10, 0.75)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  border: "1px solid rgba(255, 0, 0, 0.15)",
+  borderRadius: "16px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(255,0,0,0.12), 0 0 36px rgba(255,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 type Role = UserRole;
 
 const roleConfig: Record<Role, { color: string; bg: string; description: string }> = {
   "Admin": { color: "#EF4444", bg: "rgba(239,68,68,0.12)", description: "Full platform access — all modules, user management, system settings" },
-  "Security Analyst": { color: "#2563EB", bg: "rgba(37,99,235,0.12)", description: "Threat detection, incident response, AI analysis, alerts, reports" },
+  "Security Analyst": { color: "#2563EB", bg: "rgba(255,0,0,0.12)", description: "Threat detection, incident response, AI analysis, alerts, reports" },
   "Network Engineer": { color: "#22C55E", bg: "rgba(34,197,94,0.12)", description: "Network topology, device management, traffic monitoring, SDN control" },
-  "Auditor": { color: "#8B5CF6", bg: "rgba(139,92,246,0.12)", description: "Read-only access to blockchain audit logs, reports, and analytics" },
+  "Auditor": { color: "#FFFF00", bg: "rgba(255,255,0,0.12)", description: "Read-only access to blockchain audit logs, reports, and analytics" },
 };
 
 const modules = [...PERMISSION_MODULES];
@@ -40,16 +42,16 @@ const UserFormBody = memo(function UserFormBody({ form, formErrors, setField }: 
     <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
         <Field label="Full Name" required>
-          <input value={form.name} onChange={(e) => setField("name", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.name ? "#EF4444" : "rgba(37,99,235,0.2)" }} placeholder="e.g. Jane Smith" />
+          <input value={form.name} onChange={(e) => setField("name", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.name ? "#EF4444" : "rgba(255,0,0,0.2)" }} placeholder="e.g. Jane Smith" />
           {formErrors.name && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{formErrors.name}</p>}
         </Field>
         <Field label="Email" required>
-          <input type="email" value={form.email} onChange={(e) => setField("email", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.email ? "#EF4444" : "rgba(37,99,235,0.2)" }} placeholder="user@secnet.ai" />
+          <input type="email" value={form.email} onChange={(e) => setField("email", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.email ? "#EF4444" : "rgba(255,0,0,0.2)" }} placeholder="user@secnet.ai" />
           {formErrors.email && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{formErrors.email}</p>}
         </Field>
       </div>
       <Field label="Ethereum Address" required>
-        <input value={form.ethAddress} onChange={(e) => setField("ethAddress", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.ethAddress ? "#EF4444" : "rgba(37,99,235,0.2)" }} placeholder="0x..." />
+        <input value={form.ethAddress} onChange={(e) => setField("ethAddress", e.target.value)} style={{ ...inputStyle, borderColor: formErrors.ethAddress ? "#EF4444" : "rgba(255,0,0,0.2)" }} placeholder="0x..." />
         {formErrors.ethAddress && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{formErrors.ethAddress}</p>}
       </Field>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
@@ -74,7 +76,7 @@ const UserFormBody = memo(function UserFormBody({ form, formErrors, setField }: 
       <Field label="MFA Required">
         <button
           onClick={() => setField("mfa", !form.mfa)}
-          style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 12px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: "8px", cursor: "pointer", width: "100%" }}
+          style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 12px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,0,0,0.2)", borderRadius: "8px", cursor: "pointer", width: "100%" }}
         >
           <div style={{ width: "36px", height: "20px", borderRadius: "10px", background: form.mfa ? "#22C55E" : "rgba(255,255,255,0.1)", transition: "background 0.2s", position: "relative", flexShrink: 0 }}>
             <div style={{ position: "absolute", top: "2px", left: form.mfa ? "18px" : "2px", width: "16px", height: "16px", borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.3)" }} />
@@ -115,12 +117,23 @@ export function UserManagement() {
   const validateForm = () => {
     const errors: Record<string, string> = {};
     if (!form.name.trim()) errors.name = "Required";
-    if (!form.email.trim()) errors.email = "Required";
+    
+    const emailTrimmed = form.email.trim().toLowerCase();
+    if (!form.email.trim()) {
+      errors.email = "Required";
+    } else if (users.some((u) => u.email.toLowerCase() === emailTrimmed && u.dbId !== editUser?.dbId)) {
+      errors.email = "Email is already registered";
+    }
+
+    const ethAddressTrimmed = form.ethAddress.trim().toLowerCase();
     if (!form.ethAddress.trim()) {
       errors.ethAddress = "Required";
-    } else if (!/^0x[a-fA-F0-9]{40}$/.test(form.ethAddress.trim())) {
+    } else if (!/^0x[a-fA-F0-9]{40}$/.test(ethAddressTrimmed)) {
       errors.ethAddress = "Invalid Ethereum address format";
+    } else if (users.some((u) => u.ethAddress?.toLowerCase() === ethAddressTrimmed && u.dbId !== editUser?.dbId)) {
+      errors.ethAddress = "Ethereum address is already registered";
     }
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -144,6 +157,8 @@ export function UserManagement() {
       await addUser({ name: form.name, email: form.email, role: form.role, department: form.department, mfa: form.mfa, ethAddress: form.ethAddress });
       toast.success("User Added & Registered On-Chain", form.name);
       setAddOpen(false);
+    } catch (e) {
+      toast.error("Failed to Add User", getApiErrorMessage(e));
     } finally {
       setSaving(false);
     }
@@ -156,6 +171,8 @@ export function UserManagement() {
       await updateUser({ ...editUser, name: form.name, email: form.email, role: form.role, department: form.department, mfa: form.mfa, ethAddress: form.ethAddress });
       toast.success("User Updated", form.name);
       setEditUser(null);
+    } catch (e) {
+      toast.error("Failed to Update User", getApiErrorMessage(e));
     } finally {
       setSaving(false);
     }
@@ -280,7 +297,7 @@ export function UserManagement() {
           <div className="app-page__filters">
             <div style={{ position: "relative" }}>
               <Search size={13} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#475569" }} />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search users..." style={{ paddingLeft: "30px", paddingRight: "12px", paddingTop: "8px", paddingBottom: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: "8px", color: "#E2E8F0", fontSize: "12px", outline: "none", width: "220px" }} />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search users..." style={{ paddingLeft: "30px", paddingRight: "12px", paddingTop: "8px", paddingBottom: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,0,0,0.2)", borderRadius: "8px", color: "#E2E8F0", fontSize: "12px", outline: "none", width: "220px" }} />
             </div>
             <div style={{ display: "flex", gap: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "8px", padding: "3px", flexWrap: "wrap" }}>
               {(["all", "Admin", "Security Analyst", "Network Engineer", "Auditor"] as const).map((r) => (
@@ -296,7 +313,7 @@ export function UserManagement() {
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "800px" }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid rgba(37,99,235,0.12)", background: "rgba(13,27,42,0.9)" }}>
+                  <tr style={{ borderBottom: "1px solid rgba(255,0,0,0.12)", background: "rgba(13,27,42,0.9)" }}>
                     {["User", "Email", "Role", "MFA", "Status", "Last Login", "Actions"].map((h) => (
                       <th key={h} style={{ padding: "12px 16px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</th>
                     ))}
@@ -306,7 +323,7 @@ export function UserManagement() {
                   {filtered.map((user, i) => {
                     const rc = roleConfig[user.role];
                     return (
-                      <tr key={user.id} style={{ borderBottom: "1px solid rgba(37,99,235,0.06)", background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)", transition: "background 0.12s" }}
+                      <tr key={user.id} style={{ borderBottom: "1px solid rgba(255,0,0,0.06)", background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)", transition: "background 0.12s" }}
                         onMouseEnter={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = "rgba(255,255,255,0.03)"; }}
                         onMouseLeave={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)"; }}
                       >
@@ -381,7 +398,7 @@ export function UserManagement() {
                   </div>
                   <span style={{ fontSize: "10px", fontWeight: 700, color: cfg.color, background: cfg.bg, padding: "3px 10px", borderRadius: "10px", flexShrink: 0, marginLeft: "10px" }}>{count} users</span>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "14px", paddingTop: "12px", borderTop: "1px solid rgba(37,99,235,0.08)" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "14px", paddingTop: "12px", borderTop: "1px solid rgba(255,0,0,0.08)" }}>
                   <span style={{ fontSize: "11px", color: "#64748B" }}>{accessCount} / {modules.length} modules accessible</span>
                   <div style={{ width: "120px", height: "4px", background: "rgba(255,255,255,0.06)", borderRadius: "2px" }}>
                     <div style={{ width: `${(accessCount / modules.length) * 100}%`, height: "100%", background: cfg.color, borderRadius: "2px", boxShadow: `0 0 6px ${cfg.color}50` }} />
@@ -404,7 +421,7 @@ export function UserManagement() {
             <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
               {(Object.keys(roleConfig) as Role[]).map((r) => (
                 <button key={r} onClick={() => setSelectedRole(r)}
-                  style={{ padding: "5px 12px", fontSize: "10px", fontWeight: 700, borderRadius: "6px", cursor: "pointer", border: "1px solid", borderColor: selectedRole === r ? roleConfig[r].color : "rgba(37,99,235,0.15)", background: selectedRole === r ? roleConfig[r].bg : "transparent", color: selectedRole === r ? roleConfig[r].color : "#64748B" }}>
+                  style={{ padding: "5px 12px", fontSize: "10px", fontWeight: 700, borderRadius: "6px", cursor: "pointer", border: "1px solid", borderColor: selectedRole === r ? roleConfig[r].color : "rgba(255,0,0,0.15)", background: selectedRole === r ? roleConfig[r].bg : "transparent", color: selectedRole === r ? roleConfig[r].color : "#64748B" }}>
                   {r}
                 </button>
               ))}

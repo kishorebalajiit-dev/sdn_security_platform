@@ -75,7 +75,7 @@ export function Modal({ open, onClose, title, subtitle, width = 520, children, f
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
-        background: "radial-gradient(circle at top, rgba(0,255,65,0.14), rgba(5,8,22,0.88))",
+        background: "radial-gradient(circle at top, rgba(255,0,0,0.14), rgba(5,8,22,0.88))",
         backdropFilter: "blur(18px)",
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: "24px",
@@ -92,23 +92,23 @@ export function Modal({ open, onClose, title, subtitle, width = 520, children, f
           width: "100%",
           maxWidth: typeof width === "number" ? `${width}px` : width,
           background: "linear-gradient(180deg, rgba(17,24,39,0.96), rgba(8,11,26,0.92))",
-          border: "1px solid rgba(0,255,65,0.26)",
+          border: "1px solid rgba(255,0,0,0.26)",
           borderRadius: "24px",
-          boxShadow: "0 24px 72px rgba(0,0,0,0.62), 0 0 42px rgba(0,255,65,0.14)",
+          boxShadow: "0 24px 72px rgba(0,0,0,0.62), 0 0 42px rgba(255,0,0,0.14)",
           animation: "slideUp 0.22s cubic-bezier(0.4,0,0.2,1)",
           overflow: "hidden",
         }}
         className="cyber-card"
       >
         {/* Header */}
-        <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid rgba(0,255,65,0.12)", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
+        <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid rgba(255,0,0,0.12)", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
           <div>
             <h3 style={{ color: "#F8FAFC", fontSize: "15px", fontFamily: "Poppins, sans-serif", fontWeight: 700, lineHeight: 1.3 }} className="cyber-glow-text">{title}</h3>
             {subtitle && <p style={{ fontSize: "12px", color: "#94A3B8", marginTop: "3px" }}>{subtitle}</p>}
           </div>
           <button
             onClick={onClose}
-            style={{ width: "30px", height: "30px", borderRadius: "10px", background: "rgba(17,24,39,0.78)", border: "1px solid rgba(0,255,65,0.14)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#94A3B8", flexShrink: 0, transition: "all 0.15s" }}
+            style={{ width: "30px", height: "30px", borderRadius: "10px", background: "rgba(17,24,39,0.78)", border: "1px solid rgba(255,0,0,0.14)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#94A3B8", flexShrink: 0, transition: "all 0.15s" }}
             onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.12)"; (e.currentTarget as HTMLButtonElement).style.color = "#FCA5A5"; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(17,24,39,0.78)"; (e.currentTarget as HTMLButtonElement).style.color = "#94A3B8"; }}
           >
@@ -121,7 +121,7 @@ export function Modal({ open, onClose, title, subtitle, width = 520, children, f
 
         {/* Footer */}
         {footer && (
-          <div style={{ padding: "16px 24px 20px", borderTop: "1px solid rgba(0,255,65,0.1)", display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+          <div style={{ padding: "16px 24px 20px", borderTop: "1px solid rgba(255,0,0,0.1)", display: "flex", justifyContent: "flex-end", gap: "10px" }}>
             {footer}
           </div>
         )}
@@ -159,7 +159,7 @@ export function ConfirmDialog({ open, onClose, onConfirm, title, message, confir
           <button
             onClick={onClose}
             disabled={loading}
-            style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: "rgba(17,24,39,0.72)", color: "#94A3B8", border: "1px solid rgba(0,255,65,0.14)", borderRadius: "12px", cursor: "pointer" }}
+            style={{ padding: "9px 20px", fontSize: "12px", fontWeight: 600, background: "rgba(17,24,39,0.72)", color: "#94A3B8", border: "1px solid rgba(255,0,0,0.14)", borderRadius: "12px", cursor: "pointer" }}
           >
             Cancel
           </button>
@@ -202,7 +202,7 @@ interface FieldProps {
 export function Field({ label, required, children }: FieldProps) {
   return (
     <div>
-      <label style={{ fontSize: "11px", fontWeight: 700, color: "#00FF41", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>
+      <label style={{ fontSize: "11px", fontWeight: 700, color: "#FF0000", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "6px" }}>
         {label} {required && <span style={{ color: "#EF4444" }}>*</span>}
       </label>
       {children}
@@ -215,7 +215,7 @@ export const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "10px 12px",
   background: "rgba(8,11,26,0.76)",
-  border: "1px solid rgba(0,255,65,0.20)",
+  border: "1px solid rgba(255,0,0,0.20)",
   borderRadius: "12px",
   color: "#F8FAFC",
   fontSize: "12px",
@@ -242,8 +242,8 @@ interface ActionBtnProps {
 
 export function ActionBtn({ onClick, loading, disabled, children, variant = "primary", size = "md", icon }: ActionBtnProps) {
   const variants = {
-    primary: { bg: "linear-gradient(135deg, #00FF41, #00FF88)", color: "#fff", shadow: "rgba(0,255,65,0.42)", border: "none" },
-    secondary: { bg: "rgba(17,24,39,0.72)", color: "#CBD5E1", shadow: "transparent", border: "1px solid rgba(0,255,65,0.16)" },
+    primary: { bg: "linear-gradient(135deg, #FF0000, #FF3D3D)", color: "#fff", shadow: "rgba(255,0,0,0.42)", border: "none" },
+    secondary: { bg: "rgba(17,24,39,0.72)", color: "#CBD5E1", shadow: "transparent", border: "1px solid rgba(255,0,0,0.16)" },
     danger: { bg: "rgba(239,68,68,0.12)", color: "#EF4444", shadow: "rgba(239,68,68,0.3)", border: "1px solid rgba(239,68,68,0.3)" },
     success: { bg: "rgba(34,197,94,0.12)", color: "#22C55E", shadow: "rgba(34,197,94,0.3)", border: "1px solid rgba(34,197,94,0.3)" },
   };

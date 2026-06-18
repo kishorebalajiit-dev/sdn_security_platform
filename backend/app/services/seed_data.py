@@ -69,9 +69,12 @@ def _seed_users(roles: dict[str, Role]) -> None:
         ("p.nair@secnet.ai", "Priya Nair", "Auditor", "0x3dF2dCA8d92f5A16b754BE60097E05440f30f794"),
     ]
     for email, name, role_name, eth in users:
-        if User.query.filter_by(email=email).first():
-            continue
+        user = User.query.filter_by(email=email).first()
         pwd = DEMO_PASSWORDS.get(email, "changeme123")
+        if user:
+            if not user.password_hash:
+                user.password_hash = generate_password_hash(pwd)
+            continue
         db.session.add(
             User(
                 email=email,

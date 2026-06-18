@@ -58,11 +58,11 @@ export function MatrixRain({ opacity = 0.15 }: { opacity?: number }) {
           if (j === 0) {
             ctx.fillStyle = "#ffffff";
             ctx.shadowBlur = 8;
-            ctx.shadowColor = "#00ff41";
+            ctx.shadowColor = "#ff0000";
           } else {
             ctx.shadowBlur = 0;
             const alpha = 1 - j / drop.chars.length;
-            ctx.fillStyle = `rgba(0, 255, 65, ${alpha * 0.7})`;
+            ctx.fillStyle = `rgba(255, 0, 0, ${alpha * 0.7})`;
           }
 
           ctx.fillText(drop.chars[j], x, charY);

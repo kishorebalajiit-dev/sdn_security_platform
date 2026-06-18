@@ -118,7 +118,7 @@ export function Dashboard({ onNavigate }: { onNavigate?: (page: string) => void 
           return (
             <div key={item.label} className="cyber-card cyber-card-hover kpi-card">
               <div className="kpi-card__icon">
-                <Icon size={20} color="#00FF41" />
+                <Icon size={20} color="#FF0000" />
               </div>
               <div className="kpi-card__value">{kpiValues[item.key]}</div>
               <div className="kpi-card__label">{item.label}</div>
@@ -207,7 +207,7 @@ export function Dashboard({ onNavigate }: { onNavigate?: (page: string) => void 
               <div className="dashboard-section__eyebrow">Blockchain Layer</div>
               <h2 className="dashboard-section__title">Integrity Verification</h2>
             </div>
-            <Link2 size={18} color="#00FF41" />
+            <Link2 size={18} color="#FF0000" />
           </div>
           <div className="signal-stack">
             <div className="signal-row">
@@ -240,7 +240,7 @@ export function Dashboard({ onNavigate }: { onNavigate?: (page: string) => void 
               <div className="dashboard-section__eyebrow">SDN Topology</div>
               <h2 className="dashboard-section__title">Visual Fabric Map</h2>
             </div>
-            <Activity size={18} color="#00FF41" />
+            <Activity size={18} color="#FF0000" />
           </div>
           <div className="topology-pane">
             {topologyNodes.map((node) => (
@@ -282,7 +282,7 @@ export function Dashboard({ onNavigate }: { onNavigate?: (page: string) => void 
               <div className="dashboard-section__eyebrow">Live Status</div>
               <h2 className="dashboard-section__title">Threat & SOC Feed</h2>
             </div>
-            <CircleAlert size={18} color="#00FF41" />
+            <CircleAlert size={18} color="#FF0000" />
           </div>
           <div className="alert-list">
             {alerts.slice(0, 4).map((alert) => (
@@ -309,7 +309,7 @@ export function Dashboard({ onNavigate }: { onNavigate?: (page: string) => void 
               <div className="dashboard-section__eyebrow">Automation</div>
               <h2 className="dashboard-section__title">AI Response Engine</h2>
             </div>
-            <Brain size={18} color="#00FF41" />
+            <Brain size={18} color="#FF0000" />
           </div>
           <div className="signal-stack">
             <div className="signal-row">
@@ -342,7 +342,7 @@ export function Dashboard({ onNavigate }: { onNavigate?: (page: string) => void 
               <div className="dashboard-section__eyebrow">Network Health</div>
               <h2 className="dashboard-section__title">Control Plane Status</h2>
             </div>
-            <Shield size={18} color="#00FF41" />
+            <Shield size={18} color="#FF0000" />
           </div>
           <div className="signal-stack">
             <div className="signal-row">
@@ -375,7 +375,7 @@ export function Dashboard({ onNavigate }: { onNavigate?: (page: string) => void 
               <div className="dashboard-section__eyebrow">Traffic</div>
               <h2 className="dashboard-section__title">Live Monitoring</h2>
             </div>
-            <Activity size={18} color="#00FF41" />
+            <Activity size={18} color="#FF0000" />
           </div>
           <div className="signal-stack">
             <div className="signal-row">

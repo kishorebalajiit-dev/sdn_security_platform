@@ -6,12 +6,13 @@ import { useAppData } from "../../contexts/AppDataContext";
 import type { Incident, TimelineEvent, AnalystNote } from "../../types";
 
 const glassCard: React.CSSProperties = {
-  background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
-  backdropFilter: "blur(18px)",
-  border: "1px solid rgba(0,255,65,0.2)",
-  borderRadius: "22px",
+  background: "rgba(10, 10, 10, 0.75)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  border: "1px solid rgba(255, 0, 0, 0.15)",
+  borderRadius: "16px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(255,0,0,0.12), 0 0 36px rgba(255,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const ANALYSTS = ["A. Rahman", "M. Chen", "J. Park", "K. Singh", "Unassigned"];
@@ -42,7 +43,7 @@ export function IncidentResponse() {
   const sevConfig = {
   P1: { label: "P1 — Critical", color: "#EF4444", bg: "rgba(239,68,68,0.12)" },
   P2: { label: "P2 — High", color: "#F59E0B", bg: "rgba(245,158,11,0.12)" },
-  P3: { label: "P3 — Medium", color: "#8B5CF6", bg: "rgba(139,92,246,0.12)" },
+  P3: { label: "P3 — Medium", color: "#FFFF00", bg: "rgba(255,255,0,0.12)" },
   P4: { label: "P4 — Low", color: "#22C55E", bg: "rgba(34,197,94,0.12)" },
 };
 
@@ -208,7 +209,7 @@ export function IncidentResponse() {
             </Field>
           </div>
           <Field label="Affected Device" required>
-            <input value={createForm.device} onChange={(e) => setCF("device", e.target.value)} style={{ ...inputStyle, borderColor: createErrors.device ? "#EF4444" : "rgba(37,99,235,0.2)" }} placeholder="e.g. Edge-SW-03 (10.0.2.3)" />
+            <input value={createForm.device} onChange={(e) => setCF("device", e.target.value)} style={{ ...inputStyle, borderColor: createErrors.device ? "#EF4444" : "rgba(255,0,0,0.2)" }} placeholder="e.g. Edge-SW-03 (10.0.2.3)" />
             {createErrors.device && <p style={{ fontSize: "10px", color: "#EF4444", marginTop: "3px" }}>{createErrors.device}</p>}
           </Field>
           <Field label="Description">
@@ -318,7 +319,7 @@ export function IncidentResponse() {
               const cfg = statusConfig[tab];
               return (
                 <button key={tab} onClick={() => setActiveTab(tab)}
-                  style={{ padding: "6px 18px", fontSize: "12px", fontWeight: 600, borderRadius: "8px", cursor: "pointer", textTransform: "capitalize", border: "none", background: activeTab === tab ? "#081122" : "transparent", color: activeTab === tab ? cfg.color : "#64748B", display: "flex", alignItems: "center", gap: "6px", transition: "all 0.15s" }}>
+                  style={{ padding: "6px 18px", fontSize: "12px", fontWeight: 600, borderRadius: "8px", cursor: "pointer", textTransform: "capitalize", border: "none", background: activeTab === tab ? "#101010" : "transparent", color: activeTab === tab ? cfg.color : "#64748B", display: "flex", alignItems: "center", gap: "6px", transition: "all 0.15s" }}>
                   {tab}
                   <span style={{ background: cfg.color, color: "#fff", borderRadius: "10px", padding: "0 6px", fontSize: "10px", lineHeight: "16px" }}>{grouped[tab].length}</span>
                 </button>
@@ -332,7 +333,7 @@ export function IncidentResponse() {
               const isSelected = selected?.id === inc.id;
               return (
                 <div key={inc.id} onClick={() => { setSelected(inc); setDetailTab("timeline"); }}
-                  style={{ ...glassCard, padding: "16px", cursor: "pointer", borderColor: isSelected ? "rgba(37,99,235,0.5)" : "rgba(37,99,235,0.2)", background: isSelected ? "rgba(37,99,235,0.08)" : "rgba(13,27,42,0.7)", transition: "all 0.15s" }}>
+                  style={{ ...glassCard, padding: "16px", cursor: "pointer", borderColor: isSelected ? "rgba(37,99,235,0.5)" : "rgba(255,0,0,0.2)", background: isSelected ? "rgba(255,0,0,0.08)" : "rgba(13,27,42,0.7)", transition: "all 0.15s" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       <span style={{ fontSize: "10px", fontWeight: 700, color: sev.color, background: sev.bg, padding: "2px 8px", borderRadius: "4px" }}>{sev.label}</span>
@@ -388,8 +389,8 @@ export function IncidentResponse() {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
                   <button
                     onClick={() => { setAssignAnalyst(selected.assignee); setAssignOpen(true); }}
-                    style={{ padding: "8px", fontSize: "11px", fontWeight: 600, background: "rgba(37,99,235,0.12)", color: "#60A5FA", border: "1px solid rgba(37,99,235,0.3)", borderRadius: "7px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", transition: "all 0.15s" }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 14px rgba(37,99,235,0.3)"; }}
+                    style={{ padding: "8px", fontSize: "11px", fontWeight: 600, background: "rgba(255,0,0,0.12)", color: "#60A5FA", border: "1px solid rgba(255,0,0,0.3)", borderRadius: "7px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", transition: "all 0.15s" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 14px rgba(255,0,0,0.3)"; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = ""; (e.currentTarget as HTMLButtonElement).style.boxShadow = ""; }}
                   >
                     <User size={12} /> Assign Analyst
@@ -413,8 +414,8 @@ export function IncidentResponse() {
                   <button
                     onClick={handleGenerateReport}
                     disabled={generating}
-                    style={{ padding: "8px", fontSize: "11px", fontWeight: 600, background: "rgba(139,92,246,0.12)", color: "#A78BFA", border: "1px solid rgba(139,92,246,0.3)", borderRadius: "7px", cursor: generating ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", transition: "all 0.15s", opacity: generating ? 0.7 : 1 }}
-                    onMouseEnter={(e) => { if (!generating) { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 14px rgba(139,92,246,0.3)"; } }}
+                    style={{ padding: "8px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,0,0.12)", color: "#A78BFA", border: "1px solid rgba(255,255,0,0.3)", borderRadius: "7px", cursor: generating ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px", transition: "all 0.15s", opacity: generating ? 0.7 : 1 }}
+                    onMouseEnter={(e) => { if (!generating) { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 14px rgba(255,255,0,0.3)"; } }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = ""; (e.currentTarget as HTMLButtonElement).style.boxShadow = ""; }}
                   >
                     {generating ? <Loader size={12} style={{ animation: "spin 1s linear infinite" }} /> : <FileText size={12} />}
@@ -426,11 +427,11 @@ export function IncidentResponse() {
               <div style={glassCard}>
                 <div style={{ display: "flex", gap: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "8px", padding: "3px", marginBottom: "16px", width: "fit-content" }}>
                   <button onClick={() => setDetailTab("timeline")}
-                    style={{ padding: "5px 14px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", border: "none", background: detailTab === "timeline" ? "var(--primary)" : "transparent", color: detailTab === "timeline" ? "var(--primary-foreground)" : "#6EE7A0", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px" }}>
+                    style={{ padding: "5px 14px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", border: "none", background: detailTab === "timeline" ? "var(--primary)" : "transparent", color: detailTab === "timeline" ? "var(--primary-foreground)" : "#A1A1AA", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px" }}>
                     <Clock size={11} /> Timeline
                   </button>
                   <button onClick={() => setDetailTab("notes")}
-                    style={{ padding: "5px 14px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", border: "none", background: detailTab === "notes" ? "var(--primary)" : "transparent", color: detailTab === "notes" ? "var(--primary-foreground)" : "#6EE7A0", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px" }}>
+                    style={{ padding: "5px 14px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", border: "none", background: detailTab === "notes" ? "var(--primary)" : "transparent", color: detailTab === "notes" ? "var(--primary-foreground)" : "#A1A1AA", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px" }}>
                     <MessageSquare size={11} /> Analyst Notes
                     {selected.notes.length > 0 && (
                       <span style={{ background: "#EF4444", color: "#fff", borderRadius: "8px", padding: "0 5px", fontSize: "9px", lineHeight: "14px" }}>{selected.notes.length}</span>
@@ -440,10 +441,10 @@ export function IncidentResponse() {
 
                 {detailTab === "timeline" && (
                   <div style={{ position: "relative", paddingLeft: "14px" }}>
-                    <div style={{ position: "absolute", left: "5px", top: 0, bottom: 0, width: "1px", background: "rgba(0, 255, 65, 0.2)" }} />
+                    <div style={{ position: "absolute", left: "5px", top: 0, bottom: 0, width: "1px", background: "rgba(255, 0, 0, 0.2)" }} />
                     {selected.timeline.map((event, i) => (
                       <div key={i} style={{ position: "relative", paddingLeft: "16px", paddingBottom: i < selected.timeline.length - 1 ? "18px" : "0" }}>
-                        <div style={{ position: "absolute", left: "-11px", top: "4px", width: "8px", height: "8px", borderRadius: "50%", background: "var(--primary)", boxShadow: "0 0 8px rgba(0, 255, 65, 0.6)" }} />
+                        <div style={{ position: "absolute", left: "-11px", top: "4px", width: "8px", height: "8px", borderRadius: "50%", background: "var(--primary)", boxShadow: "0 0 8px rgba(255, 0, 0, 0.6)" }} />
                         <p style={{ fontSize: "12px", color: "#CBD5E1", lineHeight: 1.5 }}>{event.action}</p>
                         <p style={{ fontSize: "10px", color: "#475569", marginTop: "2px", fontFamily: "JetBrains Mono, monospace" }}>{event.time} · {event.actor}</p>
                       </div>
@@ -458,7 +459,7 @@ export function IncidentResponse() {
                         <p style={{ fontSize: "12px", color: "#475569", textAlign: "center", padding: "20px 0" }}>No analyst notes yet</p>
                       ) : (
                         selected.notes.map((note, i) => (
-                          <div key={i} style={{ padding: "12px", background: "rgba(0, 255, 65, 0.04)", border: "1px solid var(--border)", borderRadius: "8px" }}>
+                          <div key={i} style={{ padding: "12px", background: "rgba(255, 0, 0, 0.04)", border: "1px solid var(--border)", borderRadius: "8px" }}>
                             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
                               <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--primary)" }}>{note.author}</span>
                               <span style={{ fontSize: "10px", color: "#475569", fontFamily: "JetBrains Mono, monospace" }}>{note.time}</span>

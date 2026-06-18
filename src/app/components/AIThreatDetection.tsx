@@ -8,12 +8,13 @@ import type { Threat, ThreatStatus } from "../../types";
 import { useDebouncedValue } from "../../lib/useDebouncedValue";
 
 const glassCard: React.CSSProperties = {
-  background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
-  backdropFilter: "blur(18px)",
-  border: "1px solid rgba(0,255,65,0.2)",
-  borderRadius: "22px",
+  background: "rgba(10, 10, 10, 0.75)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  border: "1px solid rgba(255, 0, 0, 0.15)",
+  borderRadius: "16px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(255,0,0,0.12), 0 0 36px rgba(255,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const radarData = [
@@ -30,7 +31,7 @@ type DialogKind = "block" | "quarantine" | "safe" | null;
 function getRiskColor(risk: number): string {
   if (risk >= 80) return "#EF4444";
   if (risk >= 60) return "#F59E0B";
-  if (risk >= 40) return "#8B5CF6";
+  if (risk >= 40) return "#FFFF00";
   return "#22C55E";
 }
 
@@ -140,7 +141,7 @@ export function AIThreatDetection() {
       message: `Confirm that ${dialogTarget?.device} has been reviewed and poses no current threat?`,
       confirmLabel: "Mark Safe",
       type: "info",
-      confirmColor: "#00FF41",
+      confirmColor: "#FF0000",
     },
   };
 
@@ -192,7 +193,7 @@ export function AIThreatDetection() {
               <button
                 key={s}
                 onClick={() => setActionFilter(s)}
-                style={{ padding: "6px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", background: actionFilter === s ? "var(--primary)" : "rgba(255,255,255,0.04)", border: "1px solid var(--border)", color: actionFilter === s ? "var(--primary-foreground)" : "#6EE7A0" }}
+                style={{ padding: "6px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", background: actionFilter === s ? "var(--primary)" : "rgba(255,255,255,0.04)", border: "1px solid var(--border)", color: actionFilter === s ? "var(--primary-foreground)" : "#A1A1AA" }}
               >
                 {s}
               </button>
@@ -239,7 +240,7 @@ export function AIThreatDetection() {
                     <tr
                       key={t.id}
                       onClick={() => setSelected(selected?.id === t.id ? null : t)}
-                      style={{ borderBottom: "1px solid rgba(37,99,235,0.06)", cursor: "pointer", background: selected?.id === t.id ? "rgba(37,99,235,0.08)" : i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)", transition: "background 0.15s" }}
+                      style={{ borderBottom: "1px solid rgba(255,0,0,0.06)", cursor: "pointer", background: selected?.id === t.id ? "rgba(255,0,0,0.08)" : i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)", transition: "background 0.15s" }}
                     >
                       <td style={{ padding: "11px 14px", fontSize: "11px", color: "#475569", fontFamily: "JetBrains Mono, monospace" }}>{t.id}</td>
                       <td style={{ padding: "11px 14px" }}>
@@ -284,10 +285,10 @@ export function AIThreatDetection() {
             <p style={{ fontSize: "11px", color: "#64748B", marginBottom: "10px" }}>Threat vectors heatmap</p>
             <ResponsiveContainer width="100%" height={180}>
               <RadarChart data={radarData}>
-                <PolarGrid stroke="rgba(37,99,235,0.15)" />
+                <PolarGrid stroke="rgba(255,0,0,0.15)" />
                 <PolarAngleAxis dataKey="subject" tick={{ fill: "#475569", fontSize: 10 }} />
                 <Radar name="Risk" dataKey="A" stroke="#2563EB" fill="#2563EB" fillOpacity={0.25} strokeWidth={1.5} />
-                <Tooltip contentStyle={{ background: "#081122", border: "1px solid rgba(37,99,235,0.3)", borderRadius: "8px", fontSize: "11px" }} />
+                <Tooltip contentStyle={{ background: "#101010", border: "1px solid rgba(255,0,0,0.3)", borderRadius: "8px", fontSize: "11px" }} />
               </RadarChart>
             </ResponsiveContainer>
           </div>
@@ -308,7 +309,7 @@ export function AIThreatDetection() {
                   { label: "Detected", value: selected.timestamp },
                   { label: "Current Status", value: selected.status },
                 ].map((row) => (
-                  <div key={row.label} style={{ borderBottom: "1px solid rgba(37,99,235,0.08)", paddingBottom: "8px" }}>
+                  <div key={row.label} style={{ borderBottom: "1px solid rgba(255,0,0,0.08)", paddingBottom: "8px" }}>
                     <p style={{ fontSize: "9px", color: "#475569", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "2px" }}>{row.label}</p>
                     <p style={{ fontSize: "11px", color: "#94A3B8", fontFamily: row.label === "IP Address" || row.label === "Detected" ? "JetBrains Mono, monospace" : "inherit", textTransform: row.label === "Current Status" ? "capitalize" : "none" }}>{row.value}</p>
                   </div>

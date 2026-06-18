@@ -5,12 +5,13 @@ import {
 } from "recharts";
 
 const glassCard: React.CSSProperties = {
-  background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
-  backdropFilter: "blur(18px)",
-  border: "1px solid rgba(0,255,65,0.2)",
-  borderRadius: "22px",
+  background: "rgba(10, 10, 10, 0.75)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  border: "1px solid rgba(255, 0, 0, 0.15)",
+  borderRadius: "16px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(255,0,0,0.12), 0 0 36px rgba(255,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const scoreData = [
@@ -26,7 +27,7 @@ const scoreData = [
 const vulnData = [
   { category: "Critical", count: 8, color: "#EF4444" },
   { category: "High", count: 23, color: "#F59E0B" },
-  { category: "Medium", count: 47, color: "#8B5CF6" },
+  { category: "Medium", count: 47, color: "#FFFF00" },
   { category: "Low", count: 112, color: "#22C55E" },
   { category: "Info", count: 89, color: "#2563EB" },
 ];
@@ -44,7 +45,7 @@ const mttrData = [
 const riskDistData = [
   { name: "Critical", value: 8, color: "#EF4444" },
   { name: "High", value: 23, color: "#F59E0B" },
-  { name: "Medium", value: 47, color: "#8B5CF6" },
+  { name: "Medium", value: 47, color: "#FFFF00" },
   { name: "Low", value: 112, color: "#22C55E" },
 ];
 
@@ -63,7 +64,7 @@ const heatmapData: number[][] = [
 const maxHeat = Math.max(...heatmapData.flat());
 
 function getHeatColor(value: number): string {
-  if (value === 0) return "rgba(37,99,235,0.05)";
+  if (value === 0) return "rgba(255,0,0,0.05)";
   const intensity = value / maxHeat;
   if (intensity < 0.25) return `rgba(34,197,94,${0.2 + intensity * 0.6})`;
   if (intensity < 0.5) return `rgba(245,158,11,${0.3 + intensity * 0.5})`;
@@ -74,7 +75,7 @@ function getHeatColor(value: number): string {
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string; color: string }>; label?: string }) => {
   if (active && payload?.length) {
     return (
-      <div style={{ background: "#081122", border: "1px solid rgba(37,99,235,0.3)", borderRadius: "8px", padding: "10px 14px" }}>
+      <div style={{ background: "#101010", border: "1px solid rgba(255,0,0,0.3)", borderRadius: "8px", padding: "10px 14px" }}>
         <p style={{ color: "#94A3B8", fontSize: "11px", marginBottom: "6px" }}>{label}</p>
         {payload.map((p, i) => (
           <p key={i} style={{ color: p.color || "#06B6D4", fontSize: "12px" }}>{p.name}: {p.value}</p>
@@ -106,7 +107,7 @@ export function SecurityAnalytics() {
           <p style={{ fontSize: "11px", color: "#64748B", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Security Score</p>
           <div style={{ position: "relative", width: "130px", height: "130px" }}>
             <svg viewBox="0 0 130 130" width="130" height="130">
-              <circle cx="65" cy="65" r="55" fill="none" stroke="rgba(0, 255, 65, 0.1)" strokeWidth="11" />
+              <circle cx="65" cy="65" r="55" fill="none" stroke="rgba(255, 0, 0, 0.1)" strokeWidth="11" />
               <circle
                 cx="65" cy="65" r="55"
                 fill="none"
@@ -118,7 +119,7 @@ export function SecurityAnalytics() {
               />
               <defs>
                 <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#00FF41" />
+                  <stop offset="0%" stopColor="#FF0000" />
                   <stop offset="100%" stopColor="#06B6D4" />
                 </linearGradient>
               </defs>
@@ -142,7 +143,7 @@ export function SecurityAnalytics() {
               <XAxis dataKey="day" stroke="#334155" tick={{ fill: "#475569", fontSize: 10 }} />
               <YAxis stroke="#334155" tick={{ fill: "#475569", fontSize: 10 }} domain={[60, 100]} />
               <Tooltip content={<CustomTooltip />} />
-              <Line type="monotone" dataKey="score" stroke="#00FF41" strokeWidth={2.5} dot={{ fill: "#00FF41", r: 4, strokeWidth: 0 }} activeDot={{ r: 6, fill: "#06B6D4" }} name="Score" />
+              <Line type="monotone" dataKey="score" stroke="#FF0000" strokeWidth={2.5} dot={{ fill: "#FF0000", r: 4, strokeWidth: 0 }} activeDot={{ r: 6, fill: "#06B6D4" }} name="Score" />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -166,7 +167,7 @@ export function SecurityAnalytics() {
                     <Cell key={i} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ background: "#081122", border: "1px solid rgba(37,99,235,0.3)", borderRadius: "8px", fontSize: "11px" }} />
+                <Tooltip contentStyle={{ background: "#101010", border: "1px solid rgba(255,0,0,0.3)", borderRadius: "8px", fontSize: "11px" }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -206,7 +207,7 @@ export function SecurityAnalytics() {
                     height: "22px",
                     borderRadius: "4px",
                     background: getHeatColor(val),
-                    border: "1px solid rgba(37,99,235,0.08)",
+                    border: "1px solid rgba(255,0,0,0.08)",
                     cursor: "default",
                     transition: "transform 0.1s",
                     display: "flex",
@@ -267,7 +268,7 @@ export function SecurityAnalytics() {
               <YAxis stroke="#334155" tick={{ fill: "#475569", fontSize: 10 }} />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="mttd" fill="#06B6D4" radius={[2, 2, 0, 0]} name="MTTD" />
-              <Bar dataKey="mttr" fill="#00FF41" radius={[2, 2, 0, 0]} name="MTTR" />
+              <Bar dataKey="mttr" fill="#FF0000" radius={[2, 2, 0, 0]} name="MTTR" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -279,13 +280,13 @@ export function SecurityAnalytics() {
             {[
               { label: "Model Accuracy", value: "97.4%", color: "#22C55E" },
               { label: "False Positive Rate", value: "1.8%", color: "#22C55E" },
-              { label: "Patch Compliance", value: "91.4%", color: "#00FF41" },
-              { label: "MFA Coverage", value: "87.2%", color: "#00FF41" },
+              { label: "Patch Compliance", value: "91.4%", color: "#FF0000" },
+              { label: "MFA Coverage", value: "87.2%", color: "#FF0000" },
               { label: "Endpoint Coverage", value: "94.8%", color: "#06B6D4" },
               { label: "Threat Containment", value: "99.1%", color: "#22C55E" },
-              { label: "Policy Compliance", value: "96.3%", color: "#8B5CF6" },
+              { label: "Policy Compliance", value: "96.3%", color: "#FFFF00" },
             ].map((m) => (
-              <div key={m.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "8px", borderBottom: "1px solid rgba(37,99,235,0.06)" }}>
+              <div key={m.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "8px", borderBottom: "1px solid rgba(255,0,0,0.06)" }}>
                 <span style={{ fontSize: "11px", color: "#64748B" }}>{m.label}</span>
                 <span style={{ fontSize: "13px", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: m.color }}>{m.value}</span>
               </div>

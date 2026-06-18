@@ -3,12 +3,13 @@ import { Search, ZoomIn, ZoomOut, RotateCcw, Info, Shield, Monitor, Server, Wifi
 import { useToast } from "./Toast";
 
 const glassCard: React.CSSProperties = {
-  background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
-  backdropFilter: "blur(18px)",
-  border: "1px solid rgba(0,255,65,0.2)",
-  borderRadius: "22px",
+  background: "rgba(10, 10, 10, 0.75)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  border: "1px solid rgba(255, 0, 0, 0.15)",
+  borderRadius: "16px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(255,0,0,0.12), 0 0 36px rgba(255,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 type NodeStatus = "healthy" | "warning" | "compromised";
@@ -124,7 +125,7 @@ export function NetworkTopology() {
                 textTransform: "capitalize",
                 background: filter === s ? (s === "all" ? "var(--primary)" : s === "healthy" ? "#22C55E" : s === "warning" ? "#F59E0B" : "#EF4444") : "rgba(255,255,255,0.04)",
                 borderColor: s === "all" ? "var(--primary)" : s === "healthy" ? "#22C55E" : s === "warning" ? "#F59E0B" : "#EF4444",
-                color: filter === s ? (s === "all" ? "var(--primary-foreground)" : "#fff") : (s === "all" ? "#00FF41" : s === "healthy" ? "#22C55E" : s === "warning" ? "#F59E0B" : "#EF4444"),
+                color: filter === s ? (s === "all" ? "var(--primary-foreground)" : "#fff") : (s === "all" ? "#FF0000" : s === "healthy" ? "#22C55E" : s === "warning" ? "#F59E0B" : "#EF4444"),
               }}
             >
               {s === "all" ? "All" : s}
@@ -144,13 +145,13 @@ export function NetworkTopology() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search device or IP..."
-                style={{ width: "100%", paddingLeft: "30px", paddingRight: "10px", paddingTop: "7px", paddingBottom: "7px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: "8px", color: "#E2E8F0", fontSize: "12px", outline: "none" }}
+                style={{ width: "100%", paddingLeft: "30px", paddingRight: "10px", paddingTop: "7px", paddingBottom: "7px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,0,0,0.2)", borderRadius: "8px", color: "#E2E8F0", fontSize: "12px", outline: "none" }}
               />
             </div>
             <div style={{ display: "flex", gap: "6px", marginLeft: "auto" }}>
-              <button onClick={() => setZoom((z) => Math.min(z + 0.2, 2))} style={{ padding: "6px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: "6px", color: "#94A3B8", cursor: "pointer" }}><ZoomIn size={14} /></button>
-              <button onClick={() => setZoom((z) => Math.max(z - 0.2, 0.5))} style={{ padding: "6px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: "6px", color: "#94A3B8", cursor: "pointer" }}><ZoomOut size={14} /></button>
-              <button onClick={() => setZoom(1)} style={{ padding: "6px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: "6px", color: "#94A3B8", cursor: "pointer" }}><RotateCcw size={14} /></button>
+              <button onClick={() => setZoom((z) => Math.min(z + 0.2, 2))} style={{ padding: "6px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,0,0,0.2)", borderRadius: "6px", color: "#94A3B8", cursor: "pointer" }}><ZoomIn size={14} /></button>
+              <button onClick={() => setZoom((z) => Math.max(z - 0.2, 0.5))} style={{ padding: "6px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,0,0,0.2)", borderRadius: "6px", color: "#94A3B8", cursor: "pointer" }}><ZoomOut size={14} /></button>
+              <button onClick={() => setZoom(1)} style={{ padding: "6px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,0,0,0.2)", borderRadius: "6px", color: "#94A3B8", cursor: "pointer" }}><RotateCcw size={14} /></button>
             </div>
           </div>
 
@@ -171,7 +172,7 @@ export function NetworkTopology() {
 
               {/* Background grid */}
               <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(37,99,235,0.06)" strokeWidth="0.5" />
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,0,0,0.06)" strokeWidth="0.5" />
               </pattern>
               <rect width="720" height="520" fill="url(#grid)" />
 
@@ -215,13 +216,13 @@ export function NetworkTopology() {
                   >
                     {/* Glow ring */}
                     {(node.status !== "healthy" || isSelected) && (
-                      <circle cx="32" cy="32" r="30" fill="none" stroke={isSelected ? "#00FF41" : color} strokeWidth="1.5" strokeOpacity="0.4" filter="url(#glow)" />
+                      <circle cx="32" cy="32" r="30" fill="none" stroke={isSelected ? "#FF0000" : color} strokeWidth="1.5" strokeOpacity="0.4" filter="url(#glow)" />
                     )}
                     {/* Node background */}
                     <rect
                       x="8" y="8" width="48" height="48" rx="12"
-                      fill={isSelected ? "rgba(0,255,65,0.18)" : "rgba(13,27,42,0.9)"}
-                      stroke={isSelected ? "#00FF41" : color}
+                      fill={isSelected ? "rgba(255,0,0,0.18)" : "rgba(13,27,42,0.9)"}
+                      stroke={isSelected ? "#FF0000" : color}
                       strokeWidth={isSelected ? 2 : 1.5}
                     />
                     {/* Status dot */}

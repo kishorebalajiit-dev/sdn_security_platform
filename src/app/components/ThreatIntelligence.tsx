@@ -5,12 +5,13 @@ import { useToast } from "./Toast";
 import { useDebouncedValue } from "../../lib/useDebouncedValue";
 
 const glassCard: React.CSSProperties = {
-  background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
-  backdropFilter: "blur(18px)",
-  border: "1px solid rgba(0,255,65,0.2)",
-  borderRadius: "22px",
+  background: "rgba(10, 10, 10, 0.75)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  border: "1px solid rgba(255, 0, 0, 0.15)",
+  borderRadius: "16px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(255,0,0,0.12), 0 0 36px rgba(255,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const threatFeed = [
@@ -26,7 +27,7 @@ const threatFeed = [
 const iocDatabase = [
   { type: "Malicious IPs", count: 14821, color: "#EF4444", icon: Globe },
   { type: "Malicious Domains", count: 8434, color: "#F59E0B", icon: AlertTriangle },
-  { type: "File Hashes", count: 24102, color: "#8B5CF6", icon: Database },
+  { type: "File Hashes", count: 24102, color: "#FFFF00", icon: Database },
   { type: "CVEs Tracked", count: 1287, color: "#2563EB", icon: Shield },
 ];
 
@@ -48,12 +49,12 @@ const geoThreats: Array<{ country: string; flag: string; attacks: number; level:
   { country: "Brazil", flag: "🇧🇷", attacks: 142, level: "medium" },
 ];
 
-const levelColors = { critical: "#EF4444", high: "#F59E0B", medium: "#8B5CF6" };
+const levelColors = { critical: "#EF4444", high: "#F59E0B", medium: "#FFFF00" };
 
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string; color: string }>; label?: string }) => {
   if (active && payload?.length) {
     return (
-      <div style={{ background: "#081122", border: "1px solid rgba(37,99,235,0.3)", borderRadius: "8px", padding: "10px 14px" }}>
+      <div style={{ background: "#101010", border: "1px solid rgba(255,0,0,0.3)", borderRadius: "8px", padding: "10px 14px" }}>
         <p style={{ color: "#94A3B8", fontSize: "11px", marginBottom: "4px" }}>{label}</p>
         {payload.map((p, i) => (
           <p key={i} style={{ color: p.color || "#06B6D4", fontSize: "12px" }}>Incidents: {p.value}</p>
@@ -90,13 +91,13 @@ export function ThreatIntelligence() {
       <div className="app-page__header">
         <div>
           <h1 style={{ color: "#E2E8F0", marginBottom: "4px", display: "flex", alignItems: "center", gap: "10px" }}>
-            <Shield size={22} style={{ color: "#8B5CF6" }} />
+            <Shield size={22} style={{ color: "#FFFF00" }} />
             Threat Intelligence Center
           </h1>
           <p style={{ color: "#64748B", fontSize: "13px" }}>Global threat feed, IOC database, and attack source intelligence</p>
         </div>
         <div className="app-page__header-actions">
-          <div style={{ padding: "6px 14px", background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.25)", borderRadius: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ padding: "6px 14px", background: "rgba(255,255,0,0.1)", border: "1px solid rgba(255,255,0,0.25)", borderRadius: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
             <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#22C55E", boxShadow: "0 0 8px #22C55E" }} />
             <span style={{ fontSize: "12px", color: "#A78BFA", fontWeight: 600 }}>Feed Active — Updated 2 min ago</span>
           </div>
@@ -125,11 +126,11 @@ export function ThreatIntelligence() {
           <div className="app-page__filters">
             <div style={{ position: "relative" }}>
               <Search size={13} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#475569" }} />
-              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search IOC, type..." style={{ paddingLeft: "30px", paddingRight: "12px", paddingTop: "8px", paddingBottom: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: "8px", color: "#E2E8F0", fontSize: "12px", outline: "none", width: "240px" }} />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search IOC, type..." style={{ paddingLeft: "30px", paddingRight: "12px", paddingTop: "8px", paddingBottom: "8px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,0,0,0.2)", borderRadius: "8px", color: "#E2E8F0", fontSize: "12px", outline: "none", width: "240px" }} />
             </div>
             <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
               {["all", "critical", "high", "medium"].map((s) => (
-                <button key={s} onClick={() => setSevFilter(s)} style={{ padding: "6px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", background: sevFilter === s ? (s === "all" ? "#2563EB" : s === "critical" ? "#EF4444" : s === "high" ? "#F59E0B" : "#8B5CF6") : "rgba(255,255,255,0.04)", border: "1px solid rgba(37,99,235,0.2)", color: sevFilter === s ? "#fff" : "#64748B" }}>
+                <button key={s} onClick={() => setSevFilter(s)} style={{ padding: "6px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", background: sevFilter === s ? (s === "all" ? "#2563EB" : s === "critical" ? "#EF4444" : s === "high" ? "#F59E0B" : "#FFFF00") : "rgba(255,255,255,0.04)", border: "1px solid rgba(255,0,0,0.2)", color: sevFilter === s ? "#fff" : "#64748B" }}>
                   {s}
                 </button>
               ))}
@@ -140,7 +141,7 @@ export function ThreatIntelligence() {
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "800px" }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid rgba(37,99,235,0.12)", background: "rgba(13,27,42,0.9)" }}>
+                  <tr style={{ borderBottom: "1px solid rgba(255,0,0,0.12)", background: "rgba(13,27,42,0.9)" }}>
                     {["IOC", "Country", "Threat Type", "IOC Type", "Confidence", "Severity", "Description", "Action"].map((h) => (
                       <th key={h} style={{ padding: "11px 14px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</th>
                     ))}
@@ -148,8 +149,8 @@ export function ThreatIntelligence() {
                 </thead>
                 <tbody>
                   {filtered.map((t, i) => (
-                    <tr key={t.id} style={{ borderBottom: "1px solid rgba(37,99,235,0.06)", background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)" }}>
-                      <td style={{ padding: "10px 14px", fontSize: "11px", color: "#8B5CF6", fontFamily: "JetBrains Mono, monospace" }}>{t.source}</td>
+                    <tr key={t.id} style={{ borderBottom: "1px solid rgba(255,0,0,0.06)", background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)" }}>
+                      <td style={{ padding: "10px 14px", fontSize: "11px", color: "#FFFF00", fontFamily: "JetBrains Mono, monospace" }}>{t.source}</td>
                       <td style={{ padding: "10px 14px", fontSize: "12px", color: "#94A3B8" }}>{t.country}</td>
                       <td style={{ padding: "10px 14px", fontSize: "11px", color: "#94A3B8" }}>{t.type}</td>
                       <td style={{ padding: "10px 14px" }}>
@@ -185,7 +186,7 @@ export function ThreatIntelligence() {
           {/* Geo Threat Map placeholder */}
           <div style={glassCard}>
             <h3 style={{ color: "#E2E8F0", marginBottom: "4px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <Globe size={15} style={{ color: "#8B5CF6" }} />
+              <Globe size={15} style={{ color: "#FFFF00" }} />
               Top Attack Sources
             </h3>
             <p style={{ fontSize: "11px", color: "#64748B", marginBottom: "14px" }}>By country — Last 24h</p>
@@ -217,7 +218,7 @@ export function ThreatIntelligence() {
                 <XAxis type="number" stroke="#334155" tick={{ fill: "#475569", fontSize: 9 }} />
                 <YAxis type="category" dataKey="name" stroke="#334155" tick={{ fill: "#475569", fontSize: 10 }} width={65} />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="value" radius={[0, 3, 3, 0]} fill="#8B5CF6" />
+                <Bar dataKey="value" radius={[0, 3, 3, 0]} fill="#FFFF00" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -231,7 +232,7 @@ export function ThreatIntelligence() {
               "Enable geo-blocking for RU, CN, KP, IR",
               "Rotate all API keys — credential exposure risk",
             ].map((rec, i) => (
-              <div key={i} style={{ display: "flex", gap: "10px", alignItems: "flex-start", padding: "8px 0", borderBottom: i < 3 ? "1px solid rgba(37,99,235,0.08)" : "none" }}>
+              <div key={i} style={{ display: "flex", gap: "10px", alignItems: "flex-start", padding: "8px 0", borderBottom: i < 3 ? "1px solid rgba(255,0,0,0.08)" : "none" }}>
                 <div style={{ width: "18px", height: "18px", borderRadius: "50%", background: "rgba(239,68,68,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: "1px" }}>
                   <span style={{ fontSize: "9px", fontWeight: 800, color: "#EF4444" }}>{i + 1}</span>
                 </div>

@@ -121,7 +121,7 @@ export const initialNotifications: Notification[] = [
   { id: 1, text: "DDoS attack detected on Edge-SW-03", time: "2 min ago", color: "#EF4444", unread: true },
   { id: 2, text: "Botnet C2 communication blocked", time: "5 min ago", color: "#EF4444", unread: true },
   { id: 3, text: "AI model retrained — accuracy 97.4%", time: "1 hr ago", color: "#22C55E", unread: true },
-  { id: 4, text: "Blockchain block #47291 confirmed", time: "2 hr ago", color: "#8B5CF6", unread: false },
+  { id: 4, text: "Blockchain block #47291 confirmed", time: "2 hr ago", color: "#FFFF00", unread: false },
 ];
 
 export const DEMO_CREDENTIALS: Record<string, { password: string; userId: string }> = {

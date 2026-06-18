@@ -7,12 +7,13 @@ import {
 import { getTrafficData, KPI_BY_RANGE, type TrafficChartRange } from "../../data/trafficData";
 
 const glassCard: React.CSSProperties = {
-  background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
-  backdropFilter: "blur(18px)",
-  border: "1px solid rgba(0,255,65,0.2)",
-  borderRadius: "22px",
+  background: "rgba(10, 10, 10, 0.75)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  border: "1px solid rgba(255, 0, 0, 0.15)",
+  borderRadius: "16px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(255,0,0,0.12), 0 0 36px rgba(255,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const bandwidthByDevice = [
@@ -20,7 +21,7 @@ const bandwidthByDevice = [
   { device: "SVR-DB-02", in: 180, out: 95, color: "#06B6D4" },
   { device: "Edge-SW-03", in: 920, out: 640, color: "#EF4444" },
   { device: "IoT-Cluster", in: 340, out: 210, color: "#F59E0B" },
-  { device: "PC-DevOps", in: 120, out: 80, color: "#8B5CF6" },
+  { device: "PC-DevOps", in: 120, out: 80, color: "#FFFF00" },
   { device: "Cloud-AWS", in: 680, out: 520, color: "#22C55E" },
 ];
 
@@ -28,7 +29,7 @@ const protocolData = [
   { name: "HTTPS", packets: 48200, bytes: "12.4 GB", color: "#2563EB" },
   { name: "HTTP", packets: 8400, bytes: "1.2 GB", color: "#06B6D4" },
   { name: "DNS", packets: 22100, bytes: "0.3 GB", color: "#22C55E" },
-  { name: "SSH", packets: 3200, bytes: "0.4 GB", color: "#8B5CF6" },
+  { name: "SSH", packets: 3200, bytes: "0.4 GB", color: "#FFFF00" },
   { name: "MQTT (IoT)", packets: 15600, bytes: "0.8 GB", color: "#F59E0B" },
   { name: "Unknown", packets: 1800, bytes: "0.2 GB", color: "#EF4444" },
 ];
@@ -45,7 +46,7 @@ const packetAnalysis = [
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string; color: string }>; label?: string }) => {
   if (active && payload?.length) {
     return (
-      <div style={{ background: "#081122", border: "1px solid rgba(37,99,235,0.3)", borderRadius: "8px", padding: "10px 14px" }}>
+      <div style={{ background: "#101010", border: "1px solid rgba(255,0,0,0.3)", borderRadius: "8px", padding: "10px 14px" }}>
         <p style={{ color: "#94A3B8", fontSize: "11px", marginBottom: "6px" }}>{label}</p>
         {payload.map((p, i) => (
           <p key={i} style={{ color: p.color, fontSize: "12px", fontFamily: "JetBrains Mono, monospace" }}>

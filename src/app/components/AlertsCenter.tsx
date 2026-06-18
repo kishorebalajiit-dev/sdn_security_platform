@@ -5,18 +5,19 @@ import type { Alert } from "../../types";
 import { useDebouncedValue } from "../../lib/useDebouncedValue";
 
 const glassCard: React.CSSProperties = {
-  background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
-  backdropFilter: "blur(18px)",
-  border: "1px solid rgba(0,255,65,0.2)",
-  borderRadius: "22px",
+  background: "rgba(10, 10, 10, 0.75)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  border: "1px solid rgba(255, 0, 0, 0.15)",
+  borderRadius: "16px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(255,0,0,0.12), 0 0 36px rgba(255,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const sevConfig = {
   critical: { color: "#EF4444", bg: "rgba(239,68,68,0.08)", border: "rgba(239,68,68,0.2)", icon: XCircle, label: "Critical" },
   high: { color: "#F59E0B", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.2)", icon: AlertTriangle, label: "High" },
-  medium: { color: "#8B5CF6", bg: "rgba(139,92,246,0.08)", border: "rgba(139,92,246,0.2)", icon: Clock, label: "Medium" },
+  medium: { color: "#FFFF00", bg: "rgba(255,255,0,0.08)", border: "rgba(255,255,0,0.2)", icon: Clock, label: "Medium" },
   low: { color: "#22C55E", bg: "rgba(34,197,94,0.08)", border: "rgba(34,197,94,0.2)", icon: CheckCircle, label: "Low" },
 };
 
@@ -84,7 +85,7 @@ export function AlertsCenter() {
         <div style={{ display: "flex", gap: "10px" }}>
           <button
             onClick={() => acknowledgeAllAlerts()}
-            style={{ padding: "8px 16px", fontSize: "12px", fontWeight: 600, background: "rgba(37,99,235,0.12)", color: "#60A5FA", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}
+            style={{ padding: "8px 16px", fontSize: "12px", fontWeight: 600, background: "rgba(255,0,0,0.12)", color: "#60A5FA", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}
           >
             <CheckCircle size={13} /> Acknowledge All
           </button>
@@ -137,7 +138,7 @@ export function AlertsCenter() {
             { key: "yesterday", label: "Yesterday" },
           ].map((d) => (
             <button key={d.key} onClick={() => setDateFilter(d.key)}
-              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", border: "none", background: dateFilter === d.key ? "var(--primary)" : "transparent", color: dateFilter === d.key ? "var(--primary-foreground)" : "#6EE7A0" }}>
+              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", border: "none", background: dateFilter === d.key ? "var(--primary)" : "transparent", color: dateFilter === d.key ? "var(--primary-foreground)" : "#A1A1AA" }}>
               {d.label}
             </button>
           ))}
@@ -147,7 +148,7 @@ export function AlertsCenter() {
         <div style={{ display: "flex", gap: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "8px", padding: "3px" }}>
           {["all", "critical", "high", "medium", "low"].map((s) => (
             <button key={s} onClick={() => setSevFilter(s)}
-              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", border: "none", background: sevFilter === s ? "var(--primary)" : "transparent", color: sevFilter === s ? "var(--primary-foreground)" : "#6EE7A0" }}>
+              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", border: "none", background: sevFilter === s ? "var(--primary)" : "transparent", color: sevFilter === s ? "var(--primary-foreground)" : "#A1A1AA" }}>
               {s}
             </button>
           ))}
@@ -157,7 +158,7 @@ export function AlertsCenter() {
         <div style={{ display: "flex", gap: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "8px", padding: "3px" }}>
           {["all", "new", "acknowledged", "investigating", "resolved"].map((s) => (
             <button key={s} onClick={() => setStatusFilter(s)}
-              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", border: "none", background: statusFilter === s ? "var(--primary)" : "transparent", color: statusFilter === s ? "var(--primary-foreground)" : "#6EE7A0" }}>
+              style={{ padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer", textTransform: "capitalize", border: "none", background: statusFilter === s ? "var(--primary)" : "transparent", color: statusFilter === s ? "var(--primary-foreground)" : "#A1A1AA" }}>
               {s}
             </button>
           ))}
@@ -183,7 +184,7 @@ export function AlertsCenter() {
                 style={{
                   ...glassCard,
                   padding: "16px 20px",
-                  borderColor: isNew ? cfg.border : "rgba(37,99,235,0.12)",
+                  borderColor: isNew ? cfg.border : "rgba(255,0,0,0.12)",
                   background: isNew ? cfg.bg : "rgba(13,27,42,0.5)",
                   display: "flex",
                   alignItems: "flex-start",
@@ -241,9 +242,9 @@ export function AlertsCenter() {
                   {(st === "new" || st === "acknowledged") && (
                     <button
                       onClick={() => investigate(alert.id)}
-                      style={{ padding: "5px 11px", fontSize: "11px", fontWeight: 600, background: "rgba(37,99,235,0.12)", color: "#60A5FA", border: "1px solid rgba(37,99,235,0.3)", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", transition: "all 0.15s" }}
+                      style={{ padding: "5px 11px", fontSize: "11px", fontWeight: 600, background: "rgba(255,0,0,0.12)", color: "#60A5FA", border: "1px solid rgba(255,0,0,0.3)", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", transition: "all 0.15s" }}
                       onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(37,99,235,0.22)"; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(37,99,235,0.12)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,0,0,0.12)"; }}
                     >
                       <Eye size={11} /> Investigate
                     </button>

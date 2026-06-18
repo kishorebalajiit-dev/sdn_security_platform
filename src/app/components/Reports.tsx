@@ -8,12 +8,13 @@ import { useAppData } from "../../contexts/AppDataContext";
 import { downloadCSV, downloadPDFReport } from "../../lib/exportUtils";
 
 const glassCard: React.CSSProperties = {
-  background: "linear-gradient(180deg, rgba(17,24,39,0.82), rgba(8,11,26,0.68))",
-  backdropFilter: "blur(18px)",
-  border: "1px solid rgba(0,255,65,0.2)",
-  borderRadius: "22px",
+  background: "rgba(10, 10, 10, 0.75)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  border: "1px solid rgba(255, 0, 0, 0.15)",
+  borderRadius: "16px",
   padding: "20px",
-  boxShadow: "0 0 20px rgba(0,255,65,0.12), 0 0 36px rgba(0,255,65,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 20px rgba(255,0,0,0.12), 0 0 36px rgba(255,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const monthlyData = [
@@ -33,9 +34,9 @@ const deviceReportData = [
 ];
 
 const reportTemplates = [
-  { title: "Monthly Security Report — June 2026", icon: Shield, color: "#00FF41", description: "Comprehensive threat analysis, incidents, and response metrics" },
+  { title: "Monthly Security Report — June 2026", icon: Shield, color: "#FF0000", description: "Comprehensive threat analysis, incidents, and response metrics" },
   { title: "Device Health Report", icon: Monitor, color: "#22C55E", description: "Status of all network devices with vulnerability assessment" },
-  { title: "Threat Intelligence Summary", icon: TrendingUp, color: "#8B5CF6", description: "IOC database, global threat feed digest, and risk trends" },
+  { title: "Threat Intelligence Summary", icon: TrendingUp, color: "#FFFF00", description: "IOC database, global threat feed digest, and risk trends" },
   { title: "Blockchain Audit Report", icon: BarChart2, color: "#06B6D4", description: "Complete on-chain audit trail for compliance verification" },
   { title: "Incident Response Report", icon: FileText, color: "#F59E0B", description: "All incidents, response times, and resolution outcomes" },
 ];
@@ -43,7 +44,7 @@ const reportTemplates = [
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string; color: string }>; label?: string }) => {
   if (active && payload?.length) {
     return (
-      <div style={{ background: "#081122", border: "1px solid rgba(37,99,235,0.3)", borderRadius: "8px", padding: "10px 14px" }}>
+      <div style={{ background: "#101010", border: "1px solid rgba(255,0,0,0.3)", borderRadius: "8px", padding: "10px 14px" }}>
         <p style={{ color: "#94A3B8", fontSize: "11px", marginBottom: "6px" }}>{label}</p>
         {payload.map((p, i) => (
           <p key={i} style={{ color: p.color, fontSize: "12px" }}>{p.name}: {p.value}</p>
