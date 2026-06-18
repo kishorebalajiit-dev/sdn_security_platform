@@ -4,6 +4,10 @@ export const api = {
   auth: {
     loginPassword: (email: string, password: string) =>
       client.post("/auth/login/password", { email, password }),
+    registerPassword: (data: any) =>
+      client.post("/auth/register/password", data),
+    verifyEmail: (email: string) =>
+      client.post("/auth/verify-email", { email }),
     loginWallet: (address: string, signature: string) =>
       client.post("/auth/login", { address, signature }),
     getNonce: (address: string) => client.get(`/auth/nonce?address=${address}`),

@@ -16,6 +16,8 @@ interface AuthContextValue {
   isLoading: boolean;
   login: (address: string, privateKey: string) => Promise<{ ok: true } | { ok: false; error: string }>;
   loginWithPassword: (email: string, password: string) => Promise<{ ok: true } | { ok: false; error: string }>;
+  register: (data: any) => Promise<{ ok: true } | { ok: false; error: string }>;
+  verifyEmail: (email: string) => Promise<{ ok: true } | { ok: false; error: string }>;
   logout: () => void;
 }
 
@@ -27,6 +29,7 @@ function mapUser(user: Record<string, unknown>): AuthUser {
     id: user.id as string | number,
     name: fullName,
     email: String(user.email ?? ""),
+    username: user.username as string | undefined,
     role: (user.role as UserRole) ?? "Security Analyst",
     department: "SOC",
     initials: fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase(),
@@ -84,6 +87,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [persistSession]);
 
+  const register = useCallback(async (data: any) => {
+    try {
+      await api.auth.registerPassword(data);
+      return { ok: true as const };
+    } catch (e) {
+      return { ok: false as const, error: getApiErrorMessage(e, "Registration failed") };
+    }
+  }, []);
+
+  const verifyEmail = useCallback(async (email: string) => {
+    try {
+      await api.auth.verifyEmail(email);
+      return { ok: true as const };
+    } catch (e) {
+      return { ok: false as const, error: getApiErrorMessage(e, "Email verification failed") };
+    }
+  }, []);
+
   const login = useCallback(async (address: string, privateKey: string) => {
     try {
       const nonceRes = await api.auth.getNonce(address);
@@ -125,9 +146,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       login,
       loginWithPassword,
+      register,
+      verifyEmail,
       logout,
     }),
-    [session, isLoading, login, loginWithPassword, logout]
+    [session, isLoading, login, loginWithPassword, register, verifyEmail, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -36,6 +36,7 @@ class User(db.Model, TimestampMixin):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    username: Mapped[str | None] = mapped_column(String(80), unique=True, nullable=True, index=True)
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     eth_address: Mapped[str | None] = mapped_column(String(42), unique=True, nullable=True, index=True)
@@ -61,6 +62,7 @@ class User(db.Model, TimestampMixin):
         return {
             "id": self.id,
             "email": self.email,
+            "username": self.username,
             "full_name": self.full_name,
             "role": self.role.name if self.role else None,
             "eth_address": self.eth_address,

@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from flask import Blueprint, request
 from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required
 from eth_account.messages import encode_defunct
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import db, limiter
 from app.models.core import AuditLog, Role, User
@@ -42,8 +42,14 @@ def login_password():
     if not email or not password:
         return fail("email and password are required", 422)
 
-    user = User.query.filter_by(email=email, is_active=True).first()
-    if not user or not user.password_hash or not check_password_hash(user.password_hash, password):
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return fail("Invalid email or password", 401)
+
+    if not user.is_active:
+        return fail("Please verify your email address before accessing SecureNet AI", 403)
+
+    if not user.password_hash or not check_password_hash(user.password_hash, password):
         return fail("Invalid email or password", 401)
 
     user.last_login_at = datetime.now(timezone.utc)
@@ -52,6 +58,67 @@ def login_password():
 
     access_token, refresh_token = _issue_tokens(user)
     return ok({"access_token": access_token, "refresh_token": refresh_token, "user": user.to_dict()})
+
+
+@bp.post("/register/password")
+@limiter.limit("10/minute")
+def register_password():
+    payload = request.get_json(silent=True) or {}
+    email = (payload.get("email") or "").strip().lower()
+    username = (payload.get("username") or "").strip().lower()
+    password = payload.get("password") or ""
+    full_name = (payload.get("full_name") or "").strip()
+    role_name = (payload.get("role") or "Security Analyst").strip()
+    department = (payload.get("department") or "SOC Team").strip()
+
+    if not email or not password or not full_name or not username:
+        return fail("email, username, password, and full_name are required", 422)
+
+    if User.query.filter_by(email=email).first():
+        return fail("Email already exists", 409)
+
+    if User.query.filter_by(username=username).first():
+        return fail("Username already exists", 409)
+
+    role = Role.query.filter_by(name=role_name).first()
+    if not role:
+        role = Role(name=role_name, description=f"Custom role: {role_name}", permissions={})
+        db.session.add(role)
+        db.session.flush()
+
+    # Create user with password hash. is_active=False until verified
+    user = User(
+        email=email,
+        username=username,
+        full_name=full_name,
+        password_hash=generate_password_hash(password),
+        role=role,
+        is_active=False  # Verification required
+    )
+    db.session.add(user)
+    
+    # Log audit event
+    db.session.add(AuditLog(entity_type="user", entity_id=email, action="register", actor=email, details={"role": role_name, "department": department, "method": "password"}))
+    
+    # Register on-chain (using a generated eth address)
+    eth_address = f"0x{uuid.uuid4().hex[:40]}"
+    user.eth_address = eth_address
+    tx_info = register_user_on_chain(eth_address, email, full_name, role_name)
+    
+    db.session.commit()
+    return ok({"user": user.to_dict(), "blockchain_tx": tx_info}, "Registration successful. Verification email sent.", 201)
+
+
+@bp.post("/verify-email")
+def verify_email():
+    payload = request.get_json(silent=True) or {}
+    email = (payload.get("email") or "").strip().lower()
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return fail("User not found", 404)
+    user.is_active = True
+    db.session.commit()
+    return ok({}, "Email verified successfully")
 
 
 @bp.get("/nonce")
@@ -162,4 +229,3 @@ def login():
 def me():
     user = User.query.get_or_404(int(get_jwt_identity()))
     return ok({"user": user.to_dict()})
-

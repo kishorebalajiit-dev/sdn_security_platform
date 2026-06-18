@@ -4,6 +4,7 @@ import { AppDataProvider } from "../contexts/AppDataContext";
 import { ToastProvider } from "./components/Toast";
 import { AppLayout } from "./layouts/AppLayout";
 import { LoginPage } from "./pages/Login";
+import { RegisterPage } from "./pages/Register";
 import { ProtectedRoute, PublicRoute } from "./routes";
 import { Dashboard } from "./components/Dashboard";
 import { NetworkTopology } from "./components/NetworkTopology";
@@ -28,6 +29,7 @@ export default function App() {
             <Routes>
               <Route element={<PublicRoute />}>
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
               </Route>
 
               <Route element={<ProtectedRoute />}>

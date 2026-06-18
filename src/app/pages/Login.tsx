@@ -357,6 +357,19 @@ export function LoginPage() {
                   </div>
                 </div>
 
+                <div style={{ marginTop: "16px", textAlign: "center" }}>
+                  <p style={{ fontSize: "11px", color: "#A1A1AA", fontFamily: "JetBrains Mono, monospace" }}>
+                    DON'T HAVE AN ACCOUNT?{" "}
+                    <button
+                      type="button"
+                      onClick={() => navigate("/register")}
+                      style={{ background: "none", border: "none", color: "#FF0000", fontWeight: 700, cursor: "pointer", textDecoration: "underline", padding: 0 }}
+                    >
+                      REGISTER HERE
+                    </button>
+                  </p>
+                </div>
+
                 <div className="hacker-login__trust">
                   {trustBadges.map((badge) => {
                     const Icon = badge.icon;
