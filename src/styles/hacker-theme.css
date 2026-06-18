@@ -170,21 +170,20 @@
   opacity: 0.5;
 }
 
-/* ── Hacker panel (reusable) ── */
 .hacker-panel {
-  background: rgba(10, 10, 10, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 0, 0, 0.15);
+  background: rgba(10, 10, 10, 0.40);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid rgba(255, 0, 0, 0.16);
   border-radius: 16px;
   padding: 14px 16px;
   animation: hacker-border-flicker 4s ease-in-out infinite;
-  box-shadow: 0 0 15px rgba(255,0,0,0.15), inset 0 0 30px rgba(255,0,0,0.02);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), 0 0 15px rgba(255,0,0,0.08), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
 }
 
 .hacker-panel:hover {
-  box-shadow: 0 0 25px rgba(255,0,0,0.35), inset 0 0 30px rgba(255,0,0,0.05);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.65), 0 0 25px rgba(255,0,0,0.30), inset 0 1px 0 rgba(255, 255, 255, 0.12);
   border-color: #FF3D3D;
 }
 
@@ -859,14 +858,20 @@
 
 /* ── App layout hacker overrides ── */
 .hacker-app-sidebar {
-  background: linear-gradient(180deg, rgba(11,11,11,0.98) 0%, rgba(5,5,5,0.99) 100%) !important;
+  background: rgba(5, 5, 5, 0.45) !important;
+  backdrop-filter: blur(28px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(140%) !important;
   border-right: 1px solid rgba(255,0,0,0.18) !important;
   border-radius: 0 !important;
+  box-shadow: 10px 0 30px rgba(0,0,0,0.3) !important;
 }
 
 .hacker-app-header {
-  background: linear-gradient(180deg, rgba(11,11,11,0.95), rgba(5,5,5,0.9)) !important;
+  background: rgba(5, 5, 5, 0.35) !important;
+  backdrop-filter: blur(24px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(140%) !important;
   border-bottom: 1px solid rgba(255,0,0,0.18) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
 }
 
 .hacker-breadcrumb {
@@ -1185,4 +1190,76 @@
                 rgba(0, 0, 0, 0.88);
   }
 }
+
+/* ── Sidebar Nav Item Premium Animations & Glows ── */
+.hacker-nav-item {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.hacker-nav-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0px;
+  background: linear-gradient(180deg, #FF0000, #FF3D3D);
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 0 4px 4px 0;
+  z-index: 10;
+}
+
+.hacker-nav-item:hover::before {
+  width: 4px;
+}
+
+.hacker-nav-item:hover {
+  background: linear-gradient(90deg, rgba(255, 0, 0, 0.12) 0%, rgba(255, 0, 0, 0.02) 100%) !important;
+  color: #FFFFFF !important;
+  text-shadow: 0 0 8px rgba(255, 0, 0, 0.3);
+}
+
+.hacker-app-sidebar:not(.is-collapsed) .hacker-nav-item:hover {
+  padding-left: 20px !important;
+}
+
+.hacker-nav-item.is-active {
+  background: linear-gradient(90deg, rgba(255, 0, 0, 0.18) 0%, rgba(255, 0, 0, 0.04) 100%) !important;
+  color: #FFFFFF !important;
+  border-left: none !important;
+}
+
+.hacker-nav-item.is-active::before {
+  width: 4px;
+}
+
+.hacker-nav-item.is-active svg {
+  color: #FF0000 !important;
+  filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.85)) !important;
+}
+
+.hacker-nav-item:hover svg {
+  color: #FF3D3D !important;
+  filter: drop-shadow(0 0 6px rgba(255, 0, 0, 0.6)) !important;
+}
+
+/* Badge Pulse Animation */
+@keyframes hacker-badge-glow {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(255, 0, 0, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(255, 0, 0, 0.85), 0 0 20px rgba(255, 0, 0, 0.4);
+    transform: scale(1.06);
+  }
+}
+
+.hacker-badge-pulse {
+  animation: hacker-badge-glow 2s infinite ease-in-out;
+}
+
 

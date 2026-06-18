@@ -59,7 +59,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: { mobileOpen?: bo
 
   return (
     <aside
-      className={`cyber-card hacker-app-sidebar ${mobileOpen ? "is-mobile-open" : ""}`}
+      className={`cyber-card hacker-app-sidebar ${collapsed ? "is-collapsed" : ""} ${mobileOpen ? "is-mobile-open" : ""}`}
       style={{
         width: collapsed ? "72px" : "240px",
         transition: "width 0.3s cubic-bezier(0.4,0,0.2,1)",
@@ -119,6 +119,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: { mobileOpen?: bo
               to={PAGE_TO_ROUTE[item.id]}
               title={collapsed ? item.label : undefined}
               onClick={onMobileClose}
+              className={({ isActive }) => `hacker-nav-item ${isActive ? "is-active" : ""}`}
               style={({ isActive }) => ({
                 width: "100%",
                 display: "flex",
@@ -168,6 +169,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: { mobileOpen?: bo
                       </span>
                       {badge > 0 && (
                         <span
+                          className="hacker-badge-pulse"
                           style={{
                             background: item.id === "alerts" ? "#FF3333" : "linear-gradient(135deg, #FF0000, #39FF14)",
                             color: "#fff",

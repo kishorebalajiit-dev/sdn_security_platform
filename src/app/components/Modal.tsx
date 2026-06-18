@@ -75,8 +75,9 @@ export function Modal({ open, onClose, title, subtitle, width = 520, children, f
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
-        background: "radial-gradient(circle at top, rgba(255,0,0,0.14), rgba(5,8,22,0.88))",
-        backdropFilter: "blur(18px)",
+        background: "rgba(0, 0, 0, 0.65)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: "24px",
         animation: "fadeIn 0.18s ease",
@@ -91,10 +92,12 @@ export function Modal({ open, onClose, title, subtitle, width = 520, children, f
         style={{
           width: "100%",
           maxWidth: typeof width === "number" ? `${width}px` : width,
-          background: "linear-gradient(180deg, rgba(17,24,39,0.96), rgba(8,11,26,0.92))",
-          border: "1px solid rgba(255,0,0,0.26)",
+          background: "rgba(10, 10, 10, 0.45)",
+          backdropFilter: "blur(24px) saturate(140%)",
+          WebkitBackdropFilter: "blur(24px) saturate(140%)",
+          border: "1px solid rgba(255,0,0,0.22)",
           borderRadius: "24px",
-          boxShadow: "0 24px 72px rgba(0,0,0,0.62), 0 0 42px rgba(255,0,0,0.14)",
+          boxShadow: "0 24px 72px rgba(0,0,0,0.65), 0 0 42px rgba(255,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.08)",
           animation: "slideUp 0.22s cubic-bezier(0.4,0,0.2,1)",
           overflow: "hidden",
         }}
@@ -103,14 +106,16 @@ export function Modal({ open, onClose, title, subtitle, width = 520, children, f
         {/* Header */}
         <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid rgba(255,0,0,0.12)", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
           <div>
-            <h3 style={{ color: "#F8FAFC", fontSize: "15px", fontFamily: "Poppins, sans-serif", fontWeight: 700, lineHeight: 1.3 }} className="cyber-glow-text">{title}</h3>
-            {subtitle && <p style={{ fontSize: "12px", color: "#94A3B8", marginTop: "3px" }}>{subtitle}</p>}
+            <h3 style={{ color: "#FF0000", fontSize: "14px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, letterSpacing: "0.05em", lineHeight: 1.3 }}>
+              [ {title.toUpperCase()} ]
+            </h3>
+            {subtitle && <p style={{ fontSize: "11px", color: "#A1A1AA", marginTop: "3.5px", fontFamily: "'JetBrains Mono', monospace" }}>&gt;&gt; {subtitle}</p>}
           </div>
           <button
             onClick={onClose}
-            style={{ width: "30px", height: "30px", borderRadius: "10px", background: "rgba(17,24,39,0.78)", border: "1px solid rgba(255,0,0,0.14)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#94A3B8", flexShrink: 0, transition: "all 0.15s" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.12)"; (e.currentTarget as HTMLButtonElement).style.color = "#FCA5A5"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(17,24,39,0.78)"; (e.currentTarget as HTMLButtonElement).style.color = "#94A3B8"; }}
+            style={{ width: "30px", height: "30px", borderRadius: "10px", background: "rgba(255,0,0,0.08)", border: "1px solid rgba(255,0,0,0.18)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#FF8888", flexShrink: 0, transition: "all 0.15s" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.2)"; (e.currentTarget as HTMLButtonElement).style.color = "#FFFFFF"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,0,0,0.08)"; (e.currentTarget as HTMLButtonElement).style.color = "#FF8888"; }}
           >
             <X size={14} />
           </button>
@@ -214,13 +219,14 @@ export function Field({ label, required, children }: FieldProps) {
 export const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "10px 12px",
-  background: "rgba(8,11,26,0.76)",
-  border: "1px solid rgba(255,0,0,0.20)",
+  background: "rgba(0, 0, 0, 0.5)",
+  border: "1px solid rgba(255, 0, 0, 0.22)",
   borderRadius: "12px",
-  color: "#F8FAFC",
+  color: "#FFFFFF",
   fontSize: "12px",
+  fontFamily: "'JetBrains Mono', monospace",
   outline: "none",
-  transition: "border-color 0.15s",
+  transition: "all 0.15s ease",
   boxSizing: "border-box",
 };
 

@@ -47,31 +47,47 @@ function ToastItem({ item, onRemove }: { item: ToastItem; onRemove: (id: string)
         display: "flex",
         alignItems: "flex-start",
         gap: "12px",
-        padding: "14px 16px",
-        background: "#101010",
+        padding: "12px 14px",
+        background: "rgba(10, 10, 10, 0.45)",
+        backdropFilter: "blur(20px) saturate(130%)",
+        WebkitBackdropFilter: "blur(20px) saturate(130%)",
         border: `1px solid ${cfg.border}`,
         borderLeft: `3px solid ${cfg.color}`,
-        borderRadius: "10px",
-        boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 20px ${cfg.color}18`,
+        borderRadius: "8px",
+        boxShadow: `0 8px 32px rgba(0,0,0,0.6), 0 0 15px ${cfg.color}15, inset 0 1px 0 rgba(255, 255, 255, 0.08)`,
         minWidth: "320px",
         maxWidth: "400px",
         transform: visible ? "translateX(0)" : "translateX(120%)",
         opacity: visible ? 1 : 0,
         transition: "transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease",
+        fontFamily: "'JetBrains Mono', monospace",
+        position: "relative",
       }}
     >
-      <cfg.icon size={17} style={{ color: cfg.color, flexShrink: 0, marginTop: "1px" }} />
-      <div style={{ flex: 1 }}>
-        <p style={{ fontSize: "13px", fontWeight: 600, color: "#E2E8F0", lineHeight: 1.3 }}>{item.title}</p>
-        {item.message && <p style={{ fontSize: "11px", color: "#64748B", marginTop: "3px", lineHeight: 1.5 }}>{item.message}</p>}
+      <div style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        bottom: 0,
+        width: "3px",
+        background: cfg.color,
+        boxShadow: `0 0 10px ${cfg.color}`,
+      }} />
+      <cfg.icon size={15} style={{ color: cfg.color, flexShrink: 0, marginTop: "2px" }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontSize: "11px", fontWeight: 700, color: cfg.color, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: "2px" }}>
+          [ {item.type === "info" ? "SYS_INFO" : item.type.toUpperCase()} ]
+        </p>
+        <p style={{ fontSize: "12px", fontWeight: 600, color: "#FFFFFF", lineHeight: 1.3 }}>{item.title}</p>
+        {item.message && <p style={{ fontSize: "10px", color: "#A1A1AA", marginTop: "4px", lineHeight: 1.4 }}>&gt;&gt; {item.message}</p>}
       </div>
       <button
         onClick={() => { setVisible(false); setTimeout(() => onRemove(item.id), 300); }}
-        style={{ background: "none", border: "none", cursor: "pointer", color: "#475569", padding: "0", display: "flex", flexShrink: 0 }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#94A3B8"; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#475569"; }}
+        style={{ background: "none", border: "none", cursor: "pointer", color: "#FF8888", padding: "0", display: "flex", flexShrink: 0, opacity: 0.6, transition: "opacity 0.15s" }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.6"; }}
       >
-        <X size={14} />
+        <X size={13} />
       </button>
     </div>
   );
