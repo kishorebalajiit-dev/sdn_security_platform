@@ -401,7 +401,7 @@ export function BlockchainAudit() {
 
       <div className="app-page__grid-sidebar-right-320">
         {/* Transaction Table */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px", minWidth: 0 }}>
           {/* Filters */}
           <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
             <div style={{ position: "relative" }}>

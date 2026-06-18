@@ -122,7 +122,7 @@ export function ThreatIntelligence() {
       {/* Main content */}
       <div className="app-page__grid-sidebar-right-280">
         {/* Threat Feed */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px", minWidth: 0 }}>
           <div className="app-page__filters">
             <div style={{ position: "relative" }}>
               <Search size={13} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#475569" }} />

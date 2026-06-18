@@ -178,7 +178,7 @@ export function AIThreatDetection() {
       </div>
 
       <div className="app-page__grid-sidebar-right-280" style={{ flex: 1, minHeight: 0 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px", minHeight: 0 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px", minHeight: 0, minWidth: 0 }}>
           <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
             <div style={{ position: "relative", flex: 1, maxWidth: "320px" }}>
               <Search size={13} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#475569" }} />
