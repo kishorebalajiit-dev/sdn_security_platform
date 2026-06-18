@@ -56,7 +56,6 @@ const trustBadges = [
 ];
 
 const PASSWORD_ACCOUNTS = [
-  { name: "Admin User", email: "admin@securenet.ai", password: "Admin@123", role: "Admin" },
   { name: "Kamran Singh (Admin)", email: "k.singh@secnet.ai", password: "admin123", role: "Admin" },
   { name: "Ahmad Rahman (Analyst)", email: "a.rahman@secnet.ai", password: "analyst123", role: "Analyst" },
   { name: "Sasha Ivanova (Engineer)", email: "s.ivanova@secnet.ai", password: "engineer123", role: "Engineer" },
@@ -65,7 +64,6 @@ const PASSWORD_ACCOUNTS = [
 
 const BLOCKCHAIN_ACCOUNTS = [
   { name: "Kamran Singh (Admin)", address: "0x807b242b3494a8b68cA0dE01C323fFB0511eDF73", privateKey: "0x6168447c0400218f5d5f7a8a128141fc7364d8ea2314253b66ea227cd7715e6d", role: "Admin" },
-  { name: "Web3 Admin User", address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e", privateKey: "Web3@123", role: "Admin" },
   { name: "Ahmad Rahman (Analyst)", address: "0xF04F38311C4115D4BF9b06D294A39047aCe7760c", privateKey: "0x9df02959bfa8a72556e2e188135ebb28eee672bfcaacdff74e3cf3a3ae4e3c36", role: "Analyst" },
   { name: "Sasha Ivanova (Engineer)", address: "0x61E22c36CDca807Dfa1d9E5561949049AfA329CF", privateKey: "0x2599d4d6db5b8ad07ef1933d6322ed18ce6362a0e9254b4de04ce6090b1ced65", role: "Engineer" },
   { name: "Priya Nair (Auditor)", address: "0x3dF2dCA8d92f5A16b754BE60097E05440f30f794", privateKey: "0x0b3128c68910ee7ac2822566c9e24c2ce982f786a37359ca297df81080b7f52c", role: "Auditor" }
@@ -106,8 +104,8 @@ export function LoginPage() {
   const { login, loginWithPassword } = useAuth();
   const navigate = useNavigate();
   const [loginMode, setLoginMode] = useState<"password" | "wallet">("password");
-  const [email, setEmail] = useState("admin@securenet.ai");
-  const [password, setPassword] = useState("Admin@123");
+  const [email, setEmail] = useState("k.singh@secnet.ai");
+  const [password, setPassword] = useState("admin123");
   const [address, setAddress] = useState("0x807b242b3494a8b68cA0dE01C323fFB0511eDF73");
   const [privateKey, setPrivateKey] = useState("0x6168447c0400218f5d5f7a8a128141fc7364d8ea2314253b66ea227cd7715e6d");
   const [showPassword, setShowPassword] = useState(false);
@@ -402,13 +400,13 @@ export function LoginPage() {
                         <>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
                             <span style={{ fontSize: "11px", color: "rgba(110, 231, 160, 0.85)", fontFamily: "Share Tech Mono, monospace" }}>
-                              Email: <strong style={{ color: "#E2E8F0" }}>admin@securenet.ai</strong>
+                              Email: <strong style={{ color: "#E2E8F0" }}>k.singh@secnet.ai</strong>
                             </span>
                             <button
                               type="button"
                               onClick={() => {
-                                navigator.clipboard.writeText("admin@securenet.ai");
-                                toast.info("Copied to Clipboard", "admin@securenet.ai");
+                                navigator.clipboard.writeText("k.singh@secnet.ai");
+                                toast.info("Copied to Clipboard", "k.singh@secnet.ai");
                               }}
                               style={{ fontSize: "9px", background: "rgba(0, 255, 65, 0.1)", border: "1px solid rgba(0, 255, 65, 0.4)", color: "#00FF41", padding: "2px 6px", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace" }}
                             >
@@ -417,13 +415,13 @@ export function LoginPage() {
                           </div>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
                             <span style={{ fontSize: "11px", color: "rgba(110, 231, 160, 0.85)", fontFamily: "Share Tech Mono, monospace" }}>
-                              Password: <strong style={{ color: "#E2E8F0" }}>Admin@123</strong>
+                              Password: <strong style={{ color: "#E2E8F0" }}>admin123</strong>
                             </span>
                             <button
                               type="button"
                               onClick={() => {
-                                navigator.clipboard.writeText("Admin@123");
-                                toast.info("Copied to Clipboard", "Admin@123");
+                                navigator.clipboard.writeText("admin123");
+                                toast.info("Copied to Clipboard", "admin123");
                               }}
                               style={{ fontSize: "9px", background: "rgba(0, 255, 65, 0.1)", border: "1px solid rgba(0, 255, 65, 0.4)", color: "#00FF41", padding: "2px 6px", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace" }}
                             >
@@ -433,8 +431,8 @@ export function LoginPage() {
                           <button
                             type="button"
                             onClick={() => {
-                              setEmail("admin@securenet.ai");
-                              setPassword("Admin@123");
+                              setEmail("k.singh@secnet.ai");
+                              setPassword("admin123");
                             }}
                             style={{ width: "100%", padding: "6px", fontSize: "10px", fontWeight: 700, background: "#00FF41", color: "#000", border: "none", borderRadius: "4px", cursor: "pointer", fontFamily: "Share Tech Mono, monospace", marginTop: "4px" }}
                           >
