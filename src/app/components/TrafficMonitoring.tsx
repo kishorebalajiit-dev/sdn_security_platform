@@ -63,14 +63,62 @@ export function TrafficMonitoring() {
   const [activeRange, setActiveRange] = useState<TrafficChartRange>("live");
   const [liveSeed, setLiveSeed] = useState(Date.now() % 10000);
   const [loading, setLoading] = useState(false);
+  const [liveCounters, setLiveCounters] = useState({
+    inbound: "148.2 Mbps",
+    outbound: "62.4 Mbps",
+    packets: "15,280",
+    anomalies: "0"
+  });
 
   useEffect(() => {
     if (activeRange !== "live") return;
-    const id = setInterval(() => setLiveSeed(Date.now() % 10000), 3000);
+    const fetchLiveStats = () => {
+      import("../../api/client").then(({ client }) => {
+        client.get("/dashboard/traffic").then(res => {
+          if (res.data && res.data.data && res.data.data.items) {
+            const items = res.data.data.items;
+            const current = items[items.length - 1];
+            if (current) {
+              setLiveCounters({
+                inbound: `${(current.inbound / (1024 * 1024)).toFixed(2)} MB/s`,
+                outbound: `${(current.outbound / (1024 * 1024)).toFixed(2)} MB/s`,
+                packets: current.packets ? current.packets.toLocaleString() : "14,500",
+                anomalies: String(current.anomalies || 0)
+              });
+            }
+          }
+        }).catch(err => console.error(err));
+      });
+    };
+    
+    fetchLiveStats();
+    const id = setInterval(() => {
+      setLiveSeed(Date.now() % 10000);
+      fetchLiveStats();
+    }, 3000);
     return () => clearInterval(id);
   }, [activeRange]);
 
-  const chartData = useMemo(() => getTrafficData(activeRange, liveSeed), [activeRange, liveSeed]);
+  const [backendTraffic, setBackendTraffic] = useState<any[]>([]);
+  useEffect(() => {
+    import("../../api/client").then(({ client }) => {
+      client.get("/dashboard/traffic").then(res => {
+        if (res.data && res.data.data && res.data.data.items) {
+          setBackendTraffic(res.data.data.items.map((x: any) => ({
+            t: x.bucket,
+            in: Number((x.inbound / 100000).toFixed(1)),
+            out: Number((x.outbound / 100000).toFixed(1))
+          })));
+        }
+      });
+    });
+  }, [liveSeed]);
+
+  const chartData = useMemo(() => {
+    if (backendTraffic.length > 0 && activeRange === "live") return backendTraffic;
+    return getTrafficData(activeRange, liveSeed);
+  }, [activeRange, liveSeed, backendTraffic]);
+  
   const kpis = KPI_BY_RANGE[activeRange];
 
   const handleRangeChange = (r: TrafficChartRange) => {

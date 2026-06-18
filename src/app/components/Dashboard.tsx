@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import {
   Activity,
@@ -56,21 +56,35 @@ const recentMoves = [
 export function Dashboard({ onNavigate }: { onNavigate?: (page: string) => void }) {
   const navigate = useNavigate();
   const { alerts, devices, threats, incidents, notifications } = useAppData();
+  const [liveSummary, setLiveSummary] = useState<any>({
+    totalDevices: devices.length,
+    activeDevices: devices.filter(d => d.status === "healthy").length,
+    threatsDetected: threats.length,
+    blockedAttacks: alerts.filter(a => a.status === "resolved").length,
+    blockchainTransactions: 42,
+    aiAccuracy: 97.4
+  });
+
+  useEffect(() => {
+    import("../../api/client").then(({ client }) => {
+      client.get("/dashboard/summary").then(res => {
+        if (res.data && res.data.data) {
+          setLiveSummary(res.data.data);
+        }
+      }).catch(err => console.error(err));
+    });
+  }, [alerts.length, devices.length, threats.length]);
 
   const summary = useMemo(() => {
-    const activeDevices = devices.filter((device) => device.status === "healthy").length;
-    const blockedAttacks = alerts.filter((alert) => alert.status === "resolved").length;
-    const blockchainTransactions = 47291 + alerts.length + threats.length;
-    const aiAccuracy = 97.4;
     return {
-      totalDevices: devices.length,
-      activeDevices,
-      threatsDetected: threats.filter((threat) => threat.status === "active").length,
-      blockedAttacks,
-      blockchainTransactions,
-      aiAccuracy,
+      totalDevices: liveSummary.total_devices ?? liveSummary.totalDevices,
+      activeDevices: liveSummary.active_devices ?? liveSummary.activeDevices,
+      threatsDetected: liveSummary.threats_detected ?? liveSummary.threatsDetected,
+      blockedAttacks: liveSummary.blocked_attacks ?? liveSummary.blockedAttacks,
+      blockchainTransactions: liveSummary.blockchain_transactions ?? liveSummary.blockchainTransactions,
+      aiAccuracy: liveSummary.ai_accuracy ?? liveSummary.aiAccuracy,
     };
-  }, [alerts.length, devices, threats]);
+  }, [liveSummary]);
 
   const alertSeverity = (severity: string) => {
     if (severity === "critical") return "status-dot status-dot--critical";

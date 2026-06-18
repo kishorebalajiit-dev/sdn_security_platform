@@ -51,4 +51,9 @@ export const api = {
   blockchain: {
     list: () => client.get("/blockchain/transactions"),
   },
+  dataUpload: {
+    upload: (formData: FormData) => client.post("/data/upload", formData, { headers: { "Content-Type": "multipart/form-data" } }),
+    list: () => client.get("/data/files"),
+    delete: (id: number | string) => client.delete(`/data/files/${id}`),
+  },
 };

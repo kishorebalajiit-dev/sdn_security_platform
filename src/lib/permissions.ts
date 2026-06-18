@@ -29,6 +29,7 @@ export const PAGE_PERMISSIONS: Record<PageId, PermissionModule> = {
   "incident-response": "Incident Response",
   alerts: "Alerts",
   reports: "Reports",
+  "data-upload": "Reports",
   "user-management": "User Mgmt",
   settings: "Settings",
 };

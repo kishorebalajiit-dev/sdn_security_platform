@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router";
 import {
   LayoutDashboard, Network, Brain, Monitor, Link2, Activity,
   Shield, BarChart2, AlertTriangle, Bell, FileText, Users,
-  Settings, LogOut, ChevronLeft, ChevronRight, Zap
+  Settings, LogOut, ChevronLeft, ChevronRight, Zap, Upload
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useAppData } from "../../contexts/AppDataContext";
@@ -30,6 +30,7 @@ const navItems: NavItem[] = [
   { id: "incident-response", label: "Incident Response", icon: AlertTriangle, badgeKey: "incidents" },
   { id: "alerts", label: "Alerts Center", icon: Bell, badgeKey: "alerts" },
   { id: "reports", label: "Reports", icon: FileText },
+  { id: "data-upload", label: "Data Upload", icon: Upload } ,
   { id: "user-management", label: "User Management", icon: Users },
   { id: "settings", label: "Settings", icon: Settings },
 ];

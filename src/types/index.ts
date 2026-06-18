@@ -10,6 +10,7 @@ export type PageId =
   | "incident-response"
   | "alerts"
   | "reports"
+  | "data-upload"
   | "user-management"
   | "settings";
 

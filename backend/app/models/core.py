@@ -73,7 +73,7 @@ class User(db.Model, TimestampMixin):
 
 
 class Device(db.Model, TimestampMixin):
-    __tablename__ = "devices"
+    __tablename__ = "device_records"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     device_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
@@ -180,7 +180,7 @@ class Incident(db.Model, TimestampMixin):
 
 
 class Threat(db.Model, TimestampMixin):
-    __tablename__ = "threats"
+    __tablename__ = "threat_results"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     threat_id: Mapped[str] = mapped_column(String(80), unique=True, nullable=False, index=True)
@@ -190,6 +190,7 @@ class Threat(db.Model, TimestampMixin):
     status: Mapped[str] = mapped_column(String(30), default="open", nullable=False)
     device_name: Mapped[str | None] = mapped_column(String(255))
     recommendation: Mapped[str | None] = mapped_column(Text)
+    file_id: Mapped[int | None] = mapped_column(ForeignKey("uploaded_files.id"), nullable=True)
 
     def to_dict(self) -> dict:
         return {
@@ -250,7 +251,7 @@ class BlockchainTransaction(db.Model, TimestampMixin):
 
 
 class NetworkTraffic(db.Model, TimestampMixin):
-    __tablename__ = "network_traffic"
+    __tablename__ = "traffic_logs"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     bucket: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
@@ -258,6 +259,17 @@ class NetworkTraffic(db.Model, TimestampMixin):
     outbound: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     anomalies: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     protocol_breakdown: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
+    source_ip: Mapped[str | None] = mapped_column(String(45))
+    dest_ip: Mapped[str | None] = mapped_column(String(45))
+    packets: Mapped[int | None] = mapped_column(Integer)
+
+    network_name: Mapped[str | None] = mapped_column(String(255), default="Local Adapter Interface")
+    connection_type: Mapped[str | None] = mapped_column(String(80), default="WiFi / Ethernet")
+    upload_speed: Mapped[float | None] = mapped_column(db.Float, default=0.0)
+    download_speed: Mapped[float | None] = mapped_column(db.Float, default=0.0)
+    packets_sent: Mapped[int | None] = mapped_column(Integer, default=0)
+    packets_received: Mapped[int | None] = mapped_column(Integer, default=0)
+    active_connections: Mapped[int | None] = mapped_column(Integer, default=0)
 
     def to_dict(self) -> dict:
         return {
@@ -267,6 +279,64 @@ class NetworkTraffic(db.Model, TimestampMixin):
             "outbound": self.outbound,
             "anomalies": self.anomalies,
             "protocol_breakdown": self.protocol_breakdown or {},
+            "source_ip": self.source_ip,
+            "dest_ip": self.dest_ip,
+            "packets": self.packets,
+            "network_name": self.network_name or "Primary Network Adapter",
+            "connection_type": self.connection_type or "Ethernet / WiFi Connection",
+            "upload_speed": self.upload_speed or 0.0,
+            "download_speed": self.download_speed or 0.0,
+            "packets_sent": self.packets_sent or 0,
+            "packets_received": self.packets_received or 0,
+            "active_connections": self.active_connections or 0,
+            "timestamp": self.created_at.isoformat()
+        }
+
+
+class UploadedFile(db.Model, TimestampMixin):
+    __tablename__ = "uploaded_files"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    file_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    file_size: Mapped[int] = mapped_column(Integer, nullable=False)
+    storage_url: Mapped[str] = mapped_column(String(512), nullable=False)
+    uploaded_by: Mapped[str] = mapped_column(String(255), nullable=False)
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    analysis_status: Mapped[str] = mapped_column(String(50), default="pending", nullable=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "filename": self.filename,
+            "file_type": self.file_type,
+            "file_size": self.file_size,
+            "storage_url": self.storage_url,
+            "uploaded_by": self.uploaded_by,
+            "uploaded_at": self.uploaded_at.isoformat(),
+            "analysis_status": self.analysis_status,
+        }
+
+
+class Report(db.Model, TimestampMixin):
+    __tablename__ = "reports"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    report_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    report_type: Mapped[str] = mapped_column(String(80), nullable=False)
+    storage_url: Mapped[str] = mapped_column(String(512), nullable=False)
+    generated_by: Mapped[str] = mapped_column(String(255), nullable=False)
+    summary: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "report_name": self.report_name,
+            "report_type": self.report_type,
+            "storage_url": self.storage_url,
+            "generated_by": self.generated_by,
+            "summary": self.summary,
+            "created_at": self.created_at.isoformat(),
         }
 
 

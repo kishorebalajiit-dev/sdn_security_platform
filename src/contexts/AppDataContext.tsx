@@ -123,6 +123,7 @@ interface AppDataContextValue extends AppDataState {
   updateUser: (user: PlatformUser) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
   updateThreatStatus: (id: string, status: Threat["status"]) => Promise<void>;
+  refreshAlerts: () => Promise<void>;
   addIncident: (incident: Incident) => Promise<void>;
   updateIncident: (incident: Incident) => Promise<void>;
   markNotificationsRead: () => void;

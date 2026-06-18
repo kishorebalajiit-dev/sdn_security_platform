@@ -17,6 +17,7 @@ import { SecurityAnalytics } from "./components/SecurityAnalytics";
 import { IncidentResponse } from "./components/IncidentResponse";
 import { AlertsCenter } from "./components/AlertsCenter";
 import { Reports } from "./components/Reports";
+import { DataUpload } from "./pages/DataUpload";
 import { UserManagement } from "./components/UserManagement";
 import { Settings } from "./components/Settings";
 
@@ -46,6 +47,7 @@ export default function App() {
                   <Route path="/incidents" element={<IncidentResponse />} />
                   <Route path="/alerts" element={<AlertsCenter />} />
                   <Route path="/reports" element={<Reports />} />
+                  <Route path="/data-upload" element={<DataUpload />} />
                   <Route path="/users" element={<UserManagement />} />
                   <Route path="/settings" element={<Settings />} />
                 </Route>

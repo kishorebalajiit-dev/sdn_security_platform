@@ -15,6 +15,7 @@ export const ROUTE_TO_PAGE: Record<string, PageId> = {
   "/incidents": "incident-response",
   "/alerts": "alerts",
   "/reports": "reports",
+  "/data-upload": "data-upload",
   "/users": "user-management",
   "/settings": "settings",
 };
@@ -31,6 +32,7 @@ export const PAGE_TO_ROUTE: Record<PageId, string> = {
   "incident-response": "/incidents",
   alerts: "/alerts",
   reports: "/reports",
+  "data-upload": "/data-upload",
   "user-management": "/users",
   settings: "/settings",
 };
