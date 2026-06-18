@@ -63,50 +63,66 @@ def login_password():
 @bp.post("/register/password")
 @limiter.limit("10/minute")
 def register_password():
-    payload = request.get_json(silent=True) or {}
-    email = (payload.get("email") or "").strip().lower()
-    username = (payload.get("username") or "").strip().lower()
-    password = payload.get("password") or ""
-    full_name = (payload.get("full_name") or "").strip()
-    role_name = (payload.get("role") or "Security Analyst").strip()
-    department = (payload.get("department") or "SOC Team").strip()
+    try:
+        payload = request.get_json(silent=True) or {}
+        email = (payload.get("email") or "").strip().lower()
+        username = (payload.get("username") or "").strip().lower()
+        password = payload.get("password") or ""
+        full_name = (payload.get("full_name") or "").strip()
+        role_name = (payload.get("role") or "Security Analyst").strip()
+        department = (payload.get("department") or "SOC Team").strip()
 
-    if not email or not password or not full_name or not username:
-        return fail("email, username, password, and full_name are required", 422)
+        print(f"[Auth] Registering user: {email}, username: {username}")
 
-    if User.query.filter_by(email=email).first():
-        return fail("Email already exists", 409)
+        if not email or not password or not full_name or not username:
+            return fail("email, username, password, and full_name are required", 422)
 
-    if User.query.filter_by(username=username).first():
-        return fail("Username already exists", 409)
+        if User.query.filter_by(email=email).first():
+            return fail("Email already exists", 409)
 
-    role = Role.query.filter_by(name=role_name).first()
-    if not role:
-        role = Role(name=role_name, description=f"Custom role: {role_name}", permissions={})
-        db.session.add(role)
-        db.session.flush()
+        if User.query.filter_by(username=username).first():
+            return fail("Username already exists", 409)
 
-    # Create user with password hash. is_active=False until verified
-    user = User(
-        email=email,
-        username=username,
-        full_name=full_name,
-        password_hash=generate_password_hash(password),
-        role=role,
-        is_active=False  # Verification required
-    )
-    db.session.add(user)
-    
-    # Log audit event
-    db.session.add(AuditLog(entity_type="user", entity_id=email, action="register", actor=email, details={"role": role_name, "department": department, "method": "password"}))
-    
-    # Register on-chain (using a generated eth address)
-    eth_address = f"0x{uuid.uuid4().hex[:40]}"
-    user.eth_address = eth_address
-    tx_info = register_user_on_chain(eth_address, email, full_name, role_name)
-    
-    db.session.commit()
-    return ok({"user": user.to_dict(), "blockchain_tx": tx_info}, "Registration successful. Verification email sent.", 201)
+        role = Role.query.filter_by(name=role_name).first()
+        if not role:
+            print(f"[Auth] Creating new role: {role_name}")
+            role = Role(name=role_name, description=f"Custom role: {role_name}", permissions={})
+            db.session.add(role)
+            db.session.flush()
+
+        # Create user with password hash. is_active=False until verified
+        user = User(
+            email=email,
+            username=username,
+            full_name=full_name,
+            password_hash=generate_password_hash(password),
+            role=role,
+            is_active=False  # Verification required
+        )
+        db.session.add(user)
+        
+        # Log audit event
+        db.session.add(AuditLog(entity_type="user", entity_id=email, action="register", actor=email, details={"role": role_name, "department": department, "method": "password"}))
+        
+        # Register on-chain (using a generated eth address)
+        eth_address = f"0x{uuid.uuid4().hex[:40]}"
+        user.eth_address = eth_address
+        
+        print(f"[Auth] Registering user on chain: {eth_address}")
+        try:
+            tx_info = register_user_on_chain(eth_address, email, full_name, role_name)
+        except Exception as chain_err:
+            print(f"[Auth] Blockchain registration failed: {chain_err}")
+            tx_info = {"status": "failed", "error": str(chain_err)}
+        
+        db.session.commit()
+        print(f"[Auth] User registered successfully: {email}")
+        return ok({"user": user.to_dict(), "blockchain_tx": tx_info}, "Registration successful. Verification email sent.", 201)
+    except Exception as e:
+        import traceback
+        print(f"[Auth Error] {str(e)}")
+        print(traceback.format_exc())
+        return fail(f"Registration failed: {str(e)}", 500)
 
 
 @bp.post("/verify-email")
