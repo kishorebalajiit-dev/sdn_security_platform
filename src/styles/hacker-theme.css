@@ -968,6 +968,28 @@
   box-shadow: 0 0 24px rgba(255,51,51,0.5);
 }
 
+.app-btn--warning {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: #000;
+  box-shadow: 0 0 16px rgba(245,158,11,0.35);
+}
+
+.app-btn--warning:hover:not(:disabled) {
+  filter: brightness(1.12);
+  box-shadow: 0 0 24px rgba(245,158,11,0.5);
+}
+
+.app-btn--success {
+  background: linear-gradient(135deg, #22C55E, #15803D);
+  color: #000;
+  box-shadow: 0 0 16px rgba(34,197,94,0.35);
+}
+
+.app-btn--success:hover:not(:disabled) {
+  filter: brightness(1.12);
+  box-shadow: 0 0 24px rgba(34,197,94,0.55);
+}
+
 .app-btn--filter-active {
   background: #FF0000 !important;
   color: #000 !important;
