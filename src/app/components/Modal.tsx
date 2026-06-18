@@ -75,9 +75,9 @@ export function Modal({ open, onClose, title, subtitle, width = 520, children, f
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
-        background: "rgba(0, 0, 0, 0.65)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
+        background: "rgba(0, 0, 0, 0.30)",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: "24px",
         animation: "fadeIn 0.18s ease",
@@ -92,12 +92,12 @@ export function Modal({ open, onClose, title, subtitle, width = 520, children, f
         style={{
           width: "100%",
           maxWidth: typeof width === "number" ? `${width}px` : width,
-          background: "rgba(10, 10, 10, 0.45)",
-          backdropFilter: "blur(24px) saturate(140%)",
-          WebkitBackdropFilter: "blur(24px) saturate(140%)",
+          background: "rgba(10, 10, 10, 0.25)",
+          backdropFilter: "blur(28px) saturate(145%)",
+          WebkitBackdropFilter: "blur(28px) saturate(145%)",
           border: "1px solid rgba(255,0,0,0.22)",
           borderRadius: "24px",
-          boxShadow: "0 24px 72px rgba(0,0,0,0.65), 0 0 42px rgba(255,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.08)",
+          boxShadow: "0 24px 72px rgba(0,0,0,0.50), 0 0 42px rgba(255,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.08)",
           animation: "slideUp 0.22s cubic-bezier(0.4,0,0.2,1)",
           overflow: "hidden",
         }}
