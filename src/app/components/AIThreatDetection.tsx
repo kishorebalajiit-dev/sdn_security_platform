@@ -204,7 +204,7 @@ export function AIThreatDetection() {
             {filtered.length === 0 ? (
               <p style={{ padding: "40px", textAlign: "center", color: "#64748B", fontSize: "13px" }}>No threats match your filters</p>
             ) : (
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "1000px" }}>
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--border)" }}>
                     {[

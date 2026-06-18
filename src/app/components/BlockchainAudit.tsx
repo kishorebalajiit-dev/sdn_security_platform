@@ -424,8 +424,8 @@ export function BlockchainAudit() {
             ))}
           </div>
 
-          <div style={{ ...glassCard, padding: "0", overflow: "hidden" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <div style={{ ...glassCard, padding: "0", overflow: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "900px" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--border)", background: "rgba(13,27,42,0.9)" }}>
                   {["TX ID", "Transaction Hash", "Type", "Device", "Block", "Status", "Timestamp"].map((h) => (

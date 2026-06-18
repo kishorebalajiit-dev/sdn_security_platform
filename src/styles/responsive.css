@@ -440,3 +440,49 @@
   }
 }
 
+/* ── Small Desktop & Laptop Responsive Optimizations ── */
+@media (max-width: 1300px) {
+  .dashboard-grid-main,
+  .dashboard-grid-secondary {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-grid-6 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .bottom-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .quick-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .app-page__grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .app-page__grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .app-page__grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .app-page__grid-sidebar-right-280,
+  .app-page__grid-sidebar-right-300,
+  .app-page__grid-sidebar-right-320,
+  .app-page__grid-sidebar-right-420,
+  .app-page__grid-sidebar-left-200,
+  .app-page__grid-2fr-1fr {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .app-page__grid-three-col-280 {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+
