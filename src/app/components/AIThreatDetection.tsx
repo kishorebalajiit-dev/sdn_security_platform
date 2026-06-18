@@ -204,7 +204,7 @@ export function AIThreatDetection() {
             {filtered.length === 0 ? (
               <p style={{ padding: "40px", textAlign: "center", color: "#64748B", fontSize: "13px" }}>No threats match your filters</p>
             ) : (
-              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "1000px" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "840px" }}>
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--border)" }}>
                     {[
@@ -225,7 +225,7 @@ export function AIThreatDetection() {
                             else { setSortField(col.key as "risk" | "confidence"); setSortDir("desc"); }
                           }
                         }}
-                        style={{ padding: "12px 14px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", cursor: col.sortable ? "pointer" : "default", userSelect: "none", background: "rgba(13,27,42,0.9)", position: "sticky", top: 0 }}
+                        style={{ padding: "10px 8px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", cursor: col.sortable ? "pointer" : "default", userSelect: "none", background: "rgba(13,27,42,0.9)", position: "sticky", top: 0 }}
                       >
                         <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                           {col.label}
@@ -242,33 +242,33 @@ export function AIThreatDetection() {
                       onClick={() => setSelected(selected?.id === t.id ? null : t)}
                       style={{ borderBottom: "1px solid rgba(255,0,0,0.06)", cursor: "pointer", background: selected?.id === t.id ? "rgba(255,0,0,0.08)" : i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)", transition: "background 0.15s" }}
                     >
-                      <td style={{ padding: "11px 14px", fontSize: "11px", color: "#475569", fontFamily: "JetBrains Mono, monospace" }}>{t.id}</td>
-                      <td style={{ padding: "11px 14px" }}>
+                      <td style={{ padding: "8px 8px", fontSize: "11px", color: "#475569", fontFamily: "JetBrains Mono, monospace" }}>{t.id}</td>
+                      <td style={{ padding: "8px 8px" }}>
                         <p style={{ fontSize: "12px", color: "#CBD5E1" }}>{t.device}</p>
                         <p style={{ fontSize: "10px", color: "#475569", fontFamily: "JetBrains Mono, monospace" }}>{t.ip}</p>
                       </td>
-                      <td style={{ padding: "11px 14px", fontSize: "12px", color: "#94A3B8" }}>{t.type}</td>
-                      <td style={{ padding: "11px 14px" }}>
-                        <div style={{ width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: `${getRiskColor(t.risk)}15`, border: `2px solid ${getRiskColor(t.risk)}50` }}>
+                      <td style={{ padding: "8px 8px", fontSize: "12px", color: "#94A3B8" }}>{t.type}</td>
+                      <td style={{ padding: "8px 8px" }}>
+                        <div style={{ width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: `${getRiskColor(t.risk)}15`, border: `2px solid ${getRiskColor(t.risk)}50` }}>
                           <span style={{ fontSize: "10px", fontWeight: 800, color: getRiskColor(t.risk), fontFamily: "JetBrains Mono, monospace" }}>{t.risk}</span>
                         </div>
                       </td>
-                      <td style={{ padding: "11px 14px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <div style={{ width: "60px", height: "4px", background: "rgba(255,255,255,0.06)", borderRadius: "2px" }}>
+                      <td style={{ padding: "8px 8px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <div style={{ width: "35px", height: "4px", background: "rgba(255,255,255,0.06)", borderRadius: "2px" }}>
                             <div style={{ width: `${t.confidence}%`, height: "100%", background: "#06B6D4", borderRadius: "2px" }} />
                           </div>
                           <span style={{ fontSize: "11px", color: "#06B6D4", fontFamily: "JetBrains Mono, monospace" }}>{t.confidence}%</span>
                         </div>
                       </td>
-                      <td style={{ padding: "11px 14px", fontSize: "11px", color: "#94A3B8" }}>{t.classification}</td>
-                      <td style={{ padding: "11px 14px" }}>{getStatusBadge(t.status)}</td>
-                      <td style={{ padding: "11px 14px" }}>
-                        <div style={{ display: "flex", gap: "6px" }} onClick={(e) => e.stopPropagation()}>
-                          <button onClick={(e) => openDialog("block", t, e)} className="app-btn app-btn--danger" style={{ padding: "4px 8px", fontSize: "10px" }}>Block</button>
-                          <button onClick={(e) => openDialog("quarantine", t, e)} className="app-btn app-btn--warning" style={{ padding: "4px 8px", fontSize: "10px" }}>Quarantine</button>
-                          <button onClick={(e) => handleInvestigate(t, e)} className="app-btn app-btn--primary" style={{ padding: "4px 8px", fontSize: "10px" }}>Investigate</button>
-                          <button onClick={(e) => openDialog("safe", t, e)} className="app-btn app-btn--success" style={{ padding: "4px 8px", fontSize: "10px" }}>Mark Safe</button>
+                      <td style={{ padding: "8px 8px", fontSize: "11px", color: "#94A3B8" }}>{t.classification}</td>
+                      <td style={{ padding: "8px 8px" }}>{getStatusBadge(t.status)}</td>
+                      <td style={{ padding: "8px 8px" }}>
+                        <div style={{ display: "flex", gap: "4px" }} onClick={(e) => e.stopPropagation()}>
+                          <button onClick={(e) => openDialog("block", t, e)} className="app-btn app-btn--danger" style={{ padding: "3px 6px", fontSize: "10px", minHeight: "0px", height: "auto" }}>Block</button>
+                          <button onClick={(e) => openDialog("quarantine", t, e)} className="app-btn app-btn--warning" style={{ padding: "3px 6px", fontSize: "10px", minHeight: "0px", height: "auto" }}>Quarantine</button>
+                          <button onClick={(e) => handleInvestigate(t, e)} className="app-btn app-btn--primary" style={{ padding: "3px 6px", fontSize: "10px", minHeight: "0px", height: "auto" }}>Investigate</button>
+                          <button onClick={(e) => openDialog("safe", t, e)} className="app-btn app-btn--success" style={{ padding: "3px 6px", fontSize: "10px", minHeight: "0px", height: "auto" }}>Safe</button>
                         </div>
                       </td>
                     </tr>
