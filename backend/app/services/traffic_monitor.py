@@ -162,11 +162,11 @@ def traffic_monitoring_loop(app):
         last_time = time.time()
         
         while True:
-            time.sleep(3.0)
+            time.sleep(1.0)
             try:
                 current_time = time.time()
                 elapsed = current_time - last_time
-                if elapsed <= 0: elapsed = 3.0
+                if elapsed <= 0: elapsed = 1.0
                 
                 current_io = psutil.net_io_counters(pernic=True).get(iface, psutil.net_io_counters())
                 

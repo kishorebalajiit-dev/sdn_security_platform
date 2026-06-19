@@ -6,7 +6,7 @@ from flask import Blueprint, Response, make_response, request
 from flask_jwt_extended import jwt_required
 from sqlalchemy import asc, desc
 
-from app.extensions import db, limiter
+from app.extensions import db, limiter, get_supabase
 from app.models.core import Alert, AuditLog, BlockchainTransaction, Device, Incident, IocFeed, NetworkTraffic, Permission, Setting, Threat
 from app.services.ai_engine import analyze_signal
 from app.services.blockchain import build_tx_hash, verify_tx_integrity
