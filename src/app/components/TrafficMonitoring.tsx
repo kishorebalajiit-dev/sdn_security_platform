@@ -1,10 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Activity, Wifi, ArrowDown, ArrowUp, AlertCircle, Loader } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from "recharts";
-import { getTrafficData, KPI_BY_RANGE, type TrafficChartRange } from "../../data/trafficData";
+import io from "socket.io-client";
 
 const glassCard: React.CSSProperties = {
   background: "rgba(10, 10, 10, 0.75)",
@@ -15,33 +15,6 @@ const glassCard: React.CSSProperties = {
   padding: "20px",
   boxShadow: "0 0 20px rgba(255,0,0,0.12), 0 0 36px rgba(255,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
-
-const bandwidthByDevice = [
-  { device: "SVR-Web-01", in: 420, out: 280, color: "#2563EB" },
-  { device: "SVR-DB-02", in: 180, out: 95, color: "#06B6D4" },
-  { device: "Edge-SW-03", in: 920, out: 640, color: "#EF4444" },
-  { device: "IoT-Cluster", in: 340, out: 210, color: "#F59E0B" },
-  { device: "PC-DevOps", in: 120, out: 80, color: "#FFFF00" },
-  { device: "Cloud-AWS", in: 680, out: 520, color: "#22C55E" },
-];
-
-const protocolData = [
-  { name: "HTTPS", packets: 48200, bytes: "12.4 GB", color: "#2563EB" },
-  { name: "HTTP", packets: 8400, bytes: "1.2 GB", color: "#06B6D4" },
-  { name: "DNS", packets: 22100, bytes: "0.3 GB", color: "#22C55E" },
-  { name: "SSH", packets: 3200, bytes: "0.4 GB", color: "#FFFF00" },
-  { name: "MQTT (IoT)", packets: 15600, bytes: "0.8 GB", color: "#F59E0B" },
-  { name: "Unknown", packets: 1800, bytes: "0.2 GB", color: "#EF4444" },
-];
-
-const packetAnalysis = [
-  { time: "14:00", normal: 4200, suspicious: 42, dropped: 18 },
-  { time: "14:05", normal: 3980, suspicious: 68, dropped: 22 },
-  { time: "14:10", normal: 5100, suspicious: 31, dropped: 12 },
-  { time: "14:15", normal: 4700, suspicious: 95, dropped: 45 },
-  { time: "14:20", normal: 3800, suspicious: 128, dropped: 67 },
-  { time: "14:25", normal: 4400, suspicious: 52, dropped: 28 },
-];
 
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string; color: string }>; label?: string }) => {
   if (active && payload?.length) {
@@ -60,72 +33,99 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
 };
 
 export function TrafficMonitoring() {
-  const [activeRange, setActiveRange] = useState<TrafficChartRange>("live");
-  const [liveSeed, setLiveSeed] = useState(Date.now() % 10000);
-  const [loading, setLoading] = useState(false);
-  const [liveCounters, setLiveCounters] = useState({
-    inbound: "148.2 Mbps",
-    outbound: "62.4 Mbps",
-    packets: "15,280",
-    anomalies: "0"
-  });
+  const [loading, setLoading] = useState(true);
+  const [liveData, setLiveData] = useState<any | null>(null);
+  const [trafficChartData, setTrafficChartData] = useState<any[]>([]);
+  const [protocolData, setProtocolData] = useState<any[]>([]);
+  const [packetAnalysisData, setPacketAnalysisData] = useState<any[]>([]);
+  const [bandwidthByDeviceData, setBandwidthByDeviceData] = useState<any[]>([]);
+
+  const socketRef = useRef<any>(null);
 
   useEffect(() => {
-    if (activeRange !== "live") return;
-    const fetchLiveStats = () => {
-      import("../../api/client").then(({ client }) => {
-        client.get("/dashboard/traffic").then(res => {
-          if (res.data && res.data.data && res.data.data.items) {
-            const items = res.data.data.items;
-            const current = items[items.length - 1];
-            if (current) {
-              setLiveCounters({
-                inbound: `${(current.inbound / (1024 * 1024)).toFixed(2)} MB/s`,
-                outbound: `${(current.outbound / (1024 * 1024)).toFixed(2)} MB/s`,
-                packets: current.packets ? current.packets.toLocaleString() : "14,500",
-                anomalies: String(current.anomalies || 0)
-              });
-            }
-          }
-        }).catch(err => console.error(err));
-      });
-    };
-    
-    fetchLiveStats();
-    const id = setInterval(() => {
-      setLiveSeed(Date.now() % 10000);
-      fetchLiveStats();
-    }, 3000);
-    return () => clearInterval(id);
-  }, [activeRange]);
-
-  const [backendTraffic, setBackendTraffic] = useState<any[]>([]);
-  useEffect(() => {
+    // Initial data fetch from the REST API
     import("../../api/client").then(({ client }) => {
-      client.get("/dashboard/traffic").then(res => {
-        if (res.data && res.data.data && res.data.data.items) {
-          setBackendTraffic(res.data.data.items.map((x: any) => ({
-            t: x.bucket,
-            in: Number((x.inbound / 100000).toFixed(1)),
-            out: Number((x.outbound / 100000).toFixed(1))
-          })));
+      client.get("/traffic/live").then(res => {
+        if (res.data && res.data.data) {
+          const initialData = res.data.data;
+          setLiveData(initialData);
+          setTrafficChartData([{
+            t: initialData.bucket,
+            in: parseFloat((initialData.download_speed || 0).toFixed(1)),
+            out: parseFloat((initialData.upload_speed || 0).toFixed(1))
+          }]);
+          setProtocolData(initialData.protocol_data || []);
+          setPacketAnalysisData([{
+            time: initialData.bucket,
+            normal: initialData.packet_analysis?.normal || 0,
+            suspicious: initialData.packet_analysis?.suspicious || 0,
+            dropped: initialData.packet_analysis?.dropped || 0,
+          }]);
+          setBandwidthByDeviceData(initialData.bandwidth_by_device || []);
         }
-      });
+      }).catch(err => console.error("Error fetching initial traffic data:", err))
+        .finally(() => setLoading(false));
     });
-  }, [liveSeed]);
 
-  const chartData = useMemo(() => {
-    if (backendTraffic.length > 0 && activeRange === "live") return backendTraffic;
-    return getTrafficData(activeRange, liveSeed);
-  }, [activeRange, liveSeed, backendTraffic]);
-  
-  const kpis = KPI_BY_RANGE[activeRange];
+    // WebSocket connection
+    socketRef.current = io(import.meta.env.VITE_API_BASE_URL.replace("/api/v1", "")); // Connect to root of backend for SocketIO
 
-  const handleRangeChange = (r: TrafficChartRange) => {
-    setLoading(true);
-    setActiveRange(r);
-    setTimeout(() => setLoading(false), 400);
-  };
+    socketRef.current.on("traffic_update", (data: any) => {
+      setLiveData(data);
+
+      setTrafficChartData(prevData => {
+        const newDataPoint = {
+          t: data.bucket,
+          in: parseFloat((data.download_speed || 0).toFixed(1)),
+          out: parseFloat((data.upload_speed || 0).toFixed(1))
+        };
+        const updatedData = [...prevData, newDataPoint];
+        // Keep only the last 20 data points for live chart
+        return updatedData.slice(-20);
+      });
+
+      setProtocolData(data.protocol_data || []);
+
+      setPacketAnalysisData(prevData => {
+        const newPacketAnalysis = {
+          time: data.bucket,
+          normal: data.packet_analysis?.normal || 0,
+          suspicious: data.packet_analysis?.suspicious || 0,
+          dropped: data.packet_analysis?.dropped || 0,
+        };
+        const updatedData = [...prevData, newPacketAnalysis];
+        // Keep only the last 6 data points for live chart
+        return updatedData.slice(-6);
+      });
+
+      setBandwidthByDeviceData(data.bandwidth_by_device || []);
+    });
+
+    return () => {
+      socketRef.current?.disconnect();
+    };
+  }, []); // Empty dependency array means this effect runs once on mount and clean up on unmount
+
+  const activeRange = "live"; // Always live for now
+
+  // KPI Data
+  const kpis = useMemo(() => {
+    if (!liveData) return { inbound: "0", outbound: "0", packets: "0", anomalies: "0", network_name: "N/A", connection_type: "N/A" };
+    return {
+      inbound: `${(liveData.download_speed || 0).toFixed(2)} Mbps`,
+      outbound: `${(liveData.upload_speed || 0).toFixed(2)} Mbps`,
+      packets: (liveData.packets_sent + liveData.packets_received || 0).toLocaleString(),
+      anomalies: String(liveData.anomalies || 0),
+      network_name: liveData.network_name || "Unknown",
+      connection_type: liveData.network_type || "Unknown"
+    };
+  }, [liveData]);
+
+  // Max packets for protocol analysis bar width calculation
+  const maxProtocolPackets = useMemo(() => {
+    if (!protocolData || protocolData.length === 0) return 1;
+    return Math.max(...protocolData.map(p => p.packets));
+  }, [protocolData]);
 
   return (
     <div className="app-page">
@@ -135,14 +135,13 @@ export function TrafficMonitoring() {
             <Activity size={22} style={{ color: "#06B6D4" }} />
             Traffic Monitoring
           </h1>
-          <p style={{ color: "#64748B", fontSize: "13px" }}>Real-time network traffic analysis and packet inspection</p>
+          <p style={{ color: "#64748B", fontSize: "13px" }}>Real-time network traffic analysis and packet inspection on {kpis.network_name} ({kpis.connection_type})</p>
         </div>
         <div className="app-page__header-actions">
-          {(["live", "1h", "6h", "24h", "7d"] as TrafficChartRange[]).map((r) => (
-            <button key={r} onClick={() => handleRangeChange(r)} className={`app-btn ${activeRange === r ? "app-btn--primary" : "app-btn--secondary"}`} style={{ fontSize: "11px", padding: "6px 14px", textTransform: "uppercase" }}>
-              {r}
-            </button>
-          ))}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#22C55E", boxShadow: "0 0 8px #22C55E" }} />
+                <span style={{ fontSize: "11px", color: "#22C55E" }}>Live</span>
+            </div>
         </div>
       </div>
 
@@ -185,7 +184,7 @@ export function TrafficMonitoring() {
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={200}>
-              <AreaChart data={chartData}>
+              <AreaChart data={trafficChartData}>
                 <defs>
                   <linearGradient id="gin" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#2563EB" stopOpacity={0.3} />
@@ -212,8 +211,7 @@ export function TrafficMonitoring() {
           <p style={{ fontSize: "11px", color: "#64748B", marginBottom: "16px" }}>Packet distribution by protocol</p>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             {protocolData.map((p) => {
-              const maxPackets = Math.max(...protocolData.map((x) => x.packets));
-              const pct = (p.packets / maxPackets) * 100;
+              const pct = (p.packets / maxProtocolPackets) * 100;
               return (
                 <div key={p.name}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
@@ -235,7 +233,7 @@ export function TrafficMonitoring() {
           <h3 style={{ color: "#E2E8F0", marginBottom: "4px" }}>Packet Analysis</h3>
           <p style={{ fontSize: "11px", color: "#64748B", marginBottom: "16px" }}>Normal / Suspicious / Dropped</p>
           <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={packetAnalysis} barSize={14} barGap={2}>
+            <BarChart data={packetAnalysisData} barSize={14} barGap={2}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
               <XAxis dataKey="time" stroke="#334155" tick={{ fill: "#475569", fontSize: 10 }} />
               <YAxis stroke="#334155" tick={{ fill: "#475569", fontSize: 10 }} />
@@ -251,7 +249,7 @@ export function TrafficMonitoring() {
           <h3 style={{ color: "#E2E8F0", marginBottom: "4px" }}>Bandwidth by Device</h3>
           <p style={{ fontSize: "11px", color: "#64748B", marginBottom: "14px" }}>Top consumers (Mbps)</p>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {bandwidthByDevice.map((d) => (
+            {bandwidthByDeviceData.map((d) => (
               <div key={d.device} style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                 <span style={{ fontSize: "11px", color: "#94A3B8", width: "110px", flexShrink: 0 }}>{d.device}</span>
                 <div style={{ flex: 1 }}>

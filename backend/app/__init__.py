@@ -5,7 +5,7 @@ from flask_jwt_extended import JWTManager
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.config import DevelopmentConfig
-from app.extensions import cors, db, jwt, limiter, migrate
+from app.extensions import cors, db, jwt, limiter, migrate, socketio
 from app.models.core import (
     Alert,
     AuditLog,
@@ -38,6 +38,7 @@ def create_app(config_object: type[DevelopmentConfig] = DevelopmentConfig) -> Fl
         app,
         resources={r"/api/*": {"origins": app.config.get("CORS_ORIGINS", ["*"]), "supports_credentials": True}},
     )
+    socketio.init_app(app)
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(core_bp)
@@ -73,6 +74,9 @@ def create_app(config_object: type[DevelopmentConfig] = DevelopmentConfig) -> Fl
             except Exception as e:
                 import traceback
                 traceback.print_exc()
+
+    from app.services.traffic_monitor import init_traffic_monitor
+    init_traffic_monitor(app)
 
     return app
 

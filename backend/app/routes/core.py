@@ -92,93 +92,7 @@ def dashboard_summary():
     )
 
 
-@bp.get("/dashboard/traffic")
-@jwt_required(optional=True)
-def dashboard_traffic():
-    import psutil
-    import time
-    from scapy.all import sniff, IP, TCP, UDP
-    
-    # 1. Identify Active Network Interface & Type
-    addrs = psutil.net_if_addrs()
-    stats = psutil.net_if_stats()
-    active_iface = "Unknown"
-    conn_type = "Ethernet"
-    
-    for iface, iface_stats in stats.items():
-        if iface_stats.isup and iface != 'lo':
-            active_iface = iface
-            if 'wi-fi' in iface.lower() or 'wlan' in iface.lower():
-                conn_type = "WiFi"
-            break
 
-    # 2. Measure Real-Time Speed (Bytes Sent/Recv)
-    net_before = psutil.net_io_counters(pernic=True).get(active_iface, psutil.net_io_counters())
-    time.sleep(0.2)
-    net_after = psutil.net_io_counters(pernic=True).get(active_iface, psutil.net_io_counters())
-    
-    bytes_sent = (net_after.bytes_sent - net_before.bytes_sent) * 5
-    bytes_recv = (net_after.bytes_recv - net_before.bytes_recv) * 5
-    pkts_sent = (net_after.packets_sent - net_before.packets_sent) * 5
-    pkts_recv = (net_after.packets_recv - net_before.packets_recv) * 5
-
-    # 3. Connection & Protocol Distribution
-    conns = psutil.net_connections(kind='inet')
-    active_conn_count = len(conns)
-    
-    protocols = {"TCP": 0, "UDP": 0, "DNS": 0, "HTTP": 0, "HTTPS": 0}
-    for c in conns:
-        if c.type == 1: protocols["TCP"] += 1
-        elif c.type == 2: protocols["UDP"] += 1
-        
-        if c.raddr:
-            if c.raddr.port == 53: protocols["DNS"] += 1
-            elif c.raddr.port == 80: protocols["HTTP"] += 1
-            elif c.raddr.port == 443: protocols["HTTPS"] += 1
-
-    bucket_label = datetime.now(timezone.utc).strftime("%H:%M:%S")
-    
-    # 4. Anomaly Detection (Spike Alerts)
-    anomalies_count = 0
-    if bytes_recv > 5 * 1024 * 1024: # 5MB/s threshold spike
-        anomalies_count += 1
-        alert_id = f"ALT-TRAFFIC-{int(time.time())}"
-        if not Alert.query.filter_by(alert_id=alert_id).first():
-            db.session.add(Alert(
-                alert_id=alert_id,
-                severity="high",
-                title="Network Traffic Spike Detected",
-                message=f"Inbound traffic spike detected on {active_iface} ({conn_type}). Current throughput: {(bytes_recv/1024/1024):.2f} MB/s",
-                status="new",
-                device_name=active_iface
-            ))
-
-    # 5. Persist to traffic_logs table
-    traffic = NetworkTraffic(
-        bucket=bucket_label,
-        inbound=bytes_recv,
-        outbound=bytes_sent,
-        anomalies=anomalies_count,
-        protocol_breakdown=protocols,
-        network_name=active_iface,
-        connection_type=conn_type,
-        upload_speed=float(bytes_sent),
-        download_speed=float(bytes_recv),
-        packets_sent=pkts_sent,
-        packets_received=pkts_recv,
-        active_connections=active_conn_count
-    )
-    db.session.add(traffic)
-    
-    # Maintain rolling window
-    if NetworkTraffic.query.count() > 50:
-        oldest = NetworkTraffic.query.order_by(NetworkTraffic.created_at.asc()).first()
-        if oldest: db.session.delete(oldest)
-    
-    db.session.commit()
-
-    buckets = NetworkTraffic.query.order_by(NetworkTraffic.created_at.desc()).limit(20).all()
-    return ok({"items": [bucket.to_dict() for bucket in reversed(buckets)]})
 
 
 # Data Upload Module Routes
@@ -583,6 +497,15 @@ def list_audit_logs():
 @jwt_required()
 def list_transactions():
     return ok(_pagination(BlockchainTransaction))
+
+
+@bp.get("/traffic/live")
+@jwt_required(optional=True)
+def get_live_traffic_data():
+    latest_traffic = NetworkTraffic.query.order_by(NetworkTraffic.created_at.desc()).first()
+    if latest_traffic:
+        return ok(latest_traffic.to_dict())
+    return ok({}, "No traffic data available yet.")
 
 
 @bp.post("/blockchain/verify")
