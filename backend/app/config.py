@@ -35,9 +35,9 @@ class BaseConfig:
             _db_url = normalize_database_url(_db_url)
         except ImportError:
             print("[Config] WARNING: postgresql requested but psycopg2 is not installed. Falling back to SQLite.")
-            _db_url = "sqlite:///securenet_ai.db"
+            _db_url = "sqlite:///securenet_ai_local.db"
     if not _db_url:
-        _db_url = "sqlite:///securenet_ai.db"
+        _db_url = "sqlite:///securenet_ai_local.db"
 
     SQLALCHEMY_DATABASE_URI = _db_url
 

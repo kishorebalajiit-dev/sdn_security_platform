@@ -26,7 +26,8 @@ client.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as typeof error.config & { _retryCount?: number; _isRetry?: boolean };
 
-    if (error.message === "Network Error" && originalRequest) {
+    const isAuthLogin = originalRequest?.url?.includes("/auth/login");
+    if (error.message === "Network Error" && originalRequest && !isAuthLogin) {
       originalRequest._retryCount = (originalRequest._retryCount ?? 0) + 1;
       if (originalRequest._retryCount <= 3) {
         await new Promise((r) => setTimeout(r, originalRequest._retryCount * 1500));

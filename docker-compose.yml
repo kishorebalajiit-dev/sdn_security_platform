@@ -32,15 +32,15 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+    env_file:
+      - .env
     environment:
       SECRET_KEY: change-me
       JWT_SECRET_KEY: change-me-too
-      DATABASE_URL: postgresql+psycopg2://securenet:securenet@postgres:5432/securenet_ai
       GANACHE_URL: http://ganache:8545
       RYU_API_URL: http://ryu:8080
-      AUTO_CREATE_TABLES: "1"
+      RYU_CONTROLLER_URL: http://ryu:8080
     depends_on:
-      - postgres
       - ganache
       - ryu
     ports:
@@ -50,6 +50,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - .env
     environment:
       - VITE_API_BASE_URL=http://localhost:5000/api/v1
     depends_on:

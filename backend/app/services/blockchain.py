@@ -4,10 +4,17 @@ import hashlib
 import json
 import os
 from datetime import datetime, timezone
-from web3 import Web3
+
+try:
+    from web3 import Web3
+except ImportError:
+    Web3 = None
 
 PROVIDER_URL = os.getenv("BLOCKCHAIN_PROVIDER_URL")
-if PROVIDER_URL:
+if Web3 is None:
+    w3 = None
+    print("[Blockchain] web3 is not installed. Using simulation mode.")
+elif PROVIDER_URL:
     w3 = Web3(Web3.HTTPProvider(PROVIDER_URL))
     print(f"[Blockchain] Connected to public provider: {PROVIDER_URL}")
 else:
@@ -21,6 +28,9 @@ def get_contract():
     global contract_instance, contract_address
     if contract_instance:
         return contract_instance
+
+    if w3 is None:
+        return None
 
     if not w3.is_connected():
         provider_name = PROVIDER_URL or "local node"

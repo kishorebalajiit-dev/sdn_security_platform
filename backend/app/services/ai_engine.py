@@ -3,8 +3,16 @@ from __future__ import annotations
 import os
 import re
 import json
-import joblib
-import numpy as np
+
+try:
+    import joblib
+except ImportError:
+    joblib = None
+
+try:
+    import numpy as np
+except ImportError:
+    np = None
 
 # Threat classifications mapped to labels
 THREAT_CLASSES = {
@@ -22,6 +30,10 @@ def get_model():
     global _model
     if _model:
         return _model
+
+    if joblib is None or np is None:
+        print("[AI Engine] ML dependencies are not installed. Using fallback simulation.")
+        return None
 
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     model_path = os.path.join(base_dir, "services", "threat_classifier.pkl")
